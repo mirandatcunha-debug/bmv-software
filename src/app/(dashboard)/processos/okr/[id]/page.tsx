@@ -306,10 +306,12 @@ export default function ObjetivoDetailPage() {
           <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100">
             Key Results ({objetivo.keyResults.length})
           </h2>
-          <Button className="bg-bmv-primary hover:bg-bmv-primary/90">
-            <Plus className="h-4 w-4 mr-2" />
-            Novo KR
-          </Button>
+          <Link href={`/processos/okr/${params.id}/novo-kr`}>
+            <Button className="bg-bmv-primary hover:bg-bmv-primary/90">
+              <Plus className="h-4 w-4 mr-2" />
+              Novo KR
+            </Button>
+          </Link>
         </div>
 
         <div className="space-y-4">

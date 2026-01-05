@@ -1,5 +1,6 @@
 export { ObjetivoCard } from './objetivo-card'
 export { KRCard } from './kr-card'
 export { TarefaItem } from './tarefa-item'
+export { SubtarefaItem } from './subtarefa-item'
 export { ProgressoBar } from './progresso-bar'
 export { StatusBadge } from './status-badge'

@@ -172,10 +172,12 @@ export default function OKRPage() {
             Gerencie objetivos e resultados-chave
           </p>
         </div>
-        <Button className="bg-bmv-primary hover:bg-bmv-primary/90">
-          <Plus className="h-4 w-4 mr-2" />
-          Novo Objetivo
-        </Button>
+        <Link href="/processos/okr/novo">
+          <Button className="bg-bmv-primary hover:bg-bmv-primary/90">
+            <Plus className="h-4 w-4 mr-2" />
+            Novo Objetivo
+          </Button>
+        </Link>
       </div>
 
       {/* Filters */}
@@ -244,10 +246,12 @@ export default function OKRPage() {
             <p className="text-muted-foreground mb-4">
               Não há objetivos para os filtros selecionados.
             </p>
-            <Button variant="outline">
-              <Plus className="h-4 w-4 mr-2" />
-              Criar Primeiro Objetivo
-            </Button>
+            <Link href="/processos/okr/novo">
+              <Button variant="outline">
+                <Plus className="h-4 w-4 mr-2" />
+                Criar Primeiro Objetivo
+              </Button>
+            </Link>
           </div>
         )}
       </div>

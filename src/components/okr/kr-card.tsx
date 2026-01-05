@@ -1,6 +1,8 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
+import { useParams } from 'next/navigation'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { ChevronDown, ChevronUp, Plus, Flag } from 'lucide-react'
@@ -12,6 +14,7 @@ import { cn } from '@/lib/utils'
 interface KRCardProps {
   kr: KeyResult
   index: number
+  objetivoId?: string
   onAddTarefa?: (krId: string) => void
   onTarefaToggle?: (tarefaId: string, concluida: boolean) => void
   onSubtarefaToggle?: (subtarefaId: string, concluida: boolean) => void
@@ -21,12 +24,15 @@ interface KRCardProps {
 export function KRCard({
   kr,
   index,
+  objetivoId,
   onAddTarefa,
   onTarefaToggle,
   onSubtarefaToggle,
   className,
 }: KRCardProps) {
+  const params = useParams()
   const [expanded, setExpanded] = useState(false)
+  const objId = objetivoId || params.id as string
   const hasTarefas = kr.tarefas && kr.tarefas.length > 0
 
   const getProgressStatus = () => {
@@ -122,15 +128,16 @@ export function KRCard({
                 </p>
               )}
 
-              <Button
-                variant="outline"
-                size="sm"
-                className="w-full mt-2"
-                onClick={() => onAddTarefa?.(kr.id)}
-              >
-                <Plus className="h-4 w-4 mr-1" />
-                Nova Tarefa
-              </Button>
+              <Link href={`/processos/okr/${objId}/nova-tarefa?kr=${kr.id}`}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full mt-2"
+                >
+                  <Plus className="h-4 w-4 mr-1" />
+                  Nova Tarefa
+                </Button>
+              </Link>
             </div>
           </CardContent>
         )}
