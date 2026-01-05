@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
@@ -16,14 +16,18 @@ import {
   Users,
   FileText,
   HelpCircle,
+  Building2,
+  Shield,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { canManageTenants } from '@/lib/permissions'
 
 interface SidebarItem {
   title: string
   href: string
   icon: React.ReactNode
   badge?: string
+  adminOnly?: boolean
 }
 
 const sidebarItems: SidebarItem[] = [
@@ -54,6 +58,15 @@ const sidebarItems: SidebarItem[] = [
   },
 ]
 
+const adminItems: SidebarItem[] = [
+  {
+    title: 'Empresas',
+    href: '/admin/empresas',
+    icon: <Building2 className="h-5 w-5" />,
+    adminOnly: true,
+  },
+]
+
 const bottomItems: SidebarItem[] = [
   {
     title: 'Configurações',
@@ -69,7 +82,26 @@ const bottomItems: SidebarItem[] = [
 
 export function Sidebar() {
   const [isCollapsed, setIsCollapsed] = useState(false)
+  const [userRole, setUserRole] = useState<string | null>(null)
   const pathname = usePathname()
+
+  useEffect(() => {
+    // Buscar perfil do usuário atual
+    const fetchUserRole = async () => {
+      try {
+        const response = await fetch('/api/auth/me')
+        if (response.ok) {
+          const data = await response.json()
+          setUserRole(data.perfil)
+        }
+      } catch (error) {
+        console.error('Erro ao buscar perfil do usuário:', error)
+      }
+    }
+    fetchUserRole()
+  }, [])
+
+  const showAdminMenu = canManageTenants(userRole)
 
   return (
     <aside
@@ -136,6 +168,42 @@ export function Sidebar() {
               </Link>
             )
           })}
+
+          {/* Admin Section - Apenas para ADMIN_BMV e CONSULTOR_BMV */}
+          {showAdminMenu && (
+            <>
+              <div className={cn(
+                'mt-4 mb-2 flex items-center gap-2',
+                isCollapsed ? 'justify-center' : 'px-3'
+              )}>
+                {!isCollapsed && (
+                  <span className="text-xs font-semibold uppercase text-slate-400 tracking-wider">
+                    Admin
+                  </span>
+                )}
+                <Shield className="h-3 w-3 text-slate-400" />
+              </div>
+              {adminItems.map((item) => {
+                const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={cn(
+                      'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
+                      isActive
+                        ? 'bg-bmv-primary text-white'
+                        : 'text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800',
+                      isCollapsed && 'justify-center px-2'
+                    )}
+                  >
+                    {item.icon}
+                    {!isCollapsed && <span>{item.title}</span>}
+                  </Link>
+                )
+              })}
+            </>
+          )}
         </div>
 
         <div className="space-y-1 border-t border-slate-200 dark:border-slate-800 pt-3">

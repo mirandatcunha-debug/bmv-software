@@ -45,17 +45,20 @@ model Tenant {
 }
 
 model User {
-  id           String    @id @default(cuid())
-  tenantId     String    @map("tenant_id")
-  authId       String    @unique @map("auth_id") // ID do Supabase Auth
-  email        String    @unique
-  nome         String
-  avatarUrl    String?   @map("avatar_url")
-  perfil       UserRole  @default(COLABORADOR)
-  ativo        Boolean   @default(true)
-  ultimoAcesso DateTime? @map("ultimo_acesso")
-  criadoEm     DateTime  @default(now()) @map("criado_em")
-  atualizadoEm DateTime  @updatedAt @map("atualizado_em")
+  id             String    @id @default(cuid())
+  tenantId       String    @map("tenant_id")
+  authId         String?   @unique @map("auth_id") // ID do Supabase Auth
+  email          String    @unique
+  nome           String
+  avatarUrl      String?   @map("avatar_url")
+  perfil         UserRole  @default(COLABORADOR)
+  ativo          Boolean   @default(true)
+  primeiroAcesso Boolean   @default(true) @map("primeiro_acesso")
+  tokenConvite   String?   @unique @map("token_convite")
+  tokenExpira    DateTime? @map("token_expira")
+  ultimoAcesso   DateTime? @map("ultimo_acesso")
+  criadoEm       DateTime  @default(now()) @map("criado_em")
+  atualizadoEm   DateTime  @updatedAt @map("atualizado_em")
 
   // Relacionamentos
   tenant             Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
