@@ -80,7 +80,7 @@ export default function NovoUsuarioPage() {
     setLoading(true)
 
     try {
-      const response = await fetch(`/api/tenants/${params.id}/users`, {
+      const response = await fetch(`/api/admin/tenants/${params.id}/users`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),

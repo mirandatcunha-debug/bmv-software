@@ -52,7 +52,7 @@ export default function NovaEmpresaPage() {
     setLoading(true)
 
     try {
-      const response = await fetch('/api/tenants', {
+      const response = await fetch('/api/admin/tenants', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
