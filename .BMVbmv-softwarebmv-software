@@ -1,0 +1,18 @@
+[33mcommit 5122e88491adc326a9ae31bf3f5e9e913610d7f0[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m)[m
+Author: Miranda Cunha <mirandatcunha@gmail.com>
+Date:   Mon Jan 5 22:17:04 2026 -0300
+
+    Corrige todos os erros
+
+prisma/schema.prisma
+src/app/api/consultoria/projetos/[id]/tarefas/route.ts
+src/app/api/consultoria/tarefas/[id]/route.ts
+src/app/api/dashboard/route.ts
+src/app/api/insights/route.ts
+src/app/api/tarefas/[id]/route.ts
+src/app/api/tenants/[id]/route.ts
+src/app/api/tenants/route.ts
+src/components/ui/radio-group.tsx
+src/components/ui/table.tsx
+src/lib/prisma.ts
+src/lib/supabase/server.ts

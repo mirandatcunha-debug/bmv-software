@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -36,7 +36,7 @@ const contasMock = [
 
 const frequenciaOptions: Frequencia[] = ['DIARIA', 'SEMANAL', 'QUINZENAL', 'MENSAL', 'ANUAL']
 
-export default function NovaMovimentacaoPage() {
+function NovaMovimentacaoContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { toast } = useToast()
@@ -387,5 +387,13 @@ export default function NovaMovimentacaoPage() {
         </CardContent>
       </Card>
     </div>
+  )
+}
+
+export default function NovaMovimentacaoPage() {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center p-8"><Loader2 className="h-8 w-8 animate-spin" /></div>}>
+      <NovaMovimentacaoContent />
+    </Suspense>
   )
 }

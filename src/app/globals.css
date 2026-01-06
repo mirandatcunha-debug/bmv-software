@@ -77,9 +77,20 @@
   @apply bg-muted-foreground/50;
 }
 
-/* Animações suaves */
+/* ============================================
+   ANIMAÇÕES E TRANSIÇÕES
+   ============================================ */
+
+/* Transições suaves para elementos interativos */
+@layer utilities {
+  .transition-interactive {
+    @apply transition-all duration-200 ease-out;
+  }
+}
+
+/* Animação base - fade in */
 .animate-in {
-  animation: animateIn 0.3s ease-out;
+  animation: animateIn 0.3s ease-out forwards;
 }
 
 @keyframes animateIn {
@@ -93,9 +104,199 @@
   }
 }
 
-/* Cards com hover */
+/* Fade in com slide up */
+.animate-fade-in-up {
+  animation: fadeInUp 0.5s ease-out forwards;
+  opacity: 0;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Stagger delays sequenciais */
+.animate-stagger-1 {
+  animation-delay: 0.1s;
+}
+
+.animate-stagger-2 {
+  animation-delay: 0.2s;
+}
+
+.animate-stagger-3 {
+  animation-delay: 0.3s;
+}
+
+.animate-stagger-4 {
+  animation-delay: 0.4s;
+}
+
+.animate-stagger-5 {
+  animation-delay: 0.5s;
+}
+
+/* Shimmer para loading states */
+.animate-shimmer {
+  background: linear-gradient(
+    90deg,
+    hsl(var(--muted)) 0%,
+    hsl(var(--muted-foreground) / 0.1) 50%,
+    hsl(var(--muted)) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Pulse suave para destaques */
+.animate-pulse-soft {
+  animation: pulseSoft 2s ease-in-out infinite;
+}
+
+@keyframes pulseSoft {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+/* Animação para números que mudam */
+.animate-number {
+  transition: all 0.3s ease-out;
+  display: inline-block;
+}
+
+.animate-number:hover {
+  transform: scale(1.02);
+}
+
+/* Card interativo com hover */
+.card-interactive {
+  @apply transition-all duration-300 ease-out cursor-pointer;
+}
+
+.card-interactive:hover {
+  @apply shadow-lg -translate-y-1;
+  box-shadow:
+    0 10px 25px -5px rgba(0, 0, 0, 0.1),
+    0 8px 10px -6px rgba(0, 0, 0, 0.1);
+}
+
+.card-interactive:active {
+  @apply scale-[0.98];
+}
+
+/* Cards com hover (legado - mantido para compatibilidade) */
 .card-hover {
   @apply transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5;
+}
+
+/* Scale suave no hover */
+.hover-scale {
+  @apply transition-transform duration-200;
+}
+
+.hover-scale:hover {
+  @apply scale-[1.02];
+}
+
+/* Slide up para cards */
+.animate-slide-up {
+  animation: slideUp 0.4s ease-out forwards;
+  opacity: 0;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Fade in scale */
+.animate-fade-in-scale {
+  animation: fadeInScale 0.3s ease-out forwards;
+  opacity: 0;
+}
+
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Bounce suave para botões */
+.animate-bounce-soft {
+  animation: bounceSoft 0.5s ease-out;
+}
+
+@keyframes bounceSoft {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+/* Glow para elementos destacados */
+.animate-glow {
+  animation: glow 2s ease-in-out infinite;
+}
+
+@keyframes glow {
+  0%, 100% {
+    box-shadow: 0 0 5px rgba(26, 54, 93, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(26, 54, 93, 0.4);
+  }
+}
+
+/* Highlight para valores importantes */
+.highlight-value {
+  @apply relative;
+}
+
+.highlight-value::after {
+  content: '';
+  @apply absolute inset-0 bg-primary/5 rounded-md -z-10;
+  animation: highlightPulse 2s ease-in-out infinite;
+}
+
+@keyframes highlightPulse {
+  0%, 100% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
 }
 
 /* Gradiente do BM&V */

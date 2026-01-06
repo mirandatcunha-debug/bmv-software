@@ -49,15 +49,15 @@ export function ResumoFinanceiro({
     return (
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {[1, 2, 3, 4].map((i) => (
-          <Card key={i}>
+          <Card key={i} className={`animate-fade-in-up animate-stagger-${i}`}>
             <CardContent className="p-6">
-              <div className="animate-pulse space-y-3">
+              <div className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-24"></div>
-                  <div className="h-8 w-8 bg-slate-200 dark:bg-slate-700 rounded-lg"></div>
+                  <div className="h-4 animate-shimmer rounded w-24"></div>
+                  <div className="h-8 w-8 animate-shimmer rounded-lg"></div>
                 </div>
-                <div className="h-8 bg-slate-200 dark:bg-slate-700 rounded w-32"></div>
-                <div className="h-3 bg-slate-200 dark:bg-slate-700 rounded w-20"></div>
+                <div className="h-8 animate-shimmer rounded w-32"></div>
+                <div className="h-3 animate-shimmer rounded w-20"></div>
               </div>
             </CardContent>
           </Card>
@@ -69,19 +69,19 @@ export function ResumoFinanceiro({
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
       {/* Saldo Total */}
-      <Card>
+      <Card className="card-interactive animate-fade-in-up animate-stagger-1">
         <CardContent className="p-6">
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium text-muted-foreground">
               Saldo Total
             </span>
-            <div className="p-2 rounded-lg bg-slate-100 dark:bg-slate-800">
+            <div className="p-2 rounded-lg bg-slate-100 dark:bg-slate-800 transition-transform hover:scale-110">
               <Wallet className="h-5 w-5 text-slate-600 dark:text-slate-400" />
             </div>
           </div>
           <div className="mt-3">
             <span className={cn(
-              'text-2xl font-bold',
+              'text-2xl font-bold animate-number',
               saldoTotal >= 0
                 ? 'text-slate-900 dark:text-slate-100'
                 : 'text-red-600 dark:text-red-400'
@@ -95,74 +95,75 @@ export function ResumoFinanceiro({
         </CardContent>
       </Card>
 
-      {/* Receitas do Mês */}
-      <Card>
+      {/* Receitas do Mes */}
+      <Card className="card-interactive animate-fade-in-up animate-stagger-2">
         <CardContent className="p-6">
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium text-muted-foreground">
-              Receitas do Mês
+              Receitas do Mes
             </span>
-            <div className="p-2 rounded-lg bg-green-100 dark:bg-green-900/30">
+            <div className="p-2 rounded-lg bg-green-100 dark:bg-green-900/30 transition-transform hover:scale-110">
               <TrendingUp className="h-5 w-5 text-green-600 dark:text-green-400" />
             </div>
           </div>
           <div className="mt-3">
-            <span className="text-2xl font-bold text-green-600 dark:text-green-400">
+            <span className="text-2xl font-bold text-green-600 dark:text-green-400 animate-number">
               {formatCurrency(receitasMes)}
             </span>
           </div>
           <div className="flex items-center gap-1 mt-1">
             {variacaoReceitas >= 0 ? (
-              <ArrowUpRight className="h-4 w-4 text-green-600" />
+              <ArrowUpRight className="h-4 w-4 text-green-600 transition-transform hover:scale-125" />
             ) : (
-              <ArrowDownRight className="h-4 w-4 text-red-600" />
+              <ArrowDownRight className="h-4 w-4 text-red-600 transition-transform hover:scale-125" />
             )}
             <span className={cn(
-              'text-xs font-medium',
+              'text-xs font-medium animate-number',
               variacaoReceitas >= 0 ? 'text-green-600' : 'text-red-600'
             )}>
               {Math.abs(variacaoReceitas).toFixed(1)}%
             </span>
-            <span className="text-xs text-muted-foreground">vs mês anterior</span>
+            <span className="text-xs text-muted-foreground">vs mes anterior</span>
           </div>
         </CardContent>
       </Card>
 
-      {/* Despesas do Mês */}
-      <Card>
+      {/* Despesas do Mes */}
+      <Card className="card-interactive animate-fade-in-up animate-stagger-3">
         <CardContent className="p-6">
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium text-muted-foreground">
-              Despesas do Mês
+              Despesas do Mes
             </span>
-            <div className="p-2 rounded-lg bg-red-100 dark:bg-red-900/30">
+            <div className="p-2 rounded-lg bg-red-100 dark:bg-red-900/30 transition-transform hover:scale-110">
               <TrendingDown className="h-5 w-5 text-red-600 dark:text-red-400" />
             </div>
           </div>
           <div className="mt-3">
-            <span className="text-2xl font-bold text-red-600 dark:text-red-400">
+            <span className="text-2xl font-bold text-red-600 dark:text-red-400 animate-number">
               {formatCurrency(despesasMes)}
             </span>
           </div>
           <div className="flex items-center gap-1 mt-1">
             {variacaoDespesas <= 0 ? (
-              <ArrowDownRight className="h-4 w-4 text-green-600" />
+              <ArrowDownRight className="h-4 w-4 text-green-600 transition-transform hover:scale-125" />
             ) : (
-              <ArrowUpRight className="h-4 w-4 text-red-600" />
+              <ArrowUpRight className="h-4 w-4 text-red-600 transition-transform hover:scale-125" />
             )}
             <span className={cn(
-              'text-xs font-medium',
+              'text-xs font-medium animate-number',
               variacaoDespesas <= 0 ? 'text-green-600' : 'text-red-600'
             )}>
               {Math.abs(variacaoDespesas).toFixed(1)}%
             </span>
-            <span className="text-xs text-muted-foreground">vs mês anterior</span>
+            <span className="text-xs text-muted-foreground">vs mes anterior</span>
           </div>
         </CardContent>
       </Card>
 
       {/* Resultado */}
       <Card className={cn(
+        'card-interactive animate-fade-in-up animate-stagger-4',
         resultado >= 0
           ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800'
           : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'
@@ -175,10 +176,10 @@ export function ResumoFinanceiro({
                 ? 'text-green-700 dark:text-green-300'
                 : 'text-red-700 dark:text-red-300'
             )}>
-              Resultado do Mês
+              Resultado do Mes
             </span>
             <div className={cn(
-              'p-2 rounded-lg',
+              'p-2 rounded-lg transition-transform hover:scale-110',
               resultado >= 0
                 ? 'bg-green-200 dark:bg-green-800'
                 : 'bg-red-200 dark:bg-red-800'
@@ -193,7 +194,7 @@ export function ResumoFinanceiro({
           </div>
           <div className="mt-3">
             <span className={cn(
-              'text-2xl font-bold',
+              'text-2xl font-bold animate-number',
               resultado >= 0
                 ? 'text-green-700 dark:text-green-300'
                 : 'text-red-700 dark:text-red-300'
@@ -207,7 +208,7 @@ export function ResumoFinanceiro({
               ? 'text-green-600 dark:text-green-400'
               : 'text-red-600 dark:text-red-400'
           )}>
-            {resultado >= 0 ? 'Lucro no período' : 'Prejuízo no período'}
+            {resultado >= 0 ? 'Lucro no periodo' : 'Prejuizo no periodo'}
           </p>
         </CardContent>
       </Card>
