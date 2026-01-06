@@ -28,6 +28,7 @@ interface SidebarItem {
   icon: React.ReactNode
   badge?: string
   adminOnly?: boolean
+  consultorOnly?: boolean // Apenas para ADMIN_BMV e CONSULTOR_BMV
 }
 
 const sidebarItems: SidebarItem[] = [
@@ -55,6 +56,7 @@ const sidebarItems: SidebarItem[] = [
     title: 'Consultoria',
     href: '/consultoria',
     icon: <Briefcase className="h-5 w-5" />,
+    consultorOnly: true, // Apenas ADMIN_BMV e CONSULTOR_BMV veem no menu
   },
 ]
 
@@ -102,6 +104,16 @@ export function Sidebar() {
   }, [])
 
   const showAdminMenu = canManageTenants(userRole)
+  const isConsultorBMV = ['ADMIN_BMV', 'CONSULTOR_BMV'].includes(userRole || '')
+
+  // Filtrar itens do menu baseado no perfil
+  const filteredSidebarItems = sidebarItems.filter((item) => {
+    // Se é consultorOnly, só mostra para ADMIN_BMV e CONSULTOR_BMV
+    if (item.consultorOnly && !isConsultorBMV) {
+      return false
+    }
+    return true
+  })
 
   return (
     <aside
@@ -144,7 +156,7 @@ export function Sidebar() {
       {/* Navigation */}
       <nav className="flex flex-col h-[calc(100vh-4rem)] justify-between p-3">
         <div className="space-y-1">
-          {sidebarItems.map((item) => {
+          {filteredSidebarItems.map((item) => {
             const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
             return (
               <Link
