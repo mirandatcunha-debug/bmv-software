@@ -43,7 +43,7 @@ export async function GET(request: NextRequest) {
       where,
       include: {
         _count: {
-          select: { users: true },
+          select: { usuarios: true },
         },
       },
       orderBy: { criadoEm: 'desc' },
@@ -79,7 +79,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { nome, cnpj, email, telefone, endereco, plano } = body
+    const { nome, cnpj, email, telefone, endereco } = body
 
     if (!nome || !cnpj) {
       return NextResponse.json(
@@ -107,7 +107,6 @@ export async function POST(request: NextRequest) {
         email,
         telefone,
         endereco,
-        plano: plano || 'BASICO',
         ativo: true,
       },
     })

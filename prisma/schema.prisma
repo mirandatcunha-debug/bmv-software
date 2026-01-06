@@ -50,6 +50,7 @@ model User {
   authId         String?   @unique @map("auth_id") // ID do Supabase Auth
   email          String    @unique
   nome           String
+  telefone       String?
   avatarUrl      String?   @map("avatar_url")
   perfil         UserRole  @default(COLABORADOR)
   ativo          Boolean   @default(true)
@@ -540,6 +541,35 @@ model Comment {
 
   @@index([tarefaId])
   @@map("comments")
+}
+
+// ============================================
+// CONFIGURAÇÕES DO USUÁRIO
+// ============================================
+
+model AppearanceSettings {
+  id          String   @id @default(cuid())
+  userId      String   @unique @map("user_id")
+  tema        String   @default("system")
+  corPrimaria String   @default("#1a365d") @map("cor_primaria")
+  densidade   String   @default("normal")
+  criadoEm    DateTime @default(now()) @map("criado_em")
+  atualizadoEm DateTime @updatedAt @map("atualizado_em")
+
+  @@map("appearance_settings")
+}
+
+model NotificationSettings {
+  id                   String   @id @default(cuid())
+  userId               String   @unique @map("user_id")
+  emailTarefaAtribuida Boolean  @default(true) @map("email_tarefa_atribuida")
+  emailPrazoProximo    Boolean  @default(true) @map("email_prazo_proximo")
+  emailResumoSemanal   Boolean  @default(false) @map("email_resumo_semanal")
+  notificacaoSistema   Boolean  @default(true) @map("notificacao_sistema")
+  criadoEm             DateTime @default(now()) @map("criado_em")
+  atualizadoEm         DateTime @updatedAt @map("atualizado_em")
+
+  @@map("notification_settings")
 }
 
 // ============================================

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { createServerComponentClient } from '@/lib/supabase/server'
+import { OkrStatus } from '@prisma/client'
 
 // GET - Buscar tarefa por ID
 export async function GET(
@@ -219,9 +220,9 @@ async function recalcularProgressos(keyResultId: string, objetivoId: string) {
   const progressoObjetivo = somaPesos > 0 ? Math.round(somaProgressoPonderado / somaPesos) : 0
 
   // Determinar status baseado no progresso
-  let status = 'EM_ANDAMENTO'
-  if (progressoObjetivo === 0) status = 'NAO_INICIADO'
-  else if (progressoObjetivo >= 100) status = 'CONCLUIDO'
+  let status: OkrStatus = OkrStatus.EM_ANDAMENTO
+  if (progressoObjetivo === 0) status = OkrStatus.NAO_INICIADO
+  else if (progressoObjetivo >= 100) status = OkrStatus.CONCLUIDO
 
   await prisma.objective.update({
     where: { id: objetivoId },

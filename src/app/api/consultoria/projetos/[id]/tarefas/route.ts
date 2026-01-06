@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { createServerComponentClient } from '@/lib/supabase/server'
+import { ConsultingProjectStatus } from '@prisma/client'
 
 // Funcao auxiliar para recalcular progresso do projeto
 async function recalcularProgressoProjeto(projetoId: string) {
@@ -20,11 +21,11 @@ async function recalcularProgressoProjeto(projetoId: string) {
   const progresso = Math.round((concluidas / tarefas.length) * 100)
 
   // Determinar status do projeto baseado no progresso
-  let status = 'EM_ANDAMENTO'
+  let status: ConsultingProjectStatus = ConsultingProjectStatus.EM_ANDAMENTO
   if (progresso === 0) {
-    status = 'NAO_INICIADO'
+    status = ConsultingProjectStatus.NAO_INICIADO
   } else if (progresso === 100) {
-    status = 'CONCLUIDO'
+    status = ConsultingProjectStatus.CONCLUIDO
   }
 
   await prisma.consultingProject.update({

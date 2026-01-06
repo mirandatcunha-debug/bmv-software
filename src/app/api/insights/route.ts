@@ -46,12 +46,12 @@ export async function GET(request: NextRequest) {
     })
 
     const receitasMes = transacoesMes
-      .filter((t) => t.tipo === 'RECEITA')
-      .reduce((acc, t) => acc + Number(t.valor), 0)
+      .filter((t: { tipo: string }) => t.tipo === 'RECEITA')
+      .reduce((acc: number, t: { valor: unknown }) => acc + Number(t.valor), 0)
 
     const despesasMes = transacoesMes
-      .filter((t) => t.tipo === 'DESPESA')
-      .reduce((acc, t) => acc + Number(t.valor), 0)
+      .filter((t: { tipo: string }) => t.tipo === 'DESPESA')
+      .reduce((acc: number, t: { valor: unknown }) => acc + Number(t.valor), 0)
 
     // Buscar saldo total das contas
     const contas = await prisma.bankAccount.findMany({
@@ -79,12 +79,12 @@ export async function GET(request: NextRequest) {
       })
 
       const receitasMesAnt = transacoesMesAnt
-        .filter((t) => t.tipo === 'RECEITA')
-        .reduce((acc, t) => acc + Number(t.valor), 0)
+        .filter((t: { tipo: string }) => t.tipo === 'RECEITA')
+        .reduce((acc: number, t: { valor: unknown }) => acc + Number(t.valor), 0)
 
       const despesasMesAnt = transacoesMesAnt
-        .filter((t) => t.tipo === 'DESPESA')
-        .reduce((acc, t) => acc + Number(t.valor), 0)
+        .filter((t: { tipo: string }) => t.tipo === 'DESPESA')
+        .reduce((acc: number, t: { valor: unknown }) => acc + Number(t.valor), 0)
 
       somaReceitas += receitasMesAnt
       somaDespesas += despesasMesAnt
@@ -98,11 +98,10 @@ export async function GET(request: NextRequest) {
     const trintaDiasAtras = new Date()
     trintaDiasAtras.setDate(trintaDiasAtras.getDate() - 30)
 
-    const contasReceberVencidas = await prisma.transaction.aggregate({
+    const contasReceberVencidas = await prisma.receivable.aggregate({
       where: {
         tenantId: user.tenantId,
-        tipo: 'RECEITA',
-        status: 'PENDENTE',
+        status: 'VENCIDO',
         dataVencimento: {
           lt: trintaDiasAtras,
         },
@@ -129,9 +128,14 @@ export async function GET(request: NextRequest) {
       },
     })
 
+    interface KeyResultWithTarefas {
+      progresso: unknown
+      tarefas: Array<{ status: string; dataFim: Date | null }>
+    }
+
     const dadosOKRs = okrs.map((okr) => {
       // Calcular progresso médio dos KRs
-      const progressoTotal = okr.keyResults.reduce((acc, kr) => acc + Number(kr.progresso), 0)
+      const progressoTotal = okr.keyResults.reduce((acc: number, kr: KeyResultWithTarefas) => acc + Number(kr.progresso), 0)
       const progresso = okr.keyResults.length > 0
         ? Math.round(progressoTotal / okr.keyResults.length)
         : 0
@@ -139,11 +143,11 @@ export async function GET(request: NextRequest) {
       // Contar tarefas atrasadas
       let tarefasAtrasadas = 0
       let totalTarefas = 0
-      okr.keyResults.forEach((kr) => {
-        kr.tarefas.forEach((tarefa) => {
+      okr.keyResults.forEach((kr: KeyResultWithTarefas) => {
+        kr.tarefas.forEach((tarefa: { status: string; dataFim: Date | null }) => {
           totalTarefas++
           if (
-            tarefa.status !== 'CONCLUIDO' &&
+            tarefa.status !== 'CONCLUIDA' &&
             tarefa.dataFim &&
             new Date(tarefa.dataFim) < hoje
           ) {
@@ -156,7 +160,7 @@ export async function GET(request: NextRequest) {
         id: okr.id,
         titulo: okr.titulo,
         progresso,
-        dataFim: okr.dataFim,
+        dataFim: okr.periodoFim,
         tarefasAtrasadas,
         totalTarefas,
       }
@@ -171,21 +175,16 @@ export async function GET(request: NextRequest) {
       include: {
         _count: {
           select: {
-            tarefasOKR: {
-              where: {
-                status: { not: 'CONCLUIDO' },
-                dataFim: { lt: hoje },
-              },
-            },
+            tarefas: true,
           },
         },
       },
     })
 
-    const dadosColaboradores = colaboradores.map((c) => ({
+    const dadosColaboradores = colaboradores.map((c: { id: string; nome: string; _count: { tarefas: number } }) => ({
       id: c.id,
       nome: c.nome,
-      tarefasAtrasadas: c._count.tarefasOKR,
+      tarefasAtrasadas: c._count.tarefas,
     }))
 
     // ============ GERAR INSIGHTS ============
@@ -196,7 +195,7 @@ export async function GET(request: NextRequest) {
         despesasMes,
         mediaReceitasUltimos3Meses,
         mediaDespesasUltimos3Meses,
-        contasReceberVencidas: Number(contasReceberVencidas._sum.valor) || 0,
+        contasReceberVencidas: Number(contasReceberVencidas._sum?.valor) || 0,
         resultadoUltimos3Meses: resultadosMeses,
       },
       okrs: dadosOKRs,

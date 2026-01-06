@@ -28,7 +28,7 @@ export async function GET(
       where: { id: params.id },
       include: {
         _count: {
-          select: { users: true },
+          select: { usuarios: true },
         },
       },
     })
@@ -69,7 +69,7 @@ export async function PUT(
     }
 
     const body = await request.json()
-    const { nome, email, telefone, endereco, plano, ativo } = body
+    const { nome, email, telefone, endereco, ativo } = body
 
     const tenant = await prisma.tenant.update({
       where: { id: params.id },
@@ -78,7 +78,6 @@ export async function PUT(
         email,
         telefone,
         endereco,
-        plano,
         ativo,
       },
     })
