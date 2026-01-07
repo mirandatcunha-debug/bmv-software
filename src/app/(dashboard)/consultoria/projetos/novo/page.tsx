@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -15,8 +15,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { ArrowLeft, FolderKanban, Loader2 } from 'lucide-react'
-import { useToast } from '@/components/ui/use-toast'
+import { ArrowLeft, FolderKanban, Loader2, Save } from 'lucide-react'
+import { useAuth } from '@/hooks/use-auth'
+import { useTenant } from '@/hooks/use-tenant'
+import { useToast } from '@/hooks/use-toast'
+import { consultoriaService } from '@/services/consultoria.service'
+import { statusProjetoLabels, StatusProjeto } from '@/types/consultoria'
 
 // Dados mockados de clientes e consultores
 const clientesMock = [
