@@ -4,7 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { createSupabaseServerClient } from '@/lib/supabase-server'
 
 // GET - Obter dados da conta do usuário
-export async function GET() {
+export async function GET(_request: NextRequest) {
   try {
     const supabase = await createSupabaseServerClient()
     const { data: { session } } = await supabase.auth.getSession()

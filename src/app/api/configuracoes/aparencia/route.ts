@@ -6,7 +6,7 @@ import { createSupabaseServerClient } from '@/lib/supabase-server'
 // Esta API apenas valida a autenticação e retorna valores padrão
 
 // GET - Obter configurações de aparência padrão
-export async function GET() {
+export async function GET(_request: NextRequest) {
   try {
     const supabase = await createSupabaseServerClient()
     const { data: { session } } = await supabase.auth.getSession()

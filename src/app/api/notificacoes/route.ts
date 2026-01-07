@@ -76,7 +76,7 @@ function setNotificacoesUsuario(userId: string, notificacoes: Notificacao[]): vo
 }
 
 // GET: Listar notificações do usuário
-export async function GET() {
+export async function GET(_request: NextRequest) {
   try {
     const supabase = await createServerComponentClient()
     const { data: { session } } = await supabase.auth.getSession()
@@ -114,7 +114,7 @@ export async function GET() {
 }
 
 // PUT: Marcar todas como lidas
-export async function PUT() {
+export async function PUT(_request: NextRequest) {
   try {
     const supabase = await createServerComponentClient()
     const { data: { session } } = await supabase.auth.getSession()
