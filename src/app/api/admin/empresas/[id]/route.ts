@@ -1,179 +1,59 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { createServerComponentClient } from '@/lib/supabase/server'
-import { canManageTenants } from '@/lib/permissions'
 
 export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
 
-// GET - Buscar empresa por ID com usuarios
 export async function GET(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
-    const supabase = await createServerComponentClient()
-    const { data: { session } } = await supabase.auth.getSession()
-
-    if (!session) {
-      return NextResponse.json({ error: 'Nao autorizado' }, { status: 401 })
-    }
-
-    const user = await prisma.user.findUnique({
-      where: { authId: session.user.id },
-    })
-
-    if (!user || !canManageTenants(user.perfil)) {
-      return NextResponse.json({ error: 'Sem permissao' }, { status: 403 })
-    }
-
     const empresa = await prisma.tenant.findUnique({
       where: { id: params.id },
-      include: {
-        usuarios: {
-          select: {
-            id: true,
-            nome: true,
-            email: true,
-            perfil: true,
-            ativo: true,
-            ultimoAcesso: true,
-            criadoEm: true,
-          },
-          orderBy: { criadoEm: 'desc' },
-        },
-        _count: {
-          select: { usuarios: true },
-        },
-      },
+      include: { usuarios: true }
     })
 
     if (!empresa) {
-      return NextResponse.json({ error: 'Empresa nao encontrada' }, { status: 404 })
+      return NextResponse.json({ error: 'Empresa não encontrada' }, { status: 404 })
     }
 
     return NextResponse.json(empresa)
   } catch (error) {
-    console.error('Erro ao buscar empresa:', error)
-    return NextResponse.json(
-      { error: 'Erro ao buscar empresa' },
-      { status: 500 }
-    )
+    console.error('Erro:', error)
+    return NextResponse.json({ error: 'Erro interno' }, { status: 500 })
   }
 }
 
-// PUT - Atualizar empresa
 export async function PUT(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
-    const supabase = await createServerComponentClient()
-    const { data: { session } } = await supabase.auth.getSession()
-
-    if (!session) {
-      return NextResponse.json({ error: 'Nao autorizado' }, { status: 401 })
-    }
-
-    const user = await prisma.user.findUnique({
-      where: { authId: session.user.id },
-    })
-
-    if (!user || !canManageTenants(user.perfil)) {
-      return NextResponse.json({ error: 'Sem permissao' }, { status: 403 })
-    }
-
-    // Verificar se empresa existe
-    const existingEmpresa = await prisma.tenant.findUnique({
-      where: { id: params.id },
-    })
-
-    if (!existingEmpresa) {
-      return NextResponse.json({ error: 'Empresa nao encontrada' }, { status: 404 })
-    }
-
     const body = await request.json()
-    const { nome, cnpj, email, telefone, endereco, logoUrl, configuracoes, ativo } = body
-
-    // Se CNPJ foi alterado, verificar unicidade
-    if (cnpj && cnpj !== existingEmpresa.cnpj) {
-      const cnpjExists = await prisma.tenant.findUnique({
-        where: { cnpj },
-      })
-
-      if (cnpjExists) {
-        return NextResponse.json(
-          { error: 'CNPJ ja cadastrado em outra empresa' },
-          { status: 400 }
-        )
-      }
-    }
-
     const empresa = await prisma.tenant.update({
       where: { id: params.id },
-      data: {
-        nome,
-        cnpj,
-        email,
-        telefone,
-        endereco,
-        logoUrl,
-        configuracoes,
-        ativo,
-      },
+      data: body
     })
-
     return NextResponse.json(empresa)
   } catch (error) {
-    console.error('Erro ao atualizar empresa:', error)
-    return NextResponse.json(
-      { error: 'Erro ao atualizar empresa' },
-      { status: 500 }
-    )
+    console.error('Erro:', error)
+    return NextResponse.json({ error: 'Erro interno' }, { status: 500 })
   }
 }
 
-// DELETE - Desativar empresa (soft delete)
 export async function DELETE(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
-    const supabase = await createServerComponentClient()
-    const { data: { session } } = await supabase.auth.getSession()
-
-    if (!session) {
-      return NextResponse.json({ error: 'Nao autorizado' }, { status: 401 })
-    }
-
-    const user = await prisma.user.findUnique({
-      where: { authId: session.user.id },
-    })
-
-    if (!user || !canManageTenants(user.perfil)) {
-      return NextResponse.json({ error: 'Sem permissao' }, { status: 403 })
-    }
-
-    // Verificar se empresa existe
-    const existingEmpresa = await prisma.tenant.findUnique({
+    await prisma.tenant.update({
       where: { id: params.id },
+      data: { ativo: false }
     })
-
-    if (!existingEmpresa) {
-      return NextResponse.json({ error: 'Empresa nao encontrada' }, { status: 404 })
-    }
-
-    // Soft delete - apenas desativar
-    const empresa = await prisma.tenant.update({
-      where: { id: params.id },
-      data: { ativo: false },
-    })
-
-    return NextResponse.json({ message: 'Empresa desativada com sucesso', empresa })
+    return NextResponse.json({ success: true })
   } catch (error) {
-    console.error('Erro ao desativar empresa:', error)
-    return NextResponse.json(
-      { error: 'Erro ao desativar empresa' },
-      { status: 500 }
-    )
+    console.error('Erro:', error)
+    return NextResponse.json({ error: 'Erro interno' }, { status: 500 })
   }
 }
