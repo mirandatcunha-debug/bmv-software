@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerComponentClient } from '@/lib/supabase/server'
 import { Notificacao, NotificacoesResponse, TipoNotificacao } from '@/types/notificacoes'
