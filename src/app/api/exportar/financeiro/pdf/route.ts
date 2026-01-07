@@ -90,7 +90,7 @@ export async function GET(request: NextRequest) {
         id: m.conta.id,
         tenantId: m.tenantId,
         nome: m.conta.nome,
-        banco: m.conta.banco,
+        banco: m.conta.banco ?? undefined,
         tipo: m.conta.tipo as 'CORRENTE' | 'POUPANCA' | 'INVESTIMENTO' | 'CAIXA',
         saldoInicial: 0,
         saldoAtual: 0,
@@ -146,7 +146,7 @@ export async function GET(request: NextRequest) {
     // Retornar PDF como download
     const nomeArquivo = `relatorio-financeiro-${inicio.toISOString().split('T')[0]}-a-${fim.toISOString().split('T')[0]}.pdf`
 
-    return new NextResponse(pdfBuffer, {
+    return new NextResponse(new Uint8Array(pdfBuffer), {
       status: 200,
       headers: {
         'Content-Type': 'application/pdf',

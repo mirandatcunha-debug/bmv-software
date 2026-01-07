@@ -438,7 +438,7 @@ export async function gerarRelatorioFinanceiroPDF(
   data: RelatorioFinanceiroData
 ): Promise<Buffer> {
   const document = React.createElement(RelatorioFinanceiroPDF, { data })
-  const buffer = await renderToBuffer(document)
+  const buffer = await renderToBuffer(document as unknown as React.ReactElement)
   return Buffer.from(buffer)
 }
 
