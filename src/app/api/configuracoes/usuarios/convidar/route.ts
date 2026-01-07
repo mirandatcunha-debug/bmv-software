@@ -6,7 +6,7 @@ import { createClient } from '@supabase/supabase-js'
 // POST - Convidar novo usuario
 export async function POST(request: NextRequest) {
   try {
-    const supabase = createServerComponentClient()
+    const supabase = await createServerComponentClient()
     const { data: { session } } = await supabase.auth.getSession()
 
     if (!session) {

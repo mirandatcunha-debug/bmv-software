@@ -5,7 +5,7 @@ import { createServerComponentClient } from '@/lib/supabase/server'
 // GET - Obter dados da empresa
 export async function GET(request: NextRequest) {
   try {
-    const supabase = createServerComponentClient()
+    const supabase = await createServerComponentClient()
     const { data: { session } } = await supabase.auth.getSession()
 
     if (!session) {
@@ -54,7 +54,7 @@ export async function GET(request: NextRequest) {
 // PUT - Atualizar dados da empresa
 export async function PUT(request: NextRequest) {
   try {
-    const supabase = createServerComponentClient()
+    const supabase = await createServerComponentClient()
     const { data: { session } } = await supabase.auth.getSession()
 
     if (!session) {

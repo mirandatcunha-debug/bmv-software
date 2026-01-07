@@ -8,7 +8,7 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    const supabase = createServerComponentClient()
+    const supabase = await createServerComponentClient()
     const { data: { session } } = await supabase.auth.getSession()
 
     if (!session) {
@@ -59,7 +59,7 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   try {
-    const supabase = createServerComponentClient()
+    const supabase = await createServerComponentClient()
     const { data: { session } } = await supabase.auth.getSession()
 
     if (!session) {
@@ -126,7 +126,7 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
-    const supabase = createServerComponentClient()
+    const supabase = await createServerComponentClient()
     const { data: { session } } = await supabase.auth.getSession()
 
     if (!session) {

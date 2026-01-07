@@ -1,8 +1,3 @@
-// ===========================================
-// BM&V Software - Schema do Banco de Dados
-// Multi-tenant com Row Level Security
-// ===========================================
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -13,75 +8,58 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
-// ============================================
-// TENANT E USUÁRIOS
-// ============================================
-
 model Tenant {
-  id            String   @id @default(cuid())
-  nome          String
-  cnpj          String?  @unique
-  email         String
-  telefone      String?
-  endereco      String?
-  logoUrl       String?  @map("logo_url")
-  configuracoes Json?    @default("{}")
-  ativo         Boolean  @default(true)
-  criadoEm      DateTime @default(now()) @map("criado_em")
-  atualizadoEm  DateTime @updatedAt @map("atualizado_em")
-
-  // Relacionamentos
-  usuarios            User[]
+  id                  String              @id @default(cuid())
+  nome                String
+  cnpj                String?             @unique
+  email               String
+  telefone            String?
+  endereco            String?
+  logoUrl             String?             @map("logo_url")
+  configuracoes       Json?               @default("{}")
+  ativo               Boolean             @default(true)
+  criadoEm            DateTime            @default(now()) @map("criado_em")
+  atualizadoEm        DateTime            @updatedAt @map("atualizado_em")
   contasBancarias     BankAccount[]
-  transacoes          Transaction[]
-  contasReceber       Receivable[]
-  contasPagar         Payable[]
-  objetivos           Objective[]
+  planoContas         ChartOfAccount[]
   projetosConsultoria ConsultingProject[]
   centrosCusto        CostCenter[]
-  planoContas         ChartOfAccount[]
+  objetivos           Objective[]
+  contasPagar         Payable[]
+  contasReceber       Receivable[]
+  transacoes          Transaction[]
+  usuarios            User[]
 
   @@map("tenants")
 }
 
 model User {
-  id             String    @id @default(cuid())
-  tenantId       String    @map("tenant_id")
-  authId         String?   @unique @map("auth_id") // ID do Supabase Auth
-  email          String    @unique
-  nome           String
-  telefone       String?
-  avatarUrl      String?   @map("avatar_url")
-  perfil         UserRole  @default(COLABORADOR)
-  ativo          Boolean   @default(true)
-  primeiroAcesso Boolean   @default(true) @map("primeiro_acesso")
-  tokenConvite   String?   @unique @map("token_convite")
-  tokenExpira    DateTime? @map("token_expira")
-  ultimoAcesso   DateTime? @map("ultimo_acesso")
-  criadoEm       DateTime  @default(now()) @map("criado_em")
-  atualizadoEm   DateTime  @updatedAt @map("atualizado_em")
-
-  // Relacionamentos
-  tenant             Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  permissoes         UserPermission[]
+  id                 String           @id @default(cuid())
+  tenantId           String           @map("tenant_id")
+  authId             String?          @unique @map("auth_id")
+  email              String           @unique
+  nome               String
+  avatarUrl          String?          @map("avatar_url")
+  perfil             UserRole         @default(COLABORADOR)
+  ativo              Boolean          @default(true)
+  ultimoAcesso       DateTime?        @map("ultimo_acesso")
+  criadoEm           DateTime         @default(now()) @map("criado_em")
+  atualizadoEm       DateTime         @updatedAt @map("atualizado_em")
+  primeiroAcesso     Boolean          @default(true) @map("primeiro_acesso")
+  tokenConvite       String?          @unique @map("token_convite")
+  tokenExpira        DateTime?        @map("token_expira")
+  logsAuditoria      AuditLog[]
+  comentarios        Comment[]
+  tarefasConsultoria ConsultingTask[] @relation("ConsultoriaTarefaResponsavel")
   objetivos          Objective[]      @relation("ObjetivoResponsavel")
   tarefas            Task[]           @relation("TarefaResponsavel")
-  tarefasConsultoria ConsultingTask[] @relation("ConsultoriaTarefaResponsavel")
-  comentarios        Comment[]
-  logsAuditoria      AuditLog[]
+  permissoes         UserPermission[]
+  tenant             Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
   @@index([tenantId])
   @@index([email])
   @@index([authId])
   @@map("users")
-}
-
-enum UserRole {
-  ADMIN_BMV // Administrador BM&V (acesso total)
-  CONSULTOR_BMV // Consultor BM&V (múltiplos tenants)
-  GESTOR // Gestor do cliente (acesso total ao tenant)
-  COLABORADOR // Colaborador (acesso limitado)
-  CLIENTE // Cliente externo (visualização restrita)
 }
 
 model UserPermission {
@@ -90,11 +68,355 @@ model UserPermission {
   modulo   ModuleType
   acao     ActionType
   criadoEm DateTime   @default(now()) @map("criado_em")
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user     User       @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, modulo, acao])
   @@map("user_permissions")
+}
+
+model BankAccount {
+  id           String          @id @default(cuid())
+  tenantId     String          @map("tenant_id")
+  nome         String
+  banco        String?
+  agencia      String?
+  conta        String?
+  tipo         BankAccountType @default(CORRENTE)
+  saldoInicial Decimal         @default(0) @map("saldo_inicial") @db.Decimal(15, 2)
+  saldoAtual   Decimal         @default(0) @map("saldo_atual") @db.Decimal(15, 2)
+  cor          String?         @default("#1a365d")
+  ativo        Boolean         @default(true)
+  criadoEm     DateTime        @default(now()) @map("criado_em")
+  atualizadoEm DateTime        @updatedAt @map("atualizado_em")
+  tenant       Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  transacoes   Transaction[]
+
+  @@index([tenantId])
+  @@map("bank_accounts")
+}
+
+model Transaction {
+  id              String          @id @default(cuid())
+  tenantId        String          @map("tenant_id")
+  contaId         String          @map("conta_id")
+  tipo            TransactionType
+  categoria       String
+  subcategoria    String?
+  descricao       String
+  valor           Decimal         @db.Decimal(15, 2)
+  dataMovimento   DateTime        @map("data_movimento")
+  dataCompetencia DateTime?       @map("data_competencia")
+  recorrente      Boolean         @default(false)
+  observacoes     String?
+  tags            String[]        @default([])
+  anexos          String[]        @default([])
+  criadoEm        DateTime        @default(now()) @map("criado_em")
+  atualizadoEm    DateTime        @updatedAt @map("atualizado_em")
+  conta           BankAccount     @relation(fields: [contaId], references: [id])
+  tenant          Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([dataMovimento])
+  @@index([tipo])
+  @@index([categoria])
+  @@map("transactions")
+}
+
+model Receivable {
+  id             String        @id @default(cuid())
+  tenantId       String        @map("tenant_id")
+  cliente        String
+  descricao      String
+  valor          Decimal       @db.Decimal(15, 2)
+  dataEmissao    DateTime      @map("data_emissao")
+  dataVencimento DateTime      @map("data_vencimento")
+  dataPagamento  DateTime?     @map("data_pagamento")
+  valorPago      Decimal?      @map("valor_pago") @db.Decimal(15, 2)
+  status         PaymentStatus @default(PENDENTE)
+  observacoes    String?
+  criadoEm       DateTime      @default(now()) @map("criado_em")
+  atualizadoEm   DateTime      @updatedAt @map("atualizado_em")
+  tenant         Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([dataVencimento])
+  @@index([status])
+  @@map("receivables")
+}
+
+model Payable {
+  id             String        @id @default(cuid())
+  tenantId       String        @map("tenant_id")
+  fornecedor     String
+  descricao      String
+  valor          Decimal       @db.Decimal(15, 2)
+  dataEmissao    DateTime      @map("data_emissao")
+  dataVencimento DateTime      @map("data_vencimento")
+  dataPagamento  DateTime?     @map("data_pagamento")
+  valorPago      Decimal?      @map("valor_pago") @db.Decimal(15, 2)
+  status         PaymentStatus @default(PENDENTE)
+  observacoes    String?
+  criadoEm       DateTime      @default(now()) @map("criado_em")
+  atualizadoEm   DateTime      @updatedAt @map("atualizado_em")
+  tenant         Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([dataVencimento])
+  @@index([status])
+  @@map("payables")
+}
+
+model ChartOfAccount {
+  id           String           @id @default(cuid())
+  tenantId     String           @map("tenant_id")
+  codigo       String
+  nome         String
+  tipo         AccountType
+  natureza     AccountNature
+  contaPaiId   String?          @map("conta_pai_id")
+  nivel        Int              @default(1)
+  ativo        Boolean          @default(true)
+  criadoEm     DateTime         @default(now()) @map("criado_em")
+  atualizadoEm DateTime         @updatedAt @map("atualizado_em")
+  contaPai     ChartOfAccount?  @relation("ContasFilhas", fields: [contaPaiId], references: [id])
+  contasFilhas ChartOfAccount[] @relation("ContasFilhas")
+  tenant       Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  lancamentos  JournalEntry[]
+
+  @@unique([tenantId, codigo])
+  @@index([tenantId])
+  @@map("chart_of_accounts")
+}
+
+model CostCenter {
+  id           String         @id @default(cuid())
+  tenantId     String         @map("tenant_id")
+  codigo       String
+  nome         String
+  descricao    String?
+  responsavel  String?
+  ativo        Boolean        @default(true)
+  criadoEm     DateTime       @default(now()) @map("criado_em")
+  atualizadoEm DateTime       @updatedAt @map("atualizado_em")
+  tenant       Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  lancamentos  JournalEntry[]
+
+  @@unique([tenantId, codigo])
+  @@index([tenantId])
+  @@map("cost_centers")
+}
+
+model JournalEntry {
+  id            String         @id @default(cuid())
+  tenantId      String         @map("tenant_id")
+  contaId       String         @map("conta_id")
+  centroCustoId String?        @map("centro_custo_id")
+  data          DateTime
+  tipo          EntryType
+  valor         Decimal        @db.Decimal(15, 2)
+  historico     String
+  documento     String?
+  criadoEm      DateTime       @default(now()) @map("criado_em")
+  centroCusto   CostCenter?    @relation(fields: [centroCustoId], references: [id])
+  conta         ChartOfAccount @relation(fields: [contaId], references: [id])
+
+  @@index([tenantId])
+  @@index([data])
+  @@map("journal_entries")
+}
+
+model Objective {
+  id            String      @id @default(cuid())
+  tenantId      String      @map("tenant_id")
+  responsavelId String      @map("responsavel_id")
+  titulo        String
+  descricao     String?
+  periodoInicio DateTime    @map("periodo_inicio")
+  periodoFim    DateTime    @map("periodo_fim")
+  status        OkrStatus   @default(NAO_INICIADO)
+  progresso     Decimal     @default(0) @db.Decimal(5, 2)
+  criadoEm      DateTime    @default(now()) @map("criado_em")
+  atualizadoEm  DateTime    @updatedAt @map("atualizado_em")
+  keyResults    KeyResult[]
+  responsavel   User        @relation("ObjetivoResponsavel", fields: [responsavelId], references: [id])
+  tenant        Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([responsavelId])
+  @@index([status])
+  @@map("objectives")
+}
+
+model KeyResult {
+  id            String    @id @default(cuid())
+  objetivoId    String    @map("objetivo_id")
+  titulo        String
+  metrica       String
+  valorBaseline Decimal   @map("valor_baseline") @db.Decimal(15, 2)
+  valorMeta     Decimal   @map("valor_meta") @db.Decimal(15, 2)
+  valorAtual    Decimal   @default(0) @map("valor_atual") @db.Decimal(15, 2)
+  peso          Decimal   @default(1) @db.Decimal(3, 2)
+  progresso     Decimal   @default(0) @db.Decimal(5, 2)
+  criadoEm      DateTime  @default(now()) @map("criado_em")
+  atualizadoEm  DateTime  @updatedAt @map("atualizado_em")
+  objetivo      Objective @relation(fields: [objetivoId], references: [id], onDelete: Cascade)
+  tarefas       Task[]
+
+  @@index([objetivoId])
+  @@map("key_results")
+}
+
+model Task {
+  id            String       @id @default(cuid())
+  keyResultId   String?      @map("key_result_id")
+  responsavelId String       @map("responsavel_id")
+  titulo        String
+  descricao     String?
+  prioridade    TaskPriority @default(MEDIA)
+  status        TaskStatus   @default(A_FAZER)
+  dataInicio    DateTime?    @map("data_inicio")
+  dataFim       DateTime?    @map("data_fim")
+  peso          Decimal      @default(1) @db.Decimal(3, 2)
+  progresso     Decimal      @default(0) @db.Decimal(5, 2)
+  criadoEm      DateTime     @default(now()) @map("criado_em")
+  atualizadoEm  DateTime     @updatedAt @map("atualizado_em")
+  subtarefas    Subtask[]
+  keyResult     KeyResult?   @relation(fields: [keyResultId], references: [id])
+  responsavel   User         @relation("TarefaResponsavel", fields: [responsavelId], references: [id])
+
+  @@index([keyResultId])
+  @@index([responsavelId])
+  @@index([status])
+  @@map("tasks")
+}
+
+model Subtask {
+  id           String   @id @default(cuid())
+  tarefaId     String   @map("tarefa_id")
+  titulo       String
+  concluida    Boolean  @default(false)
+  criadoEm     DateTime @default(now()) @map("criado_em")
+  atualizadoEm DateTime @updatedAt @map("atualizado_em")
+  tarefa       Task     @relation(fields: [tarefaId], references: [id], onDelete: Cascade)
+
+  @@index([tarefaId])
+  @@map("subtasks")
+}
+
+model ConsultingProject {
+  id           String                  @id @default(cuid())
+  tenantId     String                  @map("tenant_id")
+  nome         String
+  descricao    String?
+  dataInicio   DateTime                @map("data_inicio")
+  dataFim      DateTime?               @map("data_fim")
+  status       ConsultingProjectStatus @default(EM_ANDAMENTO)
+  progresso    Decimal                 @default(0) @db.Decimal(5, 2)
+  criadoEm     DateTime                @default(now()) @map("criado_em")
+  atualizadoEm DateTime                @updatedAt @map("atualizado_em")
+  tenant       Tenant                  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  etapas       ConsultingStage[]
+  tarefas      ConsultingTask[]
+
+  @@index([tenantId])
+  @@map("consulting_projects")
+}
+
+model ConsultingStage {
+  id        String            @id @default(cuid())
+  projetoId String            @map("projeto_id")
+  nome      String
+  ordem     Int
+  peso      Decimal           @default(1) @db.Decimal(3, 2)
+  progresso Decimal           @default(0) @db.Decimal(5, 2)
+  criadoEm  DateTime          @default(now()) @map("criado_em")
+  projeto   ConsultingProject @relation(fields: [projetoId], references: [id], onDelete: Cascade)
+  tarefas   ConsultingTask[]
+
+  @@index([projetoId])
+  @@map("consulting_stages")
+}
+
+model ConsultingTask {
+  id              String               @id @default(cuid())
+  projetoId       String               @map("projeto_id")
+  etapaId         String?              @map("etapa_id")
+  responsavelId   String               @map("responsavel_id")
+  titulo          String
+  descricao       String?
+  status          ConsultingTaskStatus @default(A_FAZER)
+  prioridade      TaskPriority         @default(MEDIA)
+  prazo           DateTime?
+  requerEvidencia Boolean              @default(false) @map("requer_evidencia")
+  criadoEm        DateTime             @default(now()) @map("criado_em")
+  atualizadoEm    DateTime             @updatedAt @map("atualizado_em")
+  comentarios     Comment[]
+  evidencias      ConsultingEvidence[]
+  etapa           ConsultingStage?     @relation(fields: [etapaId], references: [id])
+  projeto         ConsultingProject    @relation(fields: [projetoId], references: [id], onDelete: Cascade)
+  responsavel     User                 @relation("ConsultoriaTarefaResponsavel", fields: [responsavelId], references: [id])
+
+  @@index([projetoId])
+  @@index([etapaId])
+  @@index([responsavelId])
+  @@index([status])
+  @@map("consulting_tasks")
+}
+
+model ConsultingEvidence {
+  id         String         @id @default(cuid())
+  tarefaId   String         @map("tarefa_id")
+  titulo     String
+  descricao  String?
+  arquivoUrl String?        @map("arquivo_url")
+  tipo       String?
+  criadoEm   DateTime       @default(now()) @map("criado_em")
+  tarefa     ConsultingTask @relation(fields: [tarefaId], references: [id], onDelete: Cascade)
+
+  @@index([tarefaId])
+  @@map("consulting_evidences")
+}
+
+model Comment {
+  id       String         @id @default(cuid())
+  tarefaId String         @map("tarefa_id")
+  autorId  String         @map("autor_id")
+  conteudo String
+  criadoEm DateTime       @default(now()) @map("criado_em")
+  autor    User           @relation(fields: [autorId], references: [id])
+  tarefa   ConsultingTask @relation(fields: [tarefaId], references: [id], onDelete: Cascade)
+
+  @@index([tarefaId])
+  @@map("comments")
+}
+
+model AuditLog {
+  id           String   @id @default(cuid())
+  userId       String   @map("user_id")
+  tenantId     String   @map("tenant_id")
+  acao         String
+  entidade     String
+  entidadeId   String   @map("entidade_id")
+  dadosAntigos Json?    @map("dados_antigos")
+  dadosNovos   Json?    @map("dados_novos")
+  ip           String?
+  userAgent    String?  @map("user_agent")
+  criadoEm     DateTime @default(now()) @map("criado_em")
+  user         User     @relation(fields: [userId], references: [id])
+
+  @@index([tenantId])
+  @@index([userId])
+  @@index([entidade, entidadeId])
+  @@index([criadoEm])
+  @@map("audit_logs")
+}
+
+enum UserRole {
+  ADMIN_BMV
+  CONSULTOR_BMV
+  GESTOR
+  COLABORADOR
+  CLIENTE
 }
 
 enum ModuleType {
@@ -117,65 +439,11 @@ enum ActionType {
   EXPORTAR
 }
 
-// ============================================
-// MÓDULO FINANCEIRO
-// ============================================
-
-model BankAccount {
-  id           String          @id @default(cuid())
-  tenantId     String          @map("tenant_id")
-  nome         String
-  banco        String?
-  agencia      String?
-  conta        String?
-  tipo         BankAccountType @default(CORRENTE)
-  saldoInicial Decimal         @default(0) @map("saldo_inicial") @db.Decimal(15, 2)
-  saldoAtual   Decimal         @default(0) @map("saldo_atual") @db.Decimal(15, 2)
-  cor          String?         @default("#1a365d")
-  ativo        Boolean         @default(true)
-  criadoEm     DateTime        @default(now()) @map("criado_em")
-  atualizadoEm DateTime        @updatedAt @map("atualizado_em")
-
-  tenant     Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  transacoes Transaction[]
-
-  @@index([tenantId])
-  @@map("bank_accounts")
-}
-
 enum BankAccountType {
   CORRENTE
   POUPANCA
   INVESTIMENTO
   CAIXA
-}
-
-model Transaction {
-  id              String          @id @default(cuid())
-  tenantId        String          @map("tenant_id")
-  contaId         String          @map("conta_id")
-  tipo            TransactionType
-  categoria       String
-  subcategoria    String?
-  descricao       String
-  valor           Decimal         @db.Decimal(15, 2)
-  dataMovimento   DateTime        @map("data_movimento")
-  dataCompetencia DateTime?       @map("data_competencia")
-  recorrente      Boolean         @default(false)
-  observacoes     String?
-  tags            String[]        @default([])
-  anexos          String[]        @default([])
-  criadoEm        DateTime        @default(now()) @map("criado_em")
-  atualizadoEm    DateTime        @updatedAt @map("atualizado_em")
-
-  tenant Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  conta  BankAccount @relation(fields: [contaId], references: [id])
-
-  @@index([tenantId])
-  @@index([dataMovimento])
-  @@index([tipo])
-  @@index([categoria])
-  @@map("transactions")
 }
 
 enum TransactionType {
@@ -184,85 +452,12 @@ enum TransactionType {
   TRANSFERENCIA
 }
 
-model Receivable {
-  id             String        @id @default(cuid())
-  tenantId       String        @map("tenant_id")
-  cliente        String
-  descricao      String
-  valor          Decimal       @db.Decimal(15, 2)
-  dataEmissao    DateTime      @map("data_emissao")
-  dataVencimento DateTime      @map("data_vencimento")
-  dataPagamento  DateTime?     @map("data_pagamento")
-  valorPago      Decimal?      @map("valor_pago") @db.Decimal(15, 2)
-  status         PaymentStatus @default(PENDENTE)
-  observacoes    String?
-  criadoEm       DateTime      @default(now()) @map("criado_em")
-  atualizadoEm   DateTime      @updatedAt @map("atualizado_em")
-
-  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-
-  @@index([tenantId])
-  @@index([dataVencimento])
-  @@index([status])
-  @@map("receivables")
-}
-
-model Payable {
-  id             String        @id @default(cuid())
-  tenantId       String        @map("tenant_id")
-  fornecedor     String
-  descricao      String
-  valor          Decimal       @db.Decimal(15, 2)
-  dataEmissao    DateTime      @map("data_emissao")
-  dataVencimento DateTime      @map("data_vencimento")
-  dataPagamento  DateTime?     @map("data_pagamento")
-  valorPago      Decimal?      @map("valor_pago") @db.Decimal(15, 2)
-  status         PaymentStatus @default(PENDENTE)
-  observacoes    String?
-  criadoEm       DateTime      @default(now()) @map("criado_em")
-  atualizadoEm   DateTime      @updatedAt @map("atualizado_em")
-
-  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-
-  @@index([tenantId])
-  @@index([dataVencimento])
-  @@index([status])
-  @@map("payables")
-}
-
 enum PaymentStatus {
   PENDENTE
   PAGO
   PARCIAL
   VENCIDO
   CANCELADO
-}
-
-// ============================================
-// MÓDULO CONTÁBIL
-// ============================================
-
-model ChartOfAccount {
-  id           String         @id @default(cuid())
-  tenantId     String         @map("tenant_id")
-  codigo       String
-  nome         String
-  tipo         AccountType
-  natureza     AccountNature
-  contaPaiId   String?        @map("conta_pai_id")
-  nivel        Int            @default(1)
-  ativo        Boolean        @default(true)
-  criadoEm     DateTime       @default(now()) @map("criado_em")
-  atualizadoEm DateTime       @updatedAt @map("atualizado_em")
-
-  tenant       Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  contaPai     ChartOfAccount?  @relation("ContasFilhas", fields: [contaPaiId], references: [id])
-  contasFilhas ChartOfAccount[] @relation("ContasFilhas")
-  lancamentos  JournalEntry[]
-
-  @@unique([tenantId, codigo])
-  @@index([tenantId])
-  @@map("chart_of_accounts")
 }
 
 enum AccountType {
@@ -279,75 +474,9 @@ enum AccountNature {
   CREDORA
 }
 
-model CostCenter {
-  id           String   @id @default(cuid())
-  tenantId     String   @map("tenant_id")
-  codigo       String
-  nome         String
-  descricao    String?
-  responsavel  String?
-  ativo        Boolean  @default(true)
-  criadoEm     DateTime @default(now()) @map("criado_em")
-  atualizadoEm DateTime @updatedAt @map("atualizado_em")
-
-  tenant      Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  lancamentos JournalEntry[]
-
-  @@unique([tenantId, codigo])
-  @@index([tenantId])
-  @@map("cost_centers")
-}
-
-model JournalEntry {
-  id            String    @id @default(cuid())
-  tenantId      String    @map("tenant_id")
-  contaId       String    @map("conta_id")
-  centroCustoId String?   @map("centro_custo_id")
-  data          DateTime
-  tipo          EntryType
-  valor         Decimal   @db.Decimal(15, 2)
-  historico     String
-  documento     String?
-  criadoEm      DateTime  @default(now()) @map("criado_em")
-
-  conta       ChartOfAccount @relation(fields: [contaId], references: [id])
-  centroCusto CostCenter?    @relation(fields: [centroCustoId], references: [id])
-
-  @@index([tenantId])
-  @@index([data])
-  @@map("journal_entries")
-}
-
 enum EntryType {
   DEBITO
   CREDITO
-}
-
-// ============================================
-// MÓDULO OKR
-// ============================================
-
-model Objective {
-  id            String    @id @default(cuid())
-  tenantId      String    @map("tenant_id")
-  responsavelId String    @map("responsavel_id")
-  titulo        String
-  descricao     String?
-  periodoInicio DateTime  @map("periodo_inicio")
-  periodoFim    DateTime  @map("periodo_fim")
-  status        OkrStatus @default(NAO_INICIADO)
-  progresso     Decimal   @default(0) @db.Decimal(5, 2)
-  criadoEm      DateTime  @default(now()) @map("criado_em")
-  atualizadoEm  DateTime  @updatedAt @map("atualizado_em")
-
-  tenant      Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  responsavel User        @relation("ObjetivoResponsavel", fields: [responsavelId], references: [id])
-  keyResults  KeyResult[]
-
-  @@index([tenantId])
-  @@index([responsavelId])
-  @@index([status])
-  @@map("objectives")
 }
 
 enum OkrStatus {
@@ -356,65 +485,6 @@ enum OkrStatus {
   ATRASADO
   CONCLUIDO
   CANCELADO
-}
-
-model KeyResult {
-  id            String   @id @default(cuid())
-  objetivoId    String   @map("objetivo_id")
-  titulo        String
-  metrica       String
-  valorBaseline Decimal  @map("valor_baseline") @db.Decimal(15, 2)
-  valorMeta     Decimal  @map("valor_meta") @db.Decimal(15, 2)
-  valorAtual    Decimal  @default(0) @map("valor_atual") @db.Decimal(15, 2)
-  peso          Decimal  @default(1) @db.Decimal(3, 2)
-  progresso     Decimal  @default(0) @db.Decimal(5, 2)
-  criadoEm      DateTime @default(now()) @map("criado_em")
-  atualizadoEm  DateTime @updatedAt @map("atualizado_em")
-
-  objetivo Objective @relation(fields: [objetivoId], references: [id], onDelete: Cascade)
-  tarefas  Task[]
-
-  @@index([objetivoId])
-  @@map("key_results")
-}
-
-model Task {
-  id            String       @id @default(cuid())
-  keyResultId   String?      @map("key_result_id")
-  responsavelId String       @map("responsavel_id")
-  titulo        String
-  descricao     String?
-  prioridade    TaskPriority @default(MEDIA)
-  status        TaskStatus   @default(A_FAZER)
-  dataInicio    DateTime?    @map("data_inicio")
-  dataFim       DateTime?    @map("data_fim")
-  peso          Decimal      @default(1) @db.Decimal(3, 2)
-  progresso     Decimal      @default(0) @db.Decimal(5, 2)
-  criadoEm      DateTime     @default(now()) @map("criado_em")
-  atualizadoEm  DateTime     @updatedAt @map("atualizado_em")
-
-  keyResult   KeyResult? @relation(fields: [keyResultId], references: [id], onDelete: SetNull)
-  responsavel User       @relation("TarefaResponsavel", fields: [responsavelId], references: [id])
-  subtarefas  Subtask[]
-
-  @@index([keyResultId])
-  @@index([responsavelId])
-  @@index([status])
-  @@map("tasks")
-}
-
-model Subtask {
-  id           String     @id @default(cuid())
-  tarefaId     String     @map("tarefa_id")
-  titulo       String
-  concluida    Boolean    @default(false)
-  criadoEm     DateTime   @default(now()) @map("criado_em")
-  atualizadoEm DateTime   @updatedAt @map("atualizado_em")
-
-  tarefa Task @relation(fields: [tarefaId], references: [id], onDelete: Cascade)
-
-  @@index([tarefaId])
-  @@map("subtasks")
 }
 
 enum TaskPriority {
@@ -432,30 +502,6 @@ enum TaskStatus {
   CANCELADA
 }
 
-// ============================================
-// MÓDULO CONSULTORIA
-// ============================================
-
-model ConsultingProject {
-  id           String                  @id @default(cuid())
-  tenantId     String                  @map("tenant_id")
-  nome         String
-  descricao    String?
-  dataInicio   DateTime                @map("data_inicio")
-  dataFim      DateTime?               @map("data_fim")
-  status       ConsultingProjectStatus @default(EM_ANDAMENTO)
-  progresso    Decimal                 @default(0) @db.Decimal(5, 2)
-  criadoEm     DateTime                @default(now()) @map("criado_em")
-  atualizadoEm DateTime                @updatedAt @map("atualizado_em")
-
-  tenant  Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  etapas  ConsultingStage[]
-  tarefas ConsultingTask[]
-
-  @@index([tenantId])
-  @@map("consulting_projects")
-}
-
 enum ConsultingProjectStatus {
   NAO_INICIADO
   EM_ANDAMENTO
@@ -464,136 +510,9 @@ enum ConsultingProjectStatus {
   CANCELADO
 }
 
-model ConsultingStage {
-  id         String   @id @default(cuid())
-  projetoId  String   @map("projeto_id")
-  nome       String // Diagnóstico, Implementação, Estabilização
-  ordem      Int
-  peso       Decimal  @default(1) @db.Decimal(3, 2)
-  progresso  Decimal  @default(0) @db.Decimal(5, 2)
-  criadoEm   DateTime @default(now()) @map("criado_em")
-
-  projeto ConsultingProject @relation(fields: [projetoId], references: [id], onDelete: Cascade)
-  tarefas ConsultingTask[]
-
-  @@index([projetoId])
-  @@map("consulting_stages")
-}
-
-model ConsultingTask {
-  id               String              @id @default(cuid())
-  projetoId        String              @map("projeto_id")
-  etapaId          String?             @map("etapa_id")
-  responsavelId    String              @map("responsavel_id")
-  titulo           String
-  descricao        String?
-  status           ConsultingTaskStatus @default(A_FAZER)
-  prioridade       TaskPriority        @default(MEDIA)
-  prazo            DateTime?
-  requerEvidencia  Boolean             @default(false) @map("requer_evidencia")
-  criadoEm         DateTime            @default(now()) @map("criado_em")
-  atualizadoEm     DateTime            @updatedAt @map("atualizado_em")
-
-  projeto     ConsultingProject    @relation(fields: [projetoId], references: [id], onDelete: Cascade)
-  etapa       ConsultingStage?     @relation(fields: [etapaId], references: [id])
-  responsavel User                 @relation("ConsultoriaTarefaResponsavel", fields: [responsavelId], references: [id])
-  evidencias  ConsultingEvidence[]
-  comentarios Comment[]
-
-  @@index([projetoId])
-  @@index([etapaId])
-  @@index([responsavelId])
-  @@index([status])
-  @@map("consulting_tasks")
-}
-
 enum ConsultingTaskStatus {
   A_FAZER
   EM_ANDAMENTO
   EM_VALIDACAO
   CONCLUIDO
-}
-
-model ConsultingEvidence {
-  id          String   @id @default(cuid())
-  tarefaId    String   @map("tarefa_id")
-  titulo      String
-  descricao   String?
-  arquivoUrl  String?  @map("arquivo_url")
-  tipo        String? // documento, imagem, link
-  criadoEm    DateTime @default(now()) @map("criado_em")
-
-  tarefa ConsultingTask @relation(fields: [tarefaId], references: [id], onDelete: Cascade)
-
-  @@index([tarefaId])
-  @@map("consulting_evidences")
-}
-
-model Comment {
-  id        String   @id @default(cuid())
-  tarefaId  String   @map("tarefa_id")
-  autorId   String   @map("autor_id")
-  conteudo  String
-  criadoEm  DateTime @default(now()) @map("criado_em")
-
-  tarefa ConsultingTask @relation(fields: [tarefaId], references: [id], onDelete: Cascade)
-  autor  User           @relation(fields: [autorId], references: [id])
-
-  @@index([tarefaId])
-  @@map("comments")
-}
-
-// ============================================
-// CONFIGURAÇÕES DO USUÁRIO
-// ============================================
-
-model AppearanceSettings {
-  id          String   @id @default(cuid())
-  userId      String   @unique @map("user_id")
-  tema        String   @default("system")
-  corPrimaria String   @default("#1a365d") @map("cor_primaria")
-  densidade   String   @default("normal")
-  criadoEm    DateTime @default(now()) @map("criado_em")
-  atualizadoEm DateTime @updatedAt @map("atualizado_em")
-
-  @@map("appearance_settings")
-}
-
-model NotificationSettings {
-  id                   String   @id @default(cuid())
-  userId               String   @unique @map("user_id")
-  emailTarefaAtribuida Boolean  @default(true) @map("email_tarefa_atribuida")
-  emailPrazoProximo    Boolean  @default(true) @map("email_prazo_proximo")
-  emailResumoSemanal   Boolean  @default(false) @map("email_resumo_semanal")
-  notificacaoSistema   Boolean  @default(true) @map("notificacao_sistema")
-  criadoEm             DateTime @default(now()) @map("criado_em")
-  atualizadoEm         DateTime @updatedAt @map("atualizado_em")
-
-  @@map("notification_settings")
-}
-
-// ============================================
-// AUDITORIA
-// ============================================
-
-model AuditLog {
-  id        String   @id @default(cuid())
-  userId    String   @map("user_id")
-  tenantId  String   @map("tenant_id")
-  acao      String
-  entidade  String
-  entidadeId String  @map("entidade_id")
-  dadosAntigos Json? @map("dados_antigos")
-  dadosNovos  Json?  @map("dados_novos")
-  ip        String?
-  userAgent String?  @map("user_agent")
-  criadoEm  DateTime @default(now()) @map("criado_em")
-
-  user User @relation(fields: [userId], references: [id])
-
-  @@index([tenantId])
-  @@index([userId])
-  @@index([entidade, entidadeId])
-  @@index([criadoEm])
-  @@map("audit_logs")
 }

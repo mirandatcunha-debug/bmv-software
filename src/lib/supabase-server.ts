@@ -2,7 +2,7 @@ import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 
 // Cliente Supabase para Server Components e API Routes
-export async function createServerSupabaseClient() {
+export async function createSupabaseServerClient() {
   const cookieStore = cookies()
 
   return createServerClient(
@@ -30,4 +30,4 @@ export async function createServerSupabaseClient() {
 }
 
 // Alias para compatibilidade com imports existentes
-export const createServerComponentClient = createServerSupabaseClient
+export const createServerComponentClient = createSupabaseServerClient

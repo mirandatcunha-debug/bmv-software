@@ -8,7 +8,7 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    const supabase = createServerComponentClient()
+    const supabase = await createServerComponentClient()
     const { data: { session } } = await supabase.auth.getSession()
 
     if (!session) {
@@ -43,7 +43,6 @@ export async function GET(
       id: user.id,
       nome: user.nome,
       email: user.email,
-      telefone: user.telefone,
       perfil: user.perfil,
       ativo: user.ativo,
       primeiroAcesso: user.primeiroAcesso,
@@ -65,7 +64,7 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   try {
-    const supabase = createServerComponentClient()
+    const supabase = await createServerComponentClient()
     const { data: { session } } = await supabase.auth.getSession()
 
     if (!session) {
@@ -103,11 +102,10 @@ export async function PUT(
     }
 
     const body = await request.json()
-    const { nome, telefone, perfil, ativo } = body
+    const { nome, perfil, ativo } = body
 
     const updateData: any = {}
     if (nome !== undefined) updateData.nome = nome
-    if (telefone !== undefined) updateData.telefone = telefone
     if (perfil !== undefined) {
       // Validar perfil
       const perfisValidos = ['GESTOR', 'COLABORADOR', 'CLIENTE']

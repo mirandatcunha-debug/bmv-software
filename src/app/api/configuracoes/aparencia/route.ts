@@ -1,50 +1,27 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
-import { createServerComponentClient } from '@/lib/supabase/server'
+import { createSupabaseServerClient } from '@/lib/supabase-server'
 
-// GET - Obter configuracoes de aparencia do usuario
-export async function GET(request: NextRequest) {
+// Configurações de aparência são armazenadas no localStorage do cliente
+// Esta API apenas valida a autenticação e retorna valores padrão
+
+// GET - Obter configurações de aparência padrão
+export async function GET() {
   try {
-    const supabase = createServerComponentClient()
+    const supabase = await createSupabaseServerClient()
     const { data: { session } } = await supabase.auth.getSession()
 
     if (!session) {
-      return NextResponse.json({ error: 'Nao autorizado' }, { status: 401 })
+      return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
     }
 
-    const user = await prisma.user.findUnique({
-      where: { authId: session.user.id },
-    })
-
-    if (!user) {
-      return NextResponse.json({ error: 'Usuario nao encontrado' }, { status: 404 })
-    }
-
-    // Buscar ou criar configuracoes de aparencia
-    let config = await prisma.appearanceSettings.findUnique({
-      where: { userId: user.id },
-    })
-
-    if (!config) {
-      // Criar configuracoes padrao
-      config = await prisma.appearanceSettings.create({
-        data: {
-          userId: user.id,
-          tema: 'system',
-          corPrimaria: '#1a365d',
-          densidade: 'normal',
-        },
-      })
-    }
-
+    // Retornar configurações padrão - o cliente gerencia via localStorage
     return NextResponse.json({
-      tema: config.tema,
-      corPrimaria: config.corPrimaria,
-      densidade: config.densidade,
+      tema: 'system',
+      corPrimaria: '#1a365d',
+      densidade: 'normal',
     })
   } catch (error) {
-    console.error('Erro ao buscar configuracoes de aparencia:', error)
-    // Retornar valores padrao em caso de erro
+    console.error('Erro ao buscar configurações de aparência:', error)
     return NextResponse.json({
       tema: 'system',
       corPrimaria: '#1a365d',
@@ -53,22 +30,14 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// PUT - Atualizar configuracoes de aparencia
+// PUT - Validar configurações de aparência
 export async function PUT(request: NextRequest) {
   try {
-    const supabase = createServerComponentClient()
+    const supabase = await createSupabaseServerClient()
     const { data: { session } } = await supabase.auth.getSession()
 
     if (!session) {
-      return NextResponse.json({ error: 'Nao autorizado' }, { status: 401 })
-    }
-
-    const user = await prisma.user.findUnique({
-      where: { authId: session.user.id },
-    })
-
-    if (!user) {
-      return NextResponse.json({ error: 'Usuario nao encontrado' }, { status: 404 })
+      return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
     }
 
     const body = await request.json()
@@ -78,7 +47,7 @@ export async function PUT(request: NextRequest) {
     const temasValidos = ['light', 'dark', 'system']
     if (tema && !temasValidos.includes(tema)) {
       return NextResponse.json(
-        { message: 'Tema invalido' },
+        { message: 'Tema inválido' },
         { status: 400 }
       )
     }
@@ -87,36 +56,21 @@ export async function PUT(request: NextRequest) {
     const densidadesValidas = ['compact', 'normal', 'comfortable']
     if (densidade && !densidadesValidas.includes(densidade)) {
       return NextResponse.json(
-        { message: 'Densidade invalida' },
+        { message: 'Densidade inválida' },
         { status: 400 }
       )
     }
 
-    // Upsert configuracoes
-    const config = await prisma.appearanceSettings.upsert({
-      where: { userId: user.id },
-      create: {
-        userId: user.id,
-        tema: tema ?? 'system',
-        corPrimaria: corPrimaria ?? '#1a365d',
-        densidade: densidade ?? 'normal',
-      },
-      update: {
-        tema,
-        corPrimaria,
-        densidade,
-      },
-    })
-
+    // Retornar as configurações validadas - armazenamento é feito no cliente
     return NextResponse.json({
-      tema: config.tema,
-      corPrimaria: config.corPrimaria,
-      densidade: config.densidade,
+      tema: tema ?? 'system',
+      corPrimaria: corPrimaria ?? '#1a365d',
+      densidade: densidade ?? 'normal',
     })
   } catch (error) {
-    console.error('Erro ao atualizar configuracoes de aparencia:', error)
+    console.error('Erro ao atualizar configurações de aparência:', error)
     return NextResponse.json(
-      { error: 'Erro ao atualizar configuracoes' },
+      { error: 'Erro ao atualizar configurações' },
       { status: 500 }
     )
   }

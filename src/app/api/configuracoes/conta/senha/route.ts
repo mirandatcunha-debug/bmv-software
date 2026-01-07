@@ -4,7 +4,7 @@ import { createServerComponentClient } from '@/lib/supabase/server'
 // PUT - Alterar senha do usuario
 export async function PUT(request: NextRequest) {
   try {
-    const supabase = createServerComponentClient()
+    const supabase = await createServerComponentClient()
     const { data: { session } } = await supabase.auth.getSession()
 
     if (!session) {

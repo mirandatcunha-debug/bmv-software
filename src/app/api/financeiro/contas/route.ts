@@ -5,7 +5,7 @@ import { createServerComponentClient } from '@/lib/supabase/server'
 // GET - Listar contas bancarias
 export async function GET(request: NextRequest) {
   try {
-    const supabase = createServerComponentClient()
+    const supabase = await createServerComponentClient()
     const { data: { session } } = await supabase.auth.getSession()
 
     if (!session) {
@@ -65,7 +65,7 @@ export async function GET(request: NextRequest) {
 // POST - Criar nova conta bancaria
 export async function POST(request: NextRequest) {
   try {
-    const supabase = createServerComponentClient()
+    const supabase = await createServerComponentClient()
     const { data: { session } } = await supabase.auth.getSession()
 
     if (!session) {

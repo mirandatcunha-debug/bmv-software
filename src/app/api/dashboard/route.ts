@@ -6,7 +6,7 @@ import { gerarInsights, DadosParaAnalise } from '@/lib/insights/engine'
 // GET - Retorna todos os dados do Dashboard
 export async function GET(request: NextRequest) {
   try {
-    const supabase = createServerComponentClient()
+    const supabase = await createServerComponentClient()
     const { data: { session } } = await supabase.auth.getSession()
 
     if (!session) {

@@ -1,15 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { createServerComponentClient } from '@/lib/supabase/server'
+import { createSupabaseServerClient } from '@/lib/supabase-server'
 
-// GET - Obter dados da conta do usuario
-export async function GET(request: NextRequest) {
+// GET - Obter dados da conta do usuário
+export async function GET() {
   try {
-    const supabase = createServerComponentClient()
+    const supabase = await createSupabaseServerClient()
     const { data: { session } } = await supabase.auth.getSession()
 
     if (!session) {
-      return NextResponse.json({ error: 'Nao autorizado' }, { status: 401 })
+      return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
     }
 
     const user = await prisma.user.findUnique({
@@ -17,14 +17,13 @@ export async function GET(request: NextRequest) {
     })
 
     if (!user) {
-      return NextResponse.json({ error: 'Usuario nao encontrado' }, { status: 404 })
+      return NextResponse.json({ error: 'Usuário não encontrado' }, { status: 404 })
     }
 
     return NextResponse.json({
       id: user.id,
       nome: user.nome,
       email: user.email,
-      telefone: user.telefone,
       avatarUrl: user.avatarUrl,
       perfil: user.perfil,
       primeiroAcesso: user.primeiroAcesso,
@@ -42,11 +41,11 @@ export async function GET(request: NextRequest) {
 // PUT - Atualizar dados da conta
 export async function PUT(request: NextRequest) {
   try {
-    const supabase = createServerComponentClient()
+    const supabase = await createSupabaseServerClient()
     const { data: { session } } = await supabase.auth.getSession()
 
     if (!session) {
-      return NextResponse.json({ error: 'Nao autorizado' }, { status: 401 })
+      return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
     }
 
     const user = await prisma.user.findUnique({
@@ -54,15 +53,14 @@ export async function PUT(request: NextRequest) {
     })
 
     if (!user) {
-      return NextResponse.json({ error: 'Usuario nao encontrado' }, { status: 404 })
+      return NextResponse.json({ error: 'Usuário não encontrado' }, { status: 404 })
     }
 
     const body = await request.json()
-    const { nome, telefone } = body
+    const { nome } = body
 
-    const updateData: any = {}
+    const updateData: { nome?: string } = {}
     if (nome !== undefined) updateData.nome = nome
-    if (telefone !== undefined) updateData.telefone = telefone
 
     const updatedUser = await prisma.user.update({
       where: { id: user.id },
@@ -73,7 +71,6 @@ export async function PUT(request: NextRequest) {
       id: updatedUser.id,
       nome: updatedUser.nome,
       email: updatedUser.email,
-      telefone: updatedUser.telefone,
       avatarUrl: updatedUser.avatarUrl,
       perfil: updatedUser.perfil,
     })

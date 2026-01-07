@@ -1,52 +1,28 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
-import { createServerComponentClient } from '@/lib/supabase/server'
+import { createSupabaseServerClient } from '@/lib/supabase-server'
 
-// GET - Obter configuracoes de notificacao do usuario
-export async function GET(request: NextRequest) {
+// Configurações de notificação são armazenadas no localStorage do cliente
+// Esta API apenas valida a autenticação e retorna valores padrão
+
+// GET - Obter configurações de notificação padrão
+export async function GET() {
   try {
-    const supabase = createServerComponentClient()
+    const supabase = await createSupabaseServerClient()
     const { data: { session } } = await supabase.auth.getSession()
 
     if (!session) {
-      return NextResponse.json({ error: 'Nao autorizado' }, { status: 401 })
+      return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
     }
 
-    const user = await prisma.user.findUnique({
-      where: { authId: session.user.id },
-    })
-
-    if (!user) {
-      return NextResponse.json({ error: 'Usuario nao encontrado' }, { status: 404 })
-    }
-
-    // Buscar ou criar configuracoes de notificacao
-    let config = await prisma.notificationSettings.findUnique({
-      where: { userId: user.id },
-    })
-
-    if (!config) {
-      // Criar configuracoes padrao
-      config = await prisma.notificationSettings.create({
-        data: {
-          userId: user.id,
-          emailTarefaAtribuida: true,
-          emailPrazoProximo: true,
-          emailResumoSemanal: false,
-          notificacaoSistema: true,
-        },
-      })
-    }
-
+    // Retornar configurações padrão - o cliente gerencia via localStorage
     return NextResponse.json({
-      emailTarefaAtribuida: config.emailTarefaAtribuida,
-      emailPrazoProximo: config.emailPrazoProximo,
-      emailResumoSemanal: config.emailResumoSemanal,
-      notificacaoSistema: config.notificacaoSistema,
+      emailTarefaAtribuida: true,
+      emailPrazoProximo: true,
+      emailResumoSemanal: false,
+      notificacaoSistema: true,
     })
   } catch (error) {
-    console.error('Erro ao buscar configuracoes de notificacao:', error)
-    // Retornar valores padrao em caso de erro (ex: tabela nao existe ainda)
+    console.error('Erro ao buscar configurações de notificação:', error)
     return NextResponse.json({
       emailTarefaAtribuida: true,
       emailPrazoProximo: true,
@@ -56,22 +32,14 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// PUT - Atualizar configuracoes de notificacao
+// PUT - Validar configurações de notificação
 export async function PUT(request: NextRequest) {
   try {
-    const supabase = createServerComponentClient()
+    const supabase = await createSupabaseServerClient()
     const { data: { session } } = await supabase.auth.getSession()
 
     if (!session) {
-      return NextResponse.json({ error: 'Nao autorizado' }, { status: 401 })
-    }
-
-    const user = await prisma.user.findUnique({
-      where: { authId: session.user.id },
-    })
-
-    if (!user) {
-      return NextResponse.json({ error: 'Usuario nao encontrado' }, { status: 404 })
+      return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
     }
 
     const body = await request.json()
@@ -82,34 +50,17 @@ export async function PUT(request: NextRequest) {
       notificacaoSistema,
     } = body
 
-    // Upsert configuracoes
-    const config = await prisma.notificationSettings.upsert({
-      where: { userId: user.id },
-      create: {
-        userId: user.id,
-        emailTarefaAtribuida: emailTarefaAtribuida ?? true,
-        emailPrazoProximo: emailPrazoProximo ?? true,
-        emailResumoSemanal: emailResumoSemanal ?? false,
-        notificacaoSistema: notificacaoSistema ?? true,
-      },
-      update: {
-        emailTarefaAtribuida,
-        emailPrazoProximo,
-        emailResumoSemanal,
-        notificacaoSistema,
-      },
-    })
-
+    // Retornar as configurações validadas - armazenamento é feito no cliente
     return NextResponse.json({
-      emailTarefaAtribuida: config.emailTarefaAtribuida,
-      emailPrazoProximo: config.emailPrazoProximo,
-      emailResumoSemanal: config.emailResumoSemanal,
-      notificacaoSistema: config.notificacaoSistema,
+      emailTarefaAtribuida: emailTarefaAtribuida ?? true,
+      emailPrazoProximo: emailPrazoProximo ?? true,
+      emailResumoSemanal: emailResumoSemanal ?? false,
+      notificacaoSistema: notificacaoSistema ?? true,
     })
   } catch (error) {
-    console.error('Erro ao atualizar configuracoes de notificacao:', error)
+    console.error('Erro ao atualizar configurações de notificação:', error)
     return NextResponse.json(
-      { error: 'Erro ao atualizar configuracoes' },
+      { error: 'Erro ao atualizar configurações' },
       { status: 500 }
     )
   }
