@@ -1,9 +1,8 @@
+export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { createServerComponentClient } from '@/lib/supabase/server'
 import { ConsultingProjectStatus } from '@prisma/client'
-
-export const dynamic = 'force-dynamic'
 
 // Funcao auxiliar para recalcular progresso do projeto
 async function recalcularProgressoProjeto(projetoId: string) {

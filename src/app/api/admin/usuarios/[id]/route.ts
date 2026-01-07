@@ -1,10 +1,9 @@
+export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { createServerComponentClient } from '@/lib/supabase/server'
 import { canManageUsers, canManageTenants } from '@/lib/permissions'
 import { randomBytes } from 'crypto'
-
-export const dynamic = 'force-dynamic'
 
 // GET - Buscar usuario por ID
 export async function GET(

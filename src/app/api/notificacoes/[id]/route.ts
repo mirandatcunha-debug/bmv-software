@@ -1,8 +1,7 @@
+export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerComponentClient } from '@/lib/supabase/server'
 import { Notificacao } from '@/types/notificacoes'
-
-export const dynamic = 'force-dynamic'
 
 // Armazenamento em memória compartilhado (mesmo do route.ts pai)
 // Em produção, isso seria substituído por queries no banco de dados

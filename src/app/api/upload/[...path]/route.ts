@@ -1,7 +1,6 @@
+export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from 'next/server'
 import { createSupabaseServerClient } from '@/lib/supabase-server'
-
-export const dynamic = 'force-dynamic'
 
 const VALID_BUCKETS = ['logos', 'avatars', 'anexos']
 

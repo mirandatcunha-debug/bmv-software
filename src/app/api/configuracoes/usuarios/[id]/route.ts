@@ -1,8 +1,7 @@
+export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { createServerComponentClient } from '@/lib/supabase/server'
-
-export const dynamic = 'force-dynamic'
 
 // GET - Obter usuario por ID
 export async function GET(
