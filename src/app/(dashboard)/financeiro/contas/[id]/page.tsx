@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, use } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -19,9 +19,10 @@ import {
   Check,
   AlertCircle,
   Sparkles,
+  Edit,
 } from 'lucide-react'
 import { useToast } from '@/components/ui/use-toast'
-import { TipoConta, tipoContaLabels, formatCurrency } from '@/types/financeiro'
+import { TipoConta, tipoContaLabels, formatCurrency, ContaBancaria } from '@/types/financeiro'
 import { cn } from '@/lib/utils'
 import { useAuth } from '@/contexts/auth-context'
 import { useTenant } from '@/hooks/use-tenant'
@@ -45,13 +46,21 @@ const coresOptions = [
   { value: '#be185d', label: 'Rosa' },
 ]
 
-export default function NovaContaPage() {
+interface EditarContaPageProps {
+  params: Promise<{ id: string }>
+}
+
+export default function EditarContaPage({ params }: EditarContaPageProps) {
+  const resolvedParams = use(params)
   const router = useRouter()
   const { toast } = useToast()
   const { user, loading: authLoading } = useAuth()
   const { tenant } = useTenant()
+
   const [loading, setLoading] = useState(false)
+  const [loadingData, setLoadingData] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [conta, setConta] = useState<ContaBancaria | null>(null)
 
   const [formData, setFormData] = useState({
     nome: '',
@@ -64,6 +73,36 @@ export default function NovaContaPage() {
   })
 
   const [touched, setTouched] = useState<Record<string, boolean>>({})
+
+  // Carregar dados da conta
+  useEffect(() => {
+    async function loadConta() {
+      try {
+        setLoadingData(true)
+        setError(null)
+        const contaData = await financeiroService.contas.getConta(resolvedParams.id)
+        setConta(contaData)
+        setFormData({
+          nome: contaData.nome,
+          banco: contaData.banco || '',
+          agencia: contaData.agencia || '',
+          conta: contaData.conta || '',
+          tipo: contaData.tipo,
+          saldoInicial: String(contaData.saldoInicial),
+          cor: contaData.cor || '#1a365d',
+        })
+      } catch (err) {
+        console.error('Erro ao carregar conta:', err)
+        setError('Conta nao encontrada')
+      } finally {
+        setLoadingData(false)
+      }
+    }
+
+    if (user && tenant && resolvedParams.id) {
+      loadConta()
+    }
+  }, [user, tenant, resolvedParams.id])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData((prev) => ({
@@ -124,7 +163,7 @@ export default function NovaContaPage() {
     setLoading(true)
 
     try {
-      await financeiroService.contas.createConta({
+      await financeiroService.contas.updateConta(resolvedParams.id, {
         nome: formData.nome,
         banco: formData.banco || undefined,
         agencia: formData.agencia || undefined,
@@ -135,18 +174,18 @@ export default function NovaContaPage() {
       })
 
       toast({
-        title: 'Conta criada!',
-        description: 'A conta bancaria foi cadastrada com sucesso.',
+        title: 'Conta atualizada!',
+        description: 'As alteracoes foram salvas com sucesso.',
       })
 
       router.push('/financeiro/contas')
     } catch (err) {
-      console.error('Erro ao criar conta:', err)
+      console.error('Erro ao atualizar conta:', err)
       const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido'
       setError(errorMessage)
       toast({
         title: 'Erro',
-        description: 'Nao foi possivel criar a conta. Tente novamente.',
+        description: 'Nao foi possivel atualizar a conta. Tente novamente.',
         variant: 'destructive',
       })
     } finally {
@@ -156,8 +195,8 @@ export default function NovaContaPage() {
 
   const tipoSelecionado = tipoOptions.find(t => t.tipo === formData.tipo)
 
-  // Loading de autenticação
-  if (authLoading) {
+  // Loading de autenticação ou dados
+  if (authLoading || loadingData) {
     return (
       <div className="flex items-center justify-center p-8">
         <Loader2 className="h-8 w-8 animate-spin text-purple-600" />
@@ -169,6 +208,26 @@ export default function NovaContaPage() {
   if (!user) {
     router.push('/login')
     return null
+  }
+
+  // Conta não encontrada
+  if (!conta && !loadingData) {
+    return (
+      <div className="space-y-6 max-w-4xl">
+        <Link
+          href="/financeiro/contas"
+          className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors group"
+        >
+          <ArrowLeft className="h-4 w-4 group-hover:-translate-x-1 transition-transform" />
+          Voltar para Contas
+        </Link>
+        <Card>
+          <CardContent className="p-8 text-center">
+            <p className="text-muted-foreground">Conta nao encontrada</p>
+          </CardContent>
+        </Card>
+      </div>
+    )
   }
 
   return (
@@ -190,7 +249,7 @@ export default function NovaContaPage() {
       </Link>
 
       {/* Header com gradiente */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-purple-600 via-violet-600 to-indigo-600 p-6 text-white animate-fade-in-up">
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 p-6 text-white animate-fade-in-up">
         <div className="absolute inset-0 opacity-10">
           <div className="absolute top-0 right-0 w-64 h-64 bg-white rounded-full -translate-y-1/2 translate-x-1/2"></div>
           <div className="absolute bottom-0 left-0 w-48 h-48 bg-white rounded-full translate-y-1/2 -translate-x-1/2"></div>
@@ -198,12 +257,12 @@ export default function NovaContaPage() {
 
         <div className="relative flex items-center gap-4">
           <div className="p-3 bg-white/20 rounded-xl backdrop-blur-sm">
-            <Landmark className="h-8 w-8" />
+            <Edit className="h-8 w-8" />
           </div>
           <div>
-            <h1 className="text-2xl md:text-3xl font-bold">Nova Conta Bancaria</h1>
-            <p className="text-purple-100 text-sm md:text-base">
-              Cadastre uma nova conta para gerenciar
+            <h1 className="text-2xl md:text-3xl font-bold">Editar Conta Bancaria</h1>
+            <p className="text-blue-100 text-sm md:text-base">
+              Altere os dados da conta {conta?.nome}
             </p>
           </div>
         </div>
@@ -214,11 +273,11 @@ export default function NovaContaPage() {
         <Card className="lg:col-span-3 animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Sparkles className="h-5 w-5 text-purple-500" />
+              <Sparkles className="h-5 w-5 text-blue-500" />
               Dados da Conta
             </CardTitle>
             <CardDescription>
-              Preencha as informacoes da conta bancaria
+              Altere as informacoes da conta bancaria
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -238,19 +297,19 @@ export default function NovaContaPage() {
                         className={cn(
                           "relative p-4 rounded-xl border-2 text-left transition-all duration-200",
                           isSelected
-                            ? "border-purple-500 bg-purple-50 dark:bg-purple-950/30 shadow-lg shadow-purple-500/20"
-                            : "border-slate-200 dark:border-slate-700 hover:border-purple-300 hover:bg-slate-50 dark:hover:bg-slate-800"
+                            ? "border-blue-500 bg-blue-50 dark:bg-blue-950/30 shadow-lg shadow-blue-500/20"
+                            : "border-slate-200 dark:border-slate-700 hover:border-blue-300 hover:bg-slate-50 dark:hover:bg-slate-800"
                         )}
                       >
                         {isSelected && (
-                          <div className="absolute top-2 right-2 w-5 h-5 bg-purple-500 rounded-full flex items-center justify-center">
+                          <div className="absolute top-2 right-2 w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
                             <Check className="h-3 w-3 text-white" />
                           </div>
                         )}
                         <div
                           className={cn(
                             "p-2 rounded-lg w-fit mb-2",
-                            isSelected ? "bg-purple-500/20" : "bg-slate-100 dark:bg-slate-800"
+                            isSelected ? "bg-blue-500/20" : "bg-slate-100 dark:bg-slate-800"
                           )}
                         >
                           <Icon
@@ -260,7 +319,7 @@ export default function NovaContaPage() {
                         </div>
                         <p className={cn(
                           "font-medium",
-                          isSelected && "text-purple-700 dark:text-purple-300"
+                          isSelected && "text-blue-700 dark:text-blue-300"
                         )}>
                           {tipoContaLabels[opcao.tipo]}
                         </p>
@@ -412,11 +471,11 @@ export default function NovaContaPage() {
                 </Button>
                 <Button
                   type="submit"
-                  className="flex-1 bg-gradient-to-r from-purple-600 to-violet-600 hover:from-purple-700 hover:to-violet-700 text-white shadow-lg shadow-purple-500/25 transition-all"
+                  className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg shadow-blue-500/25 transition-all"
                   disabled={loading || !formData.nome.trim()}
                 >
                   {loading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                  Criar Conta
+                  Salvar Alteracoes
                 </Button>
               </div>
             </form>
@@ -487,7 +546,7 @@ export default function NovaContaPage() {
                     <div>
                       <span className="text-sm text-muted-foreground">Saldo Atual</span>
                       <p className="text-2xl font-bold text-green-600">
-                        {formatCurrency(parseFloat(formData.saldoInicial) || 0)}
+                        {formatCurrency(conta?.saldoAtual || parseFloat(formData.saldoInicial) || 0)}
                       </p>
                     </div>
                     <Badge className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
@@ -499,7 +558,7 @@ export default function NovaContaPage() {
             </Card>
 
             <p className="text-xs text-muted-foreground mt-3 text-center">
-              Assim ficara o card da sua conta
+              Preview atualizado em tempo real
             </p>
           </div>
         </div>

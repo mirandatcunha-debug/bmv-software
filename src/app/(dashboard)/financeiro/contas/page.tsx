@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -26,6 +26,8 @@ import {
   ArrowDownRight,
   CreditCard,
   Sparkles,
+  Loader2,
+  Trash2,
 } from 'lucide-react'
 import {
   ContaBancaria,
@@ -34,6 +36,10 @@ import {
   tipoContaLabels,
 } from '@/types/financeiro'
 import { cn } from '@/lib/utils'
+import { useModulePermissions } from '@/hooks/use-permissions'
+import { useAuth } from '@/contexts/auth-context'
+import { useTenant } from '@/hooks/use-tenant'
+import { financeiroService } from '@/services/financeiro.service'
 
 // Logos/cores dos bancos
 const bancosConfig: Record<string, { cor: string; corSecundaria: string }> = {
@@ -49,77 +55,6 @@ const bancosConfig: Record<string, { cor: string; corSecundaria: string }> = {
   'default': { cor: '#6366f1', corSecundaria: '#6366f1' },
 }
 
-// Dados mockados
-const contasMock: ContaBancaria[] = [
-  {
-    id: '1',
-    tenantId: '1',
-    nome: 'Conta Principal',
-    banco: 'Banco do Brasil',
-    agencia: '1234',
-    conta: '12345-6',
-    tipo: 'CORRENTE',
-    saldoInicial: 10000,
-    saldoAtual: 50000,
-    cor: '#1a365d',
-    ativo: true,
-    criadoEm: new Date(),
-    atualizadoEm: new Date(),
-  },
-  {
-    id: '2',
-    tenantId: '1',
-    nome: 'Conta Empresarial',
-    banco: 'Itau',
-    agencia: '5678',
-    conta: '67890-1',
-    tipo: 'CORRENTE',
-    saldoInicial: 5000,
-    saldoAtual: 75450,
-    cor: '#ec7211',
-    ativo: true,
-    criadoEm: new Date(),
-    atualizadoEm: new Date(),
-  },
-  {
-    id: '3',
-    tenantId: '1',
-    nome: 'Reserva',
-    banco: 'Caixa',
-    agencia: '9012',
-    conta: '34567-8',
-    tipo: 'POUPANCA',
-    saldoInicial: 20000,
-    saldoAtual: 25000,
-    cor: '#0066cc',
-    ativo: true,
-    criadoEm: new Date(),
-    atualizadoEm: new Date(),
-  },
-  {
-    id: '4',
-    tenantId: '1',
-    nome: 'Investimentos',
-    banco: 'XP',
-    agencia: '',
-    conta: '',
-    tipo: 'INVESTIMENTO',
-    saldoInicial: 50000,
-    saldoAtual: 68000,
-    cor: '#00875a',
-    ativo: true,
-    criadoEm: new Date(),
-    atualizadoEm: new Date(),
-  },
-]
-
-// Tendências mockadas (variação percentual)
-const tendenciasMock: Record<string, number> = {
-  '1': 12.5,
-  '2': 8.3,
-  '3': -2.1,
-  '4': 15.8,
-}
 
 const getIconByTipo = (tipo: TipoConta) => {
   switch (tipo) {
@@ -141,7 +76,34 @@ const getBancoConfig = (banco: string) => {
 }
 
 export default function ContasPage() {
-  const [contas] = useState<ContaBancaria[]>(contasMock)
+  const { user, loading: authLoading } = useAuth()
+  const { tenant } = useTenant()
+  const { canView, canCreate, canEdit, canDelete } = useModulePermissions('financeiro.contas')
+
+  const [contas, setContas] = useState<ContaBancaria[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  // Carregar contas
+  useEffect(() => {
+    async function loadContas() {
+      try {
+        setLoading(true)
+        setError(null)
+        const contasData = await financeiroService.contas.getContas()
+        setContas(contasData)
+      } catch (err) {
+        console.error('Erro ao carregar contas:', err)
+        setError('Erro ao carregar contas bancarias')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    if (user && tenant) {
+      loadContas()
+    }
+  }, [user, tenant])
 
   // Calcular saldo total
   const saldoTotal = contas
@@ -150,6 +112,42 @@ export default function ContasPage() {
 
   // Tendência total (média ponderada)
   const tendenciaTotal = 10.2
+
+  // Loading state
+  if (authLoading || loading) {
+    return (
+      <div className="flex items-center justify-center p-8">
+        <Loader2 className="h-8 w-8 animate-spin text-purple-600" />
+      </div>
+    )
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <Link
+          href="/financeiro"
+          className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors group"
+        >
+          <ArrowLeft className="h-4 w-4 group-hover:-translate-x-1 transition-transform" />
+          Voltar para Financeiro
+        </Link>
+        <Card>
+          <CardContent className="p-8 text-center">
+            <p className="text-red-600">{error}</p>
+            <Button
+              onClick={() => window.location.reload()}
+              className="mt-4"
+              variant="outline"
+            >
+              Tentar novamente
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-6">
@@ -183,14 +181,16 @@ export default function ContasPage() {
                 </p>
               </div>
             </div>
-            <Link href="/financeiro/contas/nova">
-              <Button
-                className="bg-white text-purple-600 hover:bg-white/90 shadow-lg shadow-purple-900/30 transition-all hover:scale-105 font-semibold"
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Nova Conta
-              </Button>
-            </Link>
+            {canCreate && (
+              <Link href="/financeiro/contas/nova">
+                <Button
+                  className="bg-white text-purple-600 hover:bg-white/90 shadow-lg shadow-purple-900/30 transition-all hover:scale-105 font-semibold"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Nova Conta
+                </Button>
+              </Link>
+            )}
           </div>
 
           {/* Mini cards de resumo no header */}
@@ -231,7 +231,7 @@ export default function ContasPage() {
           {contas.map((conta, index) => {
             const Icon = getIconByTipo(conta.tipo)
             const bancoConfig = getBancoConfig(conta.banco || '')
-            const tendencia = tendenciasMock[conta.id] || 0
+            const tendencia = 0 // TODO: calcular tendencia real
             const variacao = conta.saldoAtual - conta.saldoInicial
 
             return (
@@ -300,30 +300,46 @@ export default function ContasPage() {
                       </div>
                     </div>
 
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="opacity-0 group-hover:opacity-100 transition-opacity"
-                        >
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem className="cursor-pointer">
-                          <Edit className="h-4 w-4 mr-2" />
-                          Editar
-                        </DropdownMenuItem>
-                        <DropdownMenuItem className={cn(
-                          "cursor-pointer",
-                          conta.ativo ? 'text-amber-600' : 'text-green-600'
-                        )}>
-                          <Power className="h-4 w-4 mr-2" />
-                          {conta.ativo ? 'Desativar' : 'Ativar'}
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                    {(canEdit || canDelete) && (
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          {canEdit && (
+                            <Link href={`/financeiro/contas/${conta.id}`}>
+                              <DropdownMenuItem className="cursor-pointer">
+                                <Edit className="h-4 w-4 mr-2" />
+                                Editar
+                              </DropdownMenuItem>
+                            </Link>
+                          )}
+                          {canEdit && (
+                            <DropdownMenuItem className={cn(
+                              "cursor-pointer",
+                              conta.ativo ? 'text-amber-600' : 'text-green-600'
+                            )}>
+                              <Power className="h-4 w-4 mr-2" />
+                              {conta.ativo ? 'Desativar' : 'Ativar'}
+                            </DropdownMenuItem>
+                          )}
+                          {canDelete && (
+                            <Link href={`/financeiro/contas/${conta.id}/excluir`}>
+                              <DropdownMenuItem className="cursor-pointer text-red-600">
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                Excluir
+                              </DropdownMenuItem>
+                            </Link>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    )}
                   </div>
 
                   {/* Saldo e Tendência */}
@@ -399,12 +415,14 @@ export default function ContasPage() {
               <p className="text-muted-foreground mb-6 max-w-sm">
                 Adicione sua primeira conta bancaria para comecar a controlar suas financas de forma mais eficiente.
               </p>
-              <Link href="/financeiro/contas/nova">
-                <Button className="bg-gradient-to-r from-purple-600 to-violet-600 hover:from-purple-700 hover:to-violet-700 text-white shadow-lg shadow-purple-500/25 transition-all hover:scale-105">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Adicionar Primeira Conta
-                </Button>
-              </Link>
+              {canCreate && (
+                <Link href="/financeiro/contas/nova">
+                  <Button className="bg-gradient-to-r from-purple-600 to-violet-600 hover:from-purple-700 hover:to-violet-700 text-white shadow-lg shadow-purple-500/25 transition-all hover:scale-105">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Adicionar Primeira Conta
+                  </Button>
+                </Link>
+              )}
             </div>
           </CardContent>
         </Card>
