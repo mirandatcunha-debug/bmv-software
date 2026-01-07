@@ -59,7 +59,6 @@ async function main() {
         email: 'carlos.mendonca@techstore.com.br',
         perfil: 'GESTOR',
         ativo: true,
-        primeiroAcesso: false,
       },
     }),
     prisma.user.create({
@@ -69,7 +68,6 @@ async function main() {
         email: 'fernanda.lima@techstore.com.br',
         perfil: 'COLABORADOR',
         ativo: true,
-        primeiroAcesso: false,
       },
     }),
     prisma.user.create({
@@ -79,7 +77,6 @@ async function main() {
         email: 'ricardo.santos@techstore.com.br',
         perfil: 'COLABORADOR',
         ativo: true,
-        primeiroAcesso: false,
       },
     }),
     prisma.user.create({
@@ -89,7 +86,6 @@ async function main() {
         email: 'bruno.alves@techstore.com.br',
         perfil: 'COLABORADOR',
         ativo: true,
-        primeiroAcesso: false,
       },
     }),
     prisma.user.create({
@@ -99,7 +95,6 @@ async function main() {
         email: 'maria.clara@techstore.com.br',
         perfil: 'COLABORADOR',
         ativo: true,
-        primeiroAcesso: false,
       },
     }),
     prisma.user.create({
@@ -109,7 +104,6 @@ async function main() {
         email: 'juliana.costa@techstore.com.br',
         perfil: 'COLABORADOR',
         ativo: true,
-        primeiroAcesso: false,
       },
     }),
   ])
