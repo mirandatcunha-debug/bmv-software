@@ -2,28 +2,80 @@ import { createMiddlewareClient } from '@supabase/auth-helpers-nextjs'
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
+// Rotas públicas que não precisam de autenticação
+const publicRoutes = [
+  '/',
+  '/login',
+  '/cadastro',
+  '/esqueci-senha',
+  '/verificar-email',
+]
+
+// Rotas que começam com estes prefixos são públicas
+const publicPrefixes = [
+  '/convite/',
+  '/api/auth/',
+  '/api/convite/',
+]
+
+// Rotas protegidas que requerem autenticação
+const protectedPrefixes = [
+  '/dashboard',
+  '/financeiro',
+  '/admin',
+  '/configuracoes',
+  '/consultoria',
+  '/contabil',
+  '/processos',
+]
+
+function isPublicRoute(pathname: string): boolean {
+  // Verifica rotas exatas
+  if (publicRoutes.includes(pathname)) {
+    return true
+  }
+
+  // Verifica prefixos públicos
+  for (const prefix of publicPrefixes) {
+    if (pathname.startsWith(prefix)) {
+      return true
+    }
+  }
+
+  return false
+}
+
+function isProtectedRoute(pathname: string): boolean {
+  for (const prefix of protectedPrefixes) {
+    if (pathname.startsWith(prefix)) {
+      return true
+    }
+  }
+  return false
+}
+
 export async function middleware(req: NextRequest) {
   const res = NextResponse.next()
   const supabase = createMiddlewareClient({ req, res })
+  const pathname = req.nextUrl.pathname
 
   const {
     data: { session },
   } = await supabase.auth.getSession()
 
-  // Rotas públicas que não precisam de autenticação
-  const publicRoutes = ['/login', '/cadastro', '/esqueci-senha', '/verificar-email']
-  const isPublicRoute = publicRoutes.some(route => req.nextUrl.pathname.startsWith(route))
+  const isPublic = isPublicRoute(pathname)
+  const isProtected = isProtectedRoute(pathname)
 
   // Se não está autenticado e tenta acessar rota protegida
-  if (!session && !isPublicRoute) {
+  if (!session && isProtected) {
     const redirectUrl = req.nextUrl.clone()
     redirectUrl.pathname = '/login'
-    redirectUrl.searchParams.set('redirectTo', req.nextUrl.pathname)
+    redirectUrl.searchParams.set('redirectTo', pathname)
     return NextResponse.redirect(redirectUrl)
   }
 
   // Se está autenticado e tenta acessar login/cadastro
-  if (session && isPublicRoute) {
+  if (session && (pathname === '/login' || pathname === '/cadastro')) {
     const redirectUrl = req.nextUrl.clone()
     redirectUrl.pathname = '/dashboard'
     return NextResponse.redirect(redirectUrl)
@@ -39,9 +91,8 @@ export const config = {
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
-     * - public folder
-     * - api routes
+     * - public folder assets
      */
-    '/((?!_next/static|_next/image|favicon.ico|api|.*\\..*|public).*)',
+    '/((?!_next/static|_next/image|favicon.ico|.*\\..*|public).*)',
   ],
 }
