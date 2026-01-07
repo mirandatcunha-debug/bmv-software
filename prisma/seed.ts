@@ -55,6 +55,7 @@ async function main() {
     prisma.user.create({
       data: {
         tenantId: tenant.id,
+        authId: 'seed-user-1',
         nome: 'Carlos Mendonca',
         email: 'carlos.mendonca@techstore.com.br',
         perfil: 'GESTOR',
@@ -64,6 +65,7 @@ async function main() {
     prisma.user.create({
       data: {
         tenantId: tenant.id,
+        authId: 'seed-user-2',
         nome: 'Fernanda Lima',
         email: 'fernanda.lima@techstore.com.br',
         perfil: 'COLABORADOR',
@@ -73,6 +75,7 @@ async function main() {
     prisma.user.create({
       data: {
         tenantId: tenant.id,
+        authId: 'seed-user-3',
         nome: 'Ricardo Santos',
         email: 'ricardo.santos@techstore.com.br',
         perfil: 'COLABORADOR',
@@ -82,6 +85,7 @@ async function main() {
     prisma.user.create({
       data: {
         tenantId: tenant.id,
+        authId: 'seed-user-4',
         nome: 'Bruno Alves',
         email: 'bruno.alves@techstore.com.br',
         perfil: 'COLABORADOR',
@@ -91,6 +95,7 @@ async function main() {
     prisma.user.create({
       data: {
         tenantId: tenant.id,
+        authId: 'seed-user-5',
         nome: 'Maria Clara',
         email: 'maria.clara@techstore.com.br',
         perfil: 'COLABORADOR',
@@ -100,6 +105,7 @@ async function main() {
     prisma.user.create({
       data: {
         tenantId: tenant.id,
+        authId: 'seed-user-6',
         nome: 'Juliana Costa',
         email: 'juliana.costa@techstore.com.br',
         perfil: 'COLABORADOR',
