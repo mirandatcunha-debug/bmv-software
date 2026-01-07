@@ -4,13 +4,14 @@ import { createServerComponentClient } from '@/lib/supabase/server'
 import { canManageUsers, canManageTenants } from '@/lib/permissions'
 import { randomBytes } from 'crypto'
 
+export const dynamic = 'force-dynamic'
+
 // GET - Buscar usuario por ID
 export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  _request: NextRequest,
+  { params }: { params: { id: string } }
 ) {
   try {
-    const { id } = await params
     const supabase = await createServerComponentClient()
     const { data: { session } } = await supabase.auth.getSession()
 
@@ -27,7 +28,7 @@ export async function GET(
     }
 
     const usuario = await prisma.user.findUnique({
-      where: { id },
+      where: { id: params.id },
       include: {
         tenant: {
           select: {
@@ -61,10 +62,9 @@ export async function GET(
 // PUT - Atualizar usuario
 export async function PUT(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
   try {
-    const { id } = await params
     const supabase = await createServerComponentClient()
     const { data: { session } } = await supabase.auth.getSession()
 
@@ -81,7 +81,7 @@ export async function PUT(
     }
 
     const targetUser = await prisma.user.findUnique({
-      where: { id },
+      where: { id: params.id },
     })
 
     if (!targetUser) {
@@ -97,7 +97,7 @@ export async function PUT(
     const { nome, perfil, ativo } = body
 
     const usuario = await prisma.user.update({
-      where: { id },
+      where: { id: params.id },
       data: {
         nome,
         perfil,
@@ -117,11 +117,10 @@ export async function PUT(
 
 // DELETE - Desativar usuario (soft delete)
 export async function DELETE(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  _request: NextRequest,
+  { params }: { params: { id: string } }
 ) {
   try {
-    const { id } = await params
     const supabase = await createServerComponentClient()
     const { data: { session } } = await supabase.auth.getSession()
 
@@ -138,7 +137,7 @@ export async function DELETE(
     }
 
     const targetUser = await prisma.user.findUnique({
-      where: { id },
+      where: { id: params.id },
     })
 
     if (!targetUser) {
@@ -151,7 +150,7 @@ export async function DELETE(
     }
 
     // Nao permitir desativar a si mesmo
-    if (currentUser.id === id) {
+    if (currentUser.id === params.id) {
       return NextResponse.json(
         { error: 'Voce nao pode desativar sua propria conta' },
         { status: 400 }
@@ -160,7 +159,7 @@ export async function DELETE(
 
     // Soft delete
     const usuario = await prisma.user.update({
-      where: { id },
+      where: { id: params.id },
       data: { ativo: false },
     })
 
@@ -176,11 +175,10 @@ export async function DELETE(
 
 // PATCH - Reenviar convite (gerar novo token)
 export async function PATCH(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  _request: NextRequest,
+  { params }: { params: { id: string } }
 ) {
   try {
-    const { id } = await params
     const supabase = await createServerComponentClient()
     const { data: { session } } = await supabase.auth.getSession()
 
@@ -197,7 +195,7 @@ export async function PATCH(
     }
 
     const targetUser = await prisma.user.findUnique({
-      where: { id },
+      where: { id: params.id },
     })
 
     if (!targetUser) {
@@ -223,7 +221,7 @@ export async function PATCH(
     tokenExpira.setDate(tokenExpira.getDate() + 7)
 
     const usuario = await prisma.user.update({
-      where: { id },
+      where: { id: params.id },
       data: {
         tokenConvite,
         tokenExpira,

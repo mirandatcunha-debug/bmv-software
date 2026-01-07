@@ -3,6 +3,8 @@ import { prisma } from '@/lib/prisma'
 import { createServerComponentClient } from '@/lib/supabase/server'
 import { canManageTenants } from '@/lib/permissions'
 
+export const dynamic = 'force-dynamic'
+
 // GET - Buscar empresa por ID
 export async function GET(
   request: NextRequest,

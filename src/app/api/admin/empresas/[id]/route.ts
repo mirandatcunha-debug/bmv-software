@@ -3,18 +3,14 @@ import { prisma } from '@/lib/prisma'
 import { createServerComponentClient } from '@/lib/supabase/server'
 import { canManageTenants } from '@/lib/permissions'
 
-type RouteContext = {
-  params: Promise<{ id: string }>
-}
+export const dynamic = 'force-dynamic'
 
 // GET - Buscar empresa por ID com usuarios
 export async function GET(
   _request: NextRequest,
-  context: RouteContext
+  { params }: { params: { id: string } }
 ) {
   try {
-    const params = await context.params
-    const id = params.id
     const supabase = await createServerComponentClient()
     const { data: { session } } = await supabase.auth.getSession()
 
@@ -31,7 +27,7 @@ export async function GET(
     }
 
     const empresa = await prisma.tenant.findUnique({
-      where: { id },
+      where: { id: params.id },
       include: {
         usuarios: {
           select: {
@@ -68,11 +64,9 @@ export async function GET(
 // PUT - Atualizar empresa
 export async function PUT(
   request: NextRequest,
-  context: RouteContext
+  { params }: { params: { id: string } }
 ) {
   try {
-    const params = await context.params
-    const id = params.id
     const supabase = await createServerComponentClient()
     const { data: { session } } = await supabase.auth.getSession()
 
@@ -90,7 +84,7 @@ export async function PUT(
 
     // Verificar se empresa existe
     const existingEmpresa = await prisma.tenant.findUnique({
-      where: { id },
+      where: { id: params.id },
     })
 
     if (!existingEmpresa) {
@@ -115,7 +109,7 @@ export async function PUT(
     }
 
     const empresa = await prisma.tenant.update({
-      where: { id },
+      where: { id: params.id },
       data: {
         nome,
         cnpj,
@@ -141,11 +135,9 @@ export async function PUT(
 // DELETE - Desativar empresa (soft delete)
 export async function DELETE(
   _request: NextRequest,
-  context: RouteContext
+  { params }: { params: { id: string } }
 ) {
   try {
-    const params = await context.params
-    const id = params.id
     const supabase = await createServerComponentClient()
     const { data: { session } } = await supabase.auth.getSession()
 
@@ -163,7 +155,7 @@ export async function DELETE(
 
     // Verificar se empresa existe
     const existingEmpresa = await prisma.tenant.findUnique({
-      where: { id },
+      where: { id: params.id },
     })
 
     if (!existingEmpresa) {
@@ -172,7 +164,7 @@ export async function DELETE(
 
     // Soft delete - apenas desativar
     const empresa = await prisma.tenant.update({
-      where: { id },
+      where: { id: params.id },
       data: { ativo: false },
     })
 

@@ -4,6 +4,8 @@ import { createServerComponentClient } from '@/lib/supabase/server'
 import { canManageUsers, canManageTenants } from '@/lib/permissions'
 import { randomBytes } from 'crypto'
 
+export const dynamic = 'force-dynamic'
+
 // GET - Listar usuarios de uma empresa
 export async function GET(
   request: NextRequest,

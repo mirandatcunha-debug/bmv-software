@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { createServerComponentClient } from '@/lib/supabase/server'
 
+export const dynamic = 'force-dynamic'
+
 // GET - Listar Key Results de um objetivo
 export async function GET(
   request: NextRequest,

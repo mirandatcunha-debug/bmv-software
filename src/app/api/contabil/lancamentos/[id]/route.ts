@@ -2,13 +2,15 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { createServerComponentClient } from '@/lib/supabase/server'
 
+export const dynamic = 'force-dynamic'
+
 // GET - Obter lancamento por ID
 export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  _request: NextRequest,
+  { params }: { params: { id: string } }
 ) {
   try {
-    const { id } = await params
+    const id = params.id
     const supabase = await createServerComponentClient()
     const { data: { session } } = await supabase.auth.getSession()
 
@@ -79,10 +81,10 @@ export async function GET(
 // PUT - Atualizar lancamento
 export async function PUT(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
   try {
-    const { id } = await params
+    const id = params.id
     const supabase = await createServerComponentClient()
     const { data: { session } } = await supabase.auth.getSession()
 
@@ -221,11 +223,11 @@ export async function PUT(
 
 // DELETE - Excluir lancamento
 export async function DELETE(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  _request: NextRequest,
+  { params }: { params: { id: string } }
 ) {
   try {
-    const { id } = await params
+    const id = params.id
     const supabase = await createServerComponentClient()
     const { data: { session } } = await supabase.auth.getSession()
 

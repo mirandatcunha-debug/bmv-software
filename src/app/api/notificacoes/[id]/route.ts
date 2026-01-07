@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerComponentClient } from '@/lib/supabase/server'
 import { Notificacao } from '@/types/notificacoes'
 
+export const dynamic = 'force-dynamic'
+
 // Armazenamento em memória compartilhado (mesmo do route.ts pai)
 // Em produção, isso seria substituído por queries no banco de dados
 let notificacoesStorage: Map<string, Notificacao[]> = new Map()
@@ -77,7 +79,7 @@ function setNotificacoesUsuario(userId: string, notificacoes: Notificacao[]): vo
 // PUT: Marcar notificação específica como lida
 export async function PUT(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
   try {
     const supabase = await createServerComponentClient()
@@ -87,7 +89,7 @@ export async function PUT(
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
     }
 
-    const { id } = await params
+    const id = params.id
     const userId = session.user.id
 
     const notificacoes = getNotificacoesUsuario(userId)
@@ -127,7 +129,7 @@ export async function PUT(
 // DELETE: Excluir notificação
 export async function DELETE(
   _request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
   try {
     const supabase = await createServerComponentClient()
@@ -137,7 +139,7 @@ export async function DELETE(
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
     }
 
-    const { id } = await params
+    const id = params.id
     const userId = session.user.id
 
     const notificacoes = getNotificacoesUsuario(userId)
@@ -170,7 +172,7 @@ export async function DELETE(
 // GET: Buscar notificação específica
 export async function GET(
   _request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
   try {
     const supabase = await createServerComponentClient()
@@ -180,7 +182,7 @@ export async function GET(
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
     }
 
-    const { id } = await params
+    const id = params.id
     const userId = session.user.id
 
     const notificacoes = getNotificacoesUsuario(userId)

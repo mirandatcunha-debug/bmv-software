@@ -1,14 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createSupabaseServerClient } from '@/lib/supabase-server'
 
+export const dynamic = 'force-dynamic'
+
 const VALID_BUCKETS = ['logos', 'avatars', 'anexos']
 
 export async function DELETE(
-  request: NextRequest,
-  { params }: { params: Promise<{ path: string[] }> }
+  _request: NextRequest,
+  { params }: { params: { path: string[] } }
 ) {
   try {
-    const { path } = await params
+    const path = params.path
 
     if (!path || path.length < 2) {
       return NextResponse.json(
