@@ -18,23 +18,21 @@ import {
   LayoutGrid,
   List,
   FileText,
-  History,
   Clock,
   CheckCircle2,
   AlertCircle,
   Target,
   CalendarDays,
   TrendingUp,
-  Users,
   Milestone,
   ChevronRight,
+  Trash2,
 } from 'lucide-react'
 import {
   Projeto,
   TarefaProjeto,
   StatusTarefa,
   statusProjetoLabels,
-  statusProjetoCores,
   statusTarefaLabels,
   statusTarefaCores,
   prioridadeLabels,
@@ -42,6 +40,10 @@ import {
 } from '@/types/consultoria'
 import { cn } from '@/lib/utils'
 import { KanbanBoard } from '@/components/consultoria/kanban-board'
+import { useAuth } from '@/hooks/use-auth'
+import { useTenant } from '@/hooks/use-tenant'
+import { usePermissions } from '@/hooks/use-permissions'
+import { consultoriaService } from '@/services/consultoria.service'
 
 // Dados mockados
 const projetoMock: Projeto = {
@@ -177,6 +179,10 @@ const entregasMock = [
 
 export default function ProjetoDetalhesPage() {
   const params = useParams()
+  const { user } = useAuth()
+  const { tenant } = useTenant()
+  const { canCreate, canEdit, canDelete } = usePermissions()
+
   const [projeto] = useState<Projeto>(projetoMock)
   const [tarefas, setTarefas] = useState<TarefaProjeto[]>(projetoMock.tarefas || [])
 
@@ -261,18 +267,30 @@ export default function ProjetoDetalhesPage() {
             </div>
 
             <div className="flex gap-2">
-              <Link href={`/consultoria/projetos/${params.id}/nova-tarefa`}>
-                <Button className="bg-white text-orange-600 hover:bg-white/90 shadow-md">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Nova Tarefa
-                </Button>
-              </Link>
-              <Link href={`/consultoria/projetos/${params.id}/editar`}>
-                <Button variant="secondary" className="bg-white/20 text-white hover:bg-white/30 border-white/30">
-                  <Edit className="h-4 w-4 mr-2" />
-                  Editar
-                </Button>
-              </Link>
+              {canCreate('consultoria.tarefas') && (
+                <Link href={`/consultoria/projetos/${params.id}/nova-tarefa`}>
+                  <Button className="bg-white text-orange-600 hover:bg-white/90 shadow-md">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Nova Tarefa
+                  </Button>
+                </Link>
+              )}
+              {canEdit('consultoria.projetos') && (
+                <Link href={`/consultoria/projetos/${params.id}/editar`}>
+                  <Button variant="secondary" className="bg-white/20 text-white hover:bg-white/30 border-white/30">
+                    <Edit className="h-4 w-4 mr-2" />
+                    Editar
+                  </Button>
+                </Link>
+              )}
+              {canDelete('consultoria.projetos') && (
+                <Link href={`/consultoria/projetos/${params.id}/excluir`}>
+                  <Button variant="secondary" className="bg-red-500/20 text-white hover:bg-red-500/40 border-red-300/30">
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Excluir
+                  </Button>
+                </Link>
+              )}
             </div>
           </div>
 

@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect } from 'react'
+import { useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -20,7 +20,7 @@ import { useAuth } from '@/hooks/use-auth'
 import { useTenant } from '@/hooks/use-tenant'
 import { useToast } from '@/hooks/use-toast'
 import { consultoriaService } from '@/services/consultoria.service'
-import { statusProjetoLabels, StatusProjeto } from '@/types/consultoria'
+import { statusProjetoLabels, StatusProjeto, Projeto } from '@/types/consultoria'
 
 // Dados mockados de clientes
 const clientesMock = [
@@ -30,23 +30,72 @@ const clientesMock = [
   { id: '4', nome: 'Comércio Beta' },
 ]
 
-export default function NovoProjetoPage() {
+// Projeto mock para simulação
+const projetoMock: Projeto = {
+  id: '1',
+  tenantId: '1',
+  nome: 'Implementação ERP',
+  descricao: 'Implementação completa do sistema ERP na empresa ABC',
+  cliente: { id: '1', nome: 'Empresa ABC Ltda', cnpj: '12.345.678/0001-00', email: 'contato@abc.com.br' },
+  dataInicio: new Date('2026-01-01'),
+  dataFim: new Date('2026-06-30'),
+  status: 'EM_ANDAMENTO',
+  progresso: 45,
+  criadoEm: new Date('2025-12-15'),
+  atualizadoEm: new Date('2026-01-05'),
+}
+
+export default function EditarProjetoPage() {
   const router = useRouter()
+  const params = useParams()
   const { user } = useAuth()
   const { tenant } = useTenant()
   const { toast } = useToast()
 
   const [loading, setLoading] = useState(false)
+  const [loadingProjeto, setLoadingProjeto] = useState(true)
   const [clientes] = useState(clientesMock)
 
   const [formData, setFormData] = useState({
     nome: '',
     descricao: '',
     clienteId: '',
-    dataInicio: new Date().toISOString().split('T')[0],
+    dataInicio: '',
     dataFim: '',
     status: 'NAO_INICIADO' as StatusProjeto,
   })
+
+  useEffect(() => {
+    const carregarProjeto = async () => {
+      try {
+        // Simular carregamento - em produção usaria consultoriaService.projetos.getProjeto(params.id)
+        await new Promise(resolve => setTimeout(resolve, 500))
+
+        // Usar mock por enquanto
+        const projeto = projetoMock
+
+        setFormData({
+          nome: projeto.nome,
+          descricao: projeto.descricao || '',
+          clienteId: projeto.cliente?.id || '',
+          dataInicio: projeto.dataInicio ? new Date(projeto.dataInicio).toISOString().split('T')[0] : '',
+          dataFim: projeto.dataFim ? new Date(projeto.dataFim).toISOString().split('T')[0] : '',
+          status: projeto.status,
+        })
+      } catch (error) {
+        console.error('Erro ao carregar projeto:', error)
+        toast({
+          title: 'Erro ao carregar projeto',
+          description: 'Não foi possível carregar os dados do projeto.',
+          variant: 'destructive',
+        })
+      } finally {
+        setLoadingProjeto(false)
+      }
+    }
+
+    carregarProjeto()
+  }, [params.id, toast])
 
   const handleChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
@@ -76,7 +125,7 @@ export default function NovoProjetoPage() {
     setLoading(true)
 
     try {
-      const projeto = await consultoriaService.projetos.createProjeto({
+      const projeto = await consultoriaService.projetos.updateProjeto(params.id as string, {
         nome: formData.nome,
         descricao: formData.descricao,
         clienteId: formData.clienteId || undefined,
@@ -86,16 +135,16 @@ export default function NovoProjetoPage() {
       })
 
       toast({
-        title: 'Projeto criado!',
-        description: `O projeto "${projeto.nome}" foi criado com sucesso.`,
+        title: 'Projeto atualizado!',
+        description: `O projeto "${projeto.nome}" foi atualizado com sucesso.`,
       })
 
-      router.push(`/consultoria/projetos/${projeto.id}`)
+      router.push(`/consultoria/projetos/${params.id}`)
     } catch (error) {
-      console.error('Erro ao criar projeto:', error)
+      console.error('Erro ao atualizar projeto:', error)
       toast({
-        title: 'Erro ao criar projeto',
-        description: error instanceof Error ? error.message : 'Ocorreu um erro ao criar o projeto. Tente novamente.',
+        title: 'Erro ao atualizar projeto',
+        description: error instanceof Error ? error.message : 'Ocorreu um erro ao atualizar o projeto. Tente novamente.',
         variant: 'destructive',
       })
     } finally {
@@ -103,24 +152,35 @@ export default function NovoProjetoPage() {
     }
   }
 
+  if (loadingProjeto) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin text-orange-500 mx-auto mb-4" />
+          <p className="text-muted-foreground">Carregando projeto...</p>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-6 animate-in max-w-2xl">
       {/* Header */}
       <div>
         <Link
-          href="/consultoria/projetos"
+          href={`/consultoria/projetos/${params.id}`}
           className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-orange-600 transition-colors mb-4"
         >
           <ArrowLeft className="h-4 w-4" />
-          Voltar para Projetos
+          Voltar para Projeto
         </Link>
 
         <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
           <FolderKanban className="h-7 w-7 text-orange-500" />
-          Novo Projeto
+          Editar Projeto
         </h1>
         <p className="text-muted-foreground">
-          Cadastre um novo projeto de consultoria
+          Atualize as informações do projeto
         </p>
       </div>
 
@@ -129,7 +189,7 @@ export default function NovoProjetoPage() {
         <CardHeader>
           <CardTitle>Dados do Projeto</CardTitle>
           <CardDescription>
-            Preencha as informações do projeto
+            Atualize as informações do projeto
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -202,7 +262,7 @@ export default function NovoProjetoPage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="status">Status Inicial</Label>
+              <Label htmlFor="status">Status</Label>
               <Select
                 value={formData.status}
                 onValueChange={(value) => handleChange('status', value)}
@@ -238,12 +298,12 @@ export default function NovoProjetoPage() {
                 {loading ? (
                   <>
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Criando...
+                    Salvando...
                   </>
                 ) : (
                   <>
                     <Save className="h-4 w-4 mr-2" />
-                    Criar Projeto
+                    Salvar Alterações
                   </>
                 )}
               </Button>
