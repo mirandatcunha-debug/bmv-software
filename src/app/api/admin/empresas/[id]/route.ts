@@ -3,13 +3,18 @@ import { prisma } from '@/lib/prisma'
 import { createServerComponentClient } from '@/lib/supabase/server'
 import { canManageTenants } from '@/lib/permissions'
 
+type RouteContext = {
+  params: Promise<{ id: string }>
+}
+
 // GET - Buscar empresa por ID com usuarios
 export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  _request: NextRequest,
+  context: RouteContext
 ) {
   try {
-    const { id } = await params
+    const params = await context.params
+    const id = params.id
     const supabase = await createServerComponentClient()
     const { data: { session } } = await supabase.auth.getSession()
 
@@ -63,10 +68,11 @@ export async function GET(
 // PUT - Atualizar empresa
 export async function PUT(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  context: RouteContext
 ) {
   try {
-    const { id } = await params
+    const params = await context.params
+    const id = params.id
     const supabase = await createServerComponentClient()
     const { data: { session } } = await supabase.auth.getSession()
 
@@ -134,11 +140,12 @@ export async function PUT(
 
 // DELETE - Desativar empresa (soft delete)
 export async function DELETE(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  _request: NextRequest,
+  context: RouteContext
 ) {
   try {
-    const { id } = await params
+    const params = await context.params
+    const id = params.id
     const supabase = await createServerComponentClient()
     const { data: { session } } = await supabase.auth.getSession()
 
