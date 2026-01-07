@@ -19,7 +19,7 @@ import {
   Settings,
   FileText,
   Upload,
-  Image,
+  ImageIcon,
   Sparkles,
   Users,
   Mail,
@@ -464,7 +464,7 @@ export default function NovaEmpresaPage() {
                       <div className="flex flex-col items-center gap-3">
                         <div className="p-4 rounded-full bg-slate-100 dark:bg-slate-800 group-hover:bg-blue-100 dark:group-hover:bg-blue-900/30 transition-colors">
                           {formData.logo ? (
-                            <Image className="h-8 w-8 text-blue-600" />
+                            <ImageIcon className="h-8 w-8 text-blue-600" />
                           ) : (
                             <Upload className="h-8 w-8 text-slate-400 group-hover:text-blue-600 transition-colors" />
                           )}
@@ -583,7 +583,7 @@ export default function NovaEmpresaPage() {
                     }}
                   >
                     {formData.logo ? (
-                      <Image className="h-7 w-7" style={{ color: formData.cor }} />
+                      <ImageIcon className="h-7 w-7" style={{ color: formData.cor }} />
                     ) : (
                       <span className="text-xl font-bold" style={{ color: formData.cor }}>
                         {formData.nome.charAt(0) || 'E'}

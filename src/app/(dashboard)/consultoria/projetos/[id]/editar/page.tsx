@@ -48,8 +48,8 @@ const projetoMock: Projeto = {
 export default function EditarProjetoPage() {
   const router = useRouter()
   const params = useParams()
-  const { user } = useAuth()
-  const { tenant } = useTenant()
+  useAuth()
+  useTenant()
   const { toast } = useToast()
 
   const [loading, setLoading] = useState(false)

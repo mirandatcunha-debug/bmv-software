@@ -9,9 +9,7 @@ import {
   Briefcase,
   Plus,
   FolderKanban,
-  Clock,
   CheckCircle2,
-  AlertTriangle,
   ArrowRight,
   Calendar,
   ListTodo,
@@ -96,14 +94,6 @@ export default function ConsultoriaPage() {
   const projetosRecentes = [...projetos]
     .sort((a, b) => new Date(b.atualizadoEm).getTime() - new Date(a.atualizadoEm).getTime())
     .slice(0, 5)
-
-  const formatDate = (date: Date | string) => {
-    return new Date(date).toLocaleDateString('pt-BR', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-    })
-  }
 
   const formatDateShort = (date: Date | string) => {
     return new Date(date).toLocaleDateString('pt-BR', {

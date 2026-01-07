@@ -144,17 +144,17 @@ export default function MovimentacoesPage() {
   // Verificar permissões do módulo financeiro.movimentacoes
   const { canCreate, canEdit, canDelete } = useModulePermissions('financeiro.movimentacoes')
 
-  // Filtrar por periodo
-  const filtrarPorPeriodo = (mov: Movimentacao) => {
-    if (periodoFiltro === 'TODOS') return true
-    const dias = parseInt(periodoFiltro)
-    const dataLimite = new Date()
-    dataLimite.setDate(dataLimite.getDate() - dias)
-    return new Date(mov.dataMovimento) >= dataLimite
-  }
-
   // Filtrar movimentações
   const movimentacoesFiltradas = useMemo(() => {
+    // Função para filtrar por periodo
+    const filtrarPorPeriodo = (mov: Movimentacao) => {
+      if (periodoFiltro === 'TODOS') return true
+      const dias = parseInt(periodoFiltro)
+      const dataLimite = new Date()
+      dataLimite.setDate(dataLimite.getDate() - dias)
+      return new Date(mov.dataMovimento) >= dataLimite
+    }
+
     let filtered = movimentacoes.filter((mov) => {
       const matchSearch = mov.descricao.toLowerCase().includes(searchTerm.toLowerCase()) ||
         mov.categoria.toLowerCase().includes(searchTerm.toLowerCase())

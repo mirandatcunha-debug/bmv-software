@@ -38,12 +38,10 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { useToast } from '@/hooks/use-toast'
-import { cn } from '@/lib/utils'
 import {
   ArrowLeft,
   Users,
   Search,
-  Plus,
   MoreVertical,
   UserCheck,
   UserX,
@@ -53,7 +51,6 @@ import {
   Filter,
   Shield,
   UserPlus,
-  Trash2,
   Eye,
   RefreshCw,
 } from 'lucide-react'
@@ -75,10 +72,12 @@ export default function UsuariosPage() {
 
   useEffect(() => {
     checkPermissionAndFetch()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   useEffect(() => {
     filterUsuarios()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [usuarios, searchTerm, filterPerfil, filterStatus])
 
   const checkPermissionAndFetch = async () => {

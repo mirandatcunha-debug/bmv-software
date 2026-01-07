@@ -57,6 +57,7 @@ export function TenantProvider({ children }: TenantProviderProps) {
   // Carregar lista de tenants na inicialização
   useEffect(() => {
     refreshTenants()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   // Persistir tenant no localStorage quando mudar

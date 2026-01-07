@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
@@ -14,9 +14,6 @@ import {
   Filter,
   Download,
   ArrowLeft,
-  Edit2,
-  Trash2,
-  Eye,
   TrendingUp,
   TrendingDown,
   DollarSign,
@@ -24,9 +21,6 @@ import {
   Building2,
   Factory,
   ShoppingCart,
-  Briefcase,
-  Truck,
-  Headphones,
   Settings,
   PieChart,
   BarChart3,
@@ -247,7 +241,7 @@ function getStatusConfig(status: string) {
 
 export default function CentrosCustoPage() {
   const [searchTerm, setSearchTerm] = useState('')
-  const [viewMode, setViewMode] = useState<'cards' | 'lista'>('cards')
+  useState<'cards' | 'lista'>('cards')
 
   const totalOrcamento = centrosCusto.reduce((acc, cc) => acc + cc.orcamento, 0)
   const totalRealizado = centrosCusto.reduce((acc, cc) => acc + cc.realizado, 0)

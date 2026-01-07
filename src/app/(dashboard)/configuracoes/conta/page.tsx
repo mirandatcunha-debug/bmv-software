@@ -32,7 +32,7 @@ import { PerfilUsuario, perfilLabels } from '@/types/configuracoes'
 import { cn } from '@/lib/utils'
 
 export default function MinhaContaPage() {
-  const router = useRouter()
+  useRouter()
   const { toast } = useToast()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [loading, setLoading] = useState(true)
@@ -67,6 +67,7 @@ export default function MinhaContaPage() {
 
   useEffect(() => {
     fetchPerfil()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const fetchPerfil = async () => {

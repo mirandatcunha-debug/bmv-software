@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -35,8 +35,8 @@ const projetoMock: Projeto = {
 export default function ExcluirProjetoPage() {
   const router = useRouter()
   const params = useParams()
-  const { user } = useAuth()
-  const { tenant } = useTenant()
+  useAuth()
+  useTenant()
   const { toast } = useToast()
 
   const [loading, setLoading] = useState(false)

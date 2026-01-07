@@ -557,7 +557,7 @@ export const getInsightsPorTipo = (tipo: TipoInsight): InsightIA[] => {
 // EXPORT DEFAULT
 // ============================================
 
-export default {
+const demoData = {
   empresa,
   contasBancarias,
   resumoFinanceiro,
@@ -574,3 +574,5 @@ export default {
   getMovimentacoesPorCategoria,
   getInsightsPorTipo,
 };
+
+export default demoData;

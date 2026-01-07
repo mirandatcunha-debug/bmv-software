@@ -9,7 +9,6 @@ import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
   ArrowLeft,
-  FolderKanban,
   Plus,
   Edit,
   Calendar,
@@ -43,7 +42,6 @@ import { KanbanBoard } from '@/components/consultoria/kanban-board'
 import { useAuth } from '@/hooks/use-auth'
 import { useTenant } from '@/hooks/use-tenant'
 import { usePermissions } from '@/hooks/use-permissions'
-import { consultoriaService } from '@/services/consultoria.service'
 
 // Dados mockados
 const projetoMock: Projeto = {
@@ -179,8 +177,8 @@ const entregasMock = [
 
 export default function ProjetoDetalhesPage() {
   const params = useParams()
-  const { user } = useAuth()
-  const { tenant } = useTenant()
+  useAuth()
+  useTenant()
   const { canCreate, canEdit, canDelete } = usePermissions()
 
   const [projeto] = useState<Projeto>(projetoMock)
@@ -189,14 +187,6 @@ export default function ProjetoDetalhesPage() {
   const formatDate = (date: Date | string | undefined) => {
     if (!date) return '-'
     return new Date(date).toLocaleDateString('pt-BR')
-  }
-
-  const formatDateShort = (date: Date | string | undefined) => {
-    if (!date) return '-'
-    return new Date(date).toLocaleDateString('pt-BR', {
-      day: '2-digit',
-      month: 'short',
-    })
   }
 
   const handleTarefaMove = (tarefaId: string, novoStatus: StatusTarefa) => {

@@ -32,8 +32,8 @@ const clientesMock = [
 
 export default function NovoProjetoPage() {
   const router = useRouter()
-  const { user } = useAuth()
-  const { tenant } = useTenant()
+  useAuth()
+  useTenant()
   const { toast } = useToast()
 
   const [loading, setLoading] = useState(false)

@@ -16,7 +16,6 @@ import {
   Power,
   Copy,
   Check,
-  Mail,
 } from 'lucide-react'
 import { useToast } from '@/components/ui/use-toast'
 import { roleLabels, roleColors, UserRole } from '@/lib/permissions'

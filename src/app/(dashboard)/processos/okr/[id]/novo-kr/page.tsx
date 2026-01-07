@@ -208,10 +208,10 @@ export default function NovoKRPage() {
             <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-lg">
               <h4 className="font-medium text-sm mb-2">Exemplo de KRs bem escritos:</h4>
               <ul className="text-sm text-muted-foreground space-y-1">
-                <li>• "Aumentar NPS de 45 para 70"</li>
-                <li>• "Reduzir tempo de resposta de 8h para 2h"</li>
-                <li>• "Conquistar 20 novos clientes"</li>
-                <li>• "Atingir R$ 150.000 de MRR"</li>
+                <li>• &quot;Aumentar NPS de 45 para 70&quot;</li>
+                <li>• &quot;Reduzir tempo de resposta de 8h para 2h&quot;</li>
+                <li>• &quot;Conquistar 20 novos clientes&quot;</li>
+                <li>• &quot;Atingir R$ 150.000 de MRR&quot;</li>
               </ul>
             </div>
 
