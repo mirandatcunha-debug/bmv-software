@@ -54,97 +54,59 @@ import {
   formatDate,
 } from '@/types/financeiro'
 import { cn } from '@/lib/utils'
+import {
+  movimentacoesFinanceiras,
+  contasBancarias,
+} from '@/data/demo-data'
 
-// Dados mockados
-const movimentacoesMock: Movimentacao[] = [
-  {
-    id: '1',
+// Função para mapear categoria do demo-data
+const mapCategoria = (categoria: string): string => {
+  const categoriaMap: Record<string, string> = {
+    vendas_produtos: 'Vendas',
+    vendas_servicos: 'Servicos',
+    salarios: 'Pessoal',
+    fornecedores: 'Fornecedores',
+    marketing: 'Marketing',
+    aluguel: 'Aluguel',
+    energia: 'Utilidades',
+    internet_telefone: 'Utilidades',
+    impostos: 'Impostos',
+    manutencao: 'Manutencao',
+    transporte: 'Transporte',
+    outros: 'Outros',
+  }
+  return categoriaMap[categoria] || 'Outros'
+}
+
+// Mapeando movimentações do demo-data para o formato esperado
+const movimentacoesMock: Movimentacao[] = movimentacoesFinanceiras.map((mov) => {
+  const conta = contasBancarias.find(c => c.id === mov.contaBancariaId)
+  return {
+    id: mov.id,
     tenantId: '1',
-    contaId: '1',
-    conta: { id: '1', tenantId: '1', nome: 'Banco do Brasil', tipo: 'CORRENTE', saldoInicial: 0, saldoAtual: 50000, ativo: true, criadoEm: new Date(), atualizadoEm: new Date() },
-    tipo: 'RECEITA',
-    categoria: 'Vendas',
-    descricao: 'Pagamento Cliente ABC',
-    valor: 15000,
-    dataMovimento: new Date('2026-01-05'),
-    recorrente: false,
+    contaId: mov.contaBancariaId,
+    conta: {
+      id: mov.contaBancariaId,
+      tenantId: '1',
+      nome: conta?.banco || 'Banco',
+      tipo: 'CORRENTE' as const,
+      saldoInicial: 0,
+      saldoAtual: conta?.saldo || 0,
+      ativo: true,
+      criadoEm: new Date(),
+      atualizadoEm: new Date(),
+    },
+    tipo: mov.tipo === 'receita' ? 'RECEITA' as const : 'DESPESA' as const,
+    categoria: mapCategoria(mov.categoria),
+    descricao: mov.descricao,
+    valor: mov.valor,
+    dataMovimento: new Date(mov.data),
+    recorrente: mov.categoria === 'salarios' || mov.categoria === 'aluguel',
+    frequencia: mov.categoria === 'salarios' || mov.categoria === 'aluguel' ? 'MENSAL' as const : undefined,
     criadoEm: new Date(),
     atualizadoEm: new Date(),
-  },
-  {
-    id: '2',
-    tenantId: '1',
-    contaId: '1',
-    conta: { id: '1', tenantId: '1', nome: 'Banco do Brasil', tipo: 'CORRENTE', saldoInicial: 0, saldoAtual: 50000, ativo: true, criadoEm: new Date(), atualizadoEm: new Date() },
-    tipo: 'DESPESA',
-    categoria: 'Pessoal',
-    descricao: 'Folha de Pagamento',
-    valor: 18500,
-    dataMovimento: new Date('2026-01-05'),
-    recorrente: true,
-    frequencia: 'MENSAL',
-    criadoEm: new Date(),
-    atualizadoEm: new Date(),
-  },
-  {
-    id: '3',
-    tenantId: '1',
-    contaId: '2',
-    conta: { id: '2', tenantId: '1', nome: 'Itau', tipo: 'CORRENTE', saldoInicial: 0, saldoAtual: 75450, ativo: true, criadoEm: new Date(), atualizadoEm: new Date() },
-    tipo: 'RECEITA',
-    categoria: 'Servicos',
-    descricao: 'Consultoria Tech Solutions',
-    valor: 8500,
-    dataMovimento: new Date('2026-01-04'),
-    recorrente: false,
-    criadoEm: new Date(),
-    atualizadoEm: new Date(),
-  },
-  {
-    id: '4',
-    tenantId: '1',
-    contaId: '1',
-    conta: { id: '1', tenantId: '1', nome: 'Banco do Brasil', tipo: 'CORRENTE', saldoInicial: 0, saldoAtual: 50000, ativo: true, criadoEm: new Date(), atualizadoEm: new Date() },
-    tipo: 'DESPESA',
-    categoria: 'Aluguel',
-    descricao: 'Aluguel Escritorio',
-    valor: 4500,
-    dataMovimento: new Date('2026-01-03'),
-    recorrente: true,
-    frequencia: 'MENSAL',
-    criadoEm: new Date(),
-    atualizadoEm: new Date(),
-  },
-  {
-    id: '5',
-    tenantId: '1',
-    contaId: '2',
-    conta: { id: '2', tenantId: '1', nome: 'Itau', tipo: 'CORRENTE', saldoInicial: 0, saldoAtual: 75450, ativo: true, criadoEm: new Date(), atualizadoEm: new Date() },
-    tipo: 'RECEITA',
-    categoria: 'Vendas',
-    descricao: 'Licenca Software',
-    valor: 3200,
-    dataMovimento: new Date('2026-01-02'),
-    recorrente: false,
-    criadoEm: new Date(),
-    atualizadoEm: new Date(),
-  },
-  {
-    id: '6',
-    tenantId: '1',
-    contaId: '1',
-    conta: { id: '1', tenantId: '1', nome: 'Banco do Brasil', tipo: 'CORRENTE', saldoInicial: 0, saldoAtual: 50000, ativo: true, criadoEm: new Date(), atualizadoEm: new Date() },
-    tipo: 'DESPESA',
-    categoria: 'Marketing',
-    descricao: 'Google Ads',
-    valor: 2800,
-    dataMovimento: new Date('2026-01-02'),
-    recorrente: true,
-    frequencia: 'MENSAL',
-    criadoEm: new Date(),
-    atualizadoEm: new Date(),
-  },
-]
+  }
+})
 
 const tipoOptions: { value: TipoTransacao | 'TODOS'; label: string }[] = [
   { value: 'TODOS', label: 'Todos os Tipos' },
@@ -161,10 +123,11 @@ const periodoOptions = [
   { value: '90', label: 'Ultimos 90 dias' },
 ]
 
-const contasMock = [
-  { id: '1', nome: 'Banco do Brasil' },
-  { id: '2', nome: 'Itau' },
-]
+// Usando contas do demo-data
+const contasMock = contasBancarias.map(conta => ({
+  id: conta.id,
+  nome: conta.banco,
+}))
 
 type SortField = 'data' | 'descricao' | 'categoria' | 'valor'
 type SortDirection = 'asc' | 'desc'

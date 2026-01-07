@@ -21,105 +21,84 @@ import {
 import { GraficoFluxo, MovimentacaoItem } from '@/components/financeiro'
 import { Movimentacao, ResumoFinanceiro, formatCurrency } from '@/types/financeiro'
 import { cn } from '@/lib/utils'
+import {
+  resumoFinanceiro as demoResumoFinanceiro,
+  contasBancarias,
+  movimentacoesFinanceiras,
+} from '@/data/demo-data'
 
-// Dados mockados
+// Usando dados do demo-data.ts
 const resumoMock: ResumoFinanceiro = {
-  saldoTotal: 125450.00,
-  receitasMes: 45000.00,
-  despesasMes: 32500.00,
-  resultadoMes: 12500.00,
+  saldoTotal: demoResumoFinanceiro.saldoTotal,
+  receitasMes: demoResumoFinanceiro.receitasMes,
+  despesasMes: demoResumoFinanceiro.despesasMes,
+  resultadoMes: demoResumoFinanceiro.resultado,
   contasPagar: 8500.00,
   contasReceber: 15000.00,
 }
 
 const dadosGraficoMock = [
-  { mes: 'Ago', receitas: 38000, despesas: 28000 },
-  { mes: 'Set', receitas: 42000, despesas: 31000 },
-  { mes: 'Out', receitas: 39000, despesas: 35000 },
-  { mes: 'Nov', receitas: 48000, despesas: 29000 },
-  { mes: 'Dez', receitas: 52000, despesas: 38000 },
-  { mes: 'Jan', receitas: 45000, despesas: 32500 },
+  { mes: 'Ago', receitas: 480000, despesas: 420000 },
+  { mes: 'Set', receitas: 520000, despesas: 445000 },
+  { mes: 'Out', receitas: 550000, despesas: 470000 },
+  { mes: 'Nov', receitas: 560000, despesas: 485000 },
+  { mes: 'Dez', receitas: 590000, despesas: 510000 },
+  { mes: 'Jan', receitas: demoResumoFinanceiro.receitasMes, despesas: demoResumoFinanceiro.despesasMes },
 ]
 
-const movimentacoesMock: Movimentacao[] = [
-  {
-    id: '1',
-    tenantId: '1',
-    contaId: '1',
-    conta: { id: '1', tenantId: '1', nome: 'Banco do Brasil', tipo: 'CORRENTE', saldoInicial: 0, saldoAtual: 50000, ativo: true, criadoEm: new Date(), atualizadoEm: new Date() },
-    tipo: 'RECEITA',
-    categoria: 'Vendas',
-    descricao: 'Pagamento Cliente ABC',
-    valor: 15000,
-    dataMovimento: new Date('2026-01-05'),
-    recorrente: false,
-    criadoEm: new Date(),
-    atualizadoEm: new Date(),
-  },
-  {
-    id: '2',
-    tenantId: '1',
-    contaId: '1',
-    conta: { id: '1', tenantId: '1', nome: 'Banco do Brasil', tipo: 'CORRENTE', saldoInicial: 0, saldoAtual: 50000, ativo: true, criadoEm: new Date(), atualizadoEm: new Date() },
-    tipo: 'DESPESA',
-    categoria: 'Pessoal',
-    descricao: 'Folha de Pagamento',
-    valor: 18500,
-    dataMovimento: new Date('2026-01-05'),
-    recorrente: true,
-    frequencia: 'MENSAL',
-    criadoEm: new Date(),
-    atualizadoEm: new Date(),
-  },
-  {
-    id: '3',
-    tenantId: '1',
-    contaId: '2',
-    conta: { id: '2', tenantId: '1', nome: 'Itau', tipo: 'CORRENTE', saldoInicial: 0, saldoAtual: 75450, ativo: true, criadoEm: new Date(), atualizadoEm: new Date() },
-    tipo: 'RECEITA',
-    categoria: 'Servicos',
-    descricao: 'Consultoria Tech Solutions',
-    valor: 8500,
-    dataMovimento: new Date('2026-01-04'),
-    recorrente: false,
-    criadoEm: new Date(),
-    atualizadoEm: new Date(),
-  },
-  {
-    id: '4',
-    tenantId: '1',
-    contaId: '1',
-    conta: { id: '1', tenantId: '1', nome: 'Banco do Brasil', tipo: 'CORRENTE', saldoInicial: 0, saldoAtual: 50000, ativo: true, criadoEm: new Date(), atualizadoEm: new Date() },
-    tipo: 'DESPESA',
-    categoria: 'Aluguel',
-    descricao: 'Aluguel Escritorio',
-    valor: 4500,
-    dataMovimento: new Date('2026-01-03'),
-    recorrente: true,
-    frequencia: 'MENSAL',
-    criadoEm: new Date(),
-    atualizadoEm: new Date(),
-  },
-  {
-    id: '5',
-    tenantId: '1',
-    contaId: '2',
-    conta: { id: '2', tenantId: '1', nome: 'Itau', tipo: 'CORRENTE', saldoInicial: 0, saldoAtual: 75450, ativo: true, criadoEm: new Date(), atualizadoEm: new Date() },
-    tipo: 'RECEITA',
-    categoria: 'Vendas',
-    descricao: 'Licenca Software',
-    valor: 3200,
-    dataMovimento: new Date('2026-01-02'),
-    recorrente: false,
-    criadoEm: new Date(),
-    atualizadoEm: new Date(),
-  },
-]
+// Função para mapear categoria do demo-data
+const mapCategoria = (categoria: string): string => {
+  const categoriaMap: Record<string, string> = {
+    vendas_produtos: 'Vendas',
+    vendas_servicos: 'Servicos',
+    salarios: 'Pessoal',
+    fornecedores: 'Fornecedores',
+    marketing: 'Marketing',
+    aluguel: 'Aluguel',
+    energia: 'Utilidades',
+    internet_telefone: 'Utilidades',
+    impostos: 'Impostos',
+    manutencao: 'Manutencao',
+    transporte: 'Transporte',
+    outros: 'Outros',
+  }
+  return categoriaMap[categoria] || 'Outros'
+}
 
-// Dados mockados para quantidades nos atalhos
+// Mapeando movimentações do demo-data para o formato esperado
+const movimentacoesMock: Movimentacao[] = movimentacoesFinanceiras.slice(0, 5).map((mov) => {
+  const conta = contasBancarias.find(c => c.id === mov.contaBancariaId)
+  return {
+    id: mov.id,
+    tenantId: '1',
+    contaId: mov.contaBancariaId,
+    conta: {
+      id: mov.contaBancariaId,
+      tenantId: '1',
+      nome: conta?.banco || 'Banco',
+      tipo: 'CORRENTE' as const,
+      saldoInicial: 0,
+      saldoAtual: conta?.saldo || 0,
+      ativo: true,
+      criadoEm: new Date(),
+      atualizadoEm: new Date(),
+    },
+    tipo: mov.tipo === 'receita' ? 'RECEITA' as const : 'DESPESA' as const,
+    categoria: mapCategoria(mov.categoria),
+    descricao: mov.descricao,
+    valor: mov.valor,
+    dataMovimento: new Date(mov.data),
+    recorrente: mov.categoria === 'salarios' || mov.categoria === 'aluguel',
+    frequencia: mov.categoria === 'salarios' || mov.categoria === 'aluguel' ? 'MENSAL' as const : undefined,
+    criadoEm: new Date(),
+    atualizadoEm: new Date(),
+  }
+})
+
+// Dados para quantidades nos atalhos
 const atalhosMock = {
-  movimentacoes: 24,
-  contas: 3,
+  movimentacoes: movimentacoesFinanceiras.length,
+  contas: contasBancarias.length,
   categorias: 12,
   fluxoCaixa: 6,
 }

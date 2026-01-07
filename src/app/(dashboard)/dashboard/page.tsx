@@ -17,6 +17,14 @@ import {
   Target,
   Wallet,
 } from 'lucide-react'
+import {
+  empresa,
+  resumoFinanceiro as demoResumoFinanceiro,
+  objetivosOKR,
+  projetoConsultoria,
+  insightsIA,
+  usuarios,
+} from '@/data/demo-data'
 
 interface DashboardData {
   insights: Insight[]
@@ -105,85 +113,76 @@ export default function DashboardPage() {
     }
   }
 
+  // Função para mapear status do demo-data para o formato esperado
+  const mapStatusOKR = (status: string): 'EM_DIA' | 'ATENCAO' | 'ATRASADO' | 'CRITICO' => {
+    switch (status) {
+      case 'em_andamento':
+      case 'em_dia':
+        return 'EM_DIA'
+      case 'atrasado':
+        return 'ATRASADO'
+      case 'concluido':
+        return 'EM_DIA'
+      default:
+        return 'ATENCAO'
+    }
+  }
+
+  // Função para mapear tipo de insight do demo-data para o formato esperado
+  const mapTipoInsight = (tipo: string): 'CRITICO' | 'ALERTA' | 'POSITIVO' | 'SUGESTAO' => {
+    switch (tipo) {
+      case 'critico':
+        return 'CRITICO'
+      case 'alerta':
+        return 'ALERTA'
+      case 'positivo':
+        return 'POSITIVO'
+      case 'sugestao':
+        return 'SUGESTAO'
+      default:
+        return 'ALERTA'
+    }
+  }
+
   const getDadosDemonstracao = (): DashboardData => ({
-    insights: [
-      {
-        id: '1',
-        tipo: 'ALERTA',
-        categoria: 'FINANCEIRO',
-        titulo: 'Despesas acima do normal',
-        descricao: 'Suas despesas este mes estao 25% acima da media dos ultimos 3 meses.',
-        icone: '⚠️',
-        prioridade: 2,
-        acao: { texto: 'Ver despesas', link: '/financeiro/movimentacoes?tipo=DESPESA' },
-        criadoEm: new Date(),
-      },
-      {
-        id: '2',
-        tipo: 'ALERTA',
-        categoria: 'OKR',
-        titulo: 'OKR em risco: Aumentar vendas',
-        descricao: 'Progresso de 35% com 20 dias restantes. Considere acelerar as entregas.',
-        icone: '⚠️',
-        prioridade: 2,
-        acao: { texto: 'Ver OKR', link: '/processos/okr' },
-        criadoEm: new Date(),
-      },
-      {
-        id: '3',
-        tipo: 'POSITIVO',
-        categoria: 'FINANCEIRO',
-        titulo: 'Receitas acima da media!',
-        descricao: 'Suas receitas este mes estao 15% acima da media. Continue assim!',
-        icone: '✅',
-        prioridade: 5,
-        criadoEm: new Date(),
-      },
-    ],
+    insights: insightsIA.map((insight) => ({
+      id: insight.id,
+      tipo: mapTipoInsight(insight.tipo),
+      categoria: 'FINANCEIRO' as const,
+      titulo: insight.titulo,
+      descricao: insight.descricao,
+      icone: insight.tipo === 'critico' ? '🚨' : insight.tipo === 'alerta' ? '⚠️' : insight.tipo === 'positivo' ? '✅' : '💡',
+      prioridade: insight.tipo === 'critico' ? 1 : insight.tipo === 'alerta' ? 2 : 3,
+      criadoEm: new Date(insight.dataGeracao),
+    })),
     financeiro: {
-      saldoTotal: 125750.00,
-      receitasMes: 45320.00,
-      receitasMesAnterior: 41500.00,
-      despesasMes: 32180.00,
-      despesasMesAnterior: 35200.00,
-      resultado: 13140.00,
+      saldoTotal: demoResumoFinanceiro.saldoTotal,
+      receitasMes: demoResumoFinanceiro.receitasMes,
+      receitasMesAnterior: demoResumoFinanceiro.receitasMes * 0.9, // 10% menor
+      despesasMes: demoResumoFinanceiro.despesasMes,
+      despesasMesAnterior: demoResumoFinanceiro.despesasMes * 1.05, // 5% maior
+      resultado: demoResumoFinanceiro.resultado,
     },
-    okrs: [
-      {
-        id: '1',
-        titulo: 'Aumentar receita em 20%',
-        progresso: 65,
-        dataFim: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-        status: 'EM_DIA',
-      },
-      {
-        id: '2',
-        titulo: 'Reduzir inadimplencia para 3%',
-        progresso: 35,
-        dataFim: new Date(Date.now() + 20 * 24 * 60 * 60 * 1000),
-        status: 'ATENCAO',
-      },
-      {
-        id: '3',
-        titulo: 'Implementar novo processo',
-        progresso: 85,
-        dataFim: new Date(Date.now() + 45 * 24 * 60 * 60 * 1000),
-        status: 'EM_DIA',
-      },
-    ],
+    okrs: objetivosOKR.map((okr) => ({
+      id: okr.id,
+      titulo: okr.titulo,
+      progresso: okr.progresso,
+      dataFim: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+      status: mapStatusOKR(okr.status),
+    })),
     projeto: {
-      id: '1',
-      nome: 'Implementacao ERP Financeiro',
-      consultor: 'Joao Silva',
+      id: projetoConsultoria.id,
+      nome: projetoConsultoria.nome,
+      consultor: projetoConsultoria.consultor,
       status: 'EM_ANDAMENTO',
-      progresso: 45,
+      progresso: projetoConsultoria.progresso,
       proximaEntrega: {
         data: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-        descricao: 'Modulo de Contas a Pagar',
+        descricao: 'Revisão de processos financeiros',
       },
     },
     usuario: {
-      nome: 'Usuario',
+      nome: usuarios[0]?.nome || 'Usuário',
       perfil: 'GESTOR',
     },
   })

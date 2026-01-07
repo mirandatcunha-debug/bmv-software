@@ -36,43 +36,60 @@ import {
 } from 'lucide-react'
 import { Objetivo, StatusOKR, statusLabels, statusColors } from '@/types/okr'
 import { cn } from '@/lib/utils'
+import { objetivosOKR, usuarios } from '@/data/demo-data'
 
-// Dados mockados
+// Função para mapear status do demo-data para o formato esperado
+const mapStatusOKR = (status: string): StatusOKR => {
+  switch (status) {
+    case 'em_andamento':
+      return 'EM_ANDAMENTO'
+    case 'atrasado':
+      return 'ATRASADO'
+    case 'em_dia':
+      return 'EM_ANDAMENTO'
+    case 'concluido':
+      return 'CONCLUIDO'
+    default:
+      return 'NAO_INICIADO'
+  }
+}
+
+// Mapeando OKRs do demo-data para o formato esperado
 const objetivosMock: Objetivo[] = [
   {
-    id: '1',
-    titulo: 'Aumentar receita recorrente em 30%',
-    descricao: 'Expandir a base de clientes e aumentar o ticket médio através de upselling e cross-selling',
-    donoId: '1',
-    dono: { id: '1', nome: 'João Silva', avatarUrl: undefined },
+    id: objetivosOKR[0]?.id || '1',
+    titulo: objetivosOKR[0]?.titulo || 'Aumentar Faturamento',
+    descricao: objetivosOKR[0]?.meta || 'Crescimento de 20% no faturamento anual',
+    donoId: usuarios[0]?.id || '1',
+    dono: { id: usuarios[0]?.id || '1', nome: usuarios[0]?.nome || 'Carlos Mendonça', avatarUrl: undefined },
     periodoTipo: 'TRIMESTRE',
     trimestre: 'Q1',
     ano: 2026,
-    status: 'EM_ANDAMENTO',
-    progresso: 65,
+    status: mapStatusOKR(objetivosOKR[0]?.status || 'em_andamento'),
+    progresso: objetivosOKR[0]?.progresso || 65,
     keyResults: [
       {
         id: 'kr1',
-        objetivoId: '1',
-        titulo: 'Aumentar MRR para R$ 150k',
-        metrica: 'MRR em reais',
-        baseline: 100000,
-        meta: 150000,
-        atual: 132000,
+        objetivoId: objetivosOKR[0]?.id || '1',
+        titulo: 'Aumentar vendas de produtos em 25%',
+        metrica: 'Receita de vendas',
+        baseline: 500000,
+        meta: 625000,
+        atual: 560000,
         peso: 2,
-        progresso: 64,
+        progresso: 48,
         tarefas: [],
       },
       {
         id: 'kr2',
-        objetivoId: '1',
-        titulo: 'Conquistar 20 novos clientes',
+        objetivoId: objetivosOKR[0]?.id || '1',
+        titulo: 'Expandir base de clientes corporativos',
         metrica: 'Número de clientes',
-        baseline: 0,
-        meta: 20,
-        atual: 14,
+        baseline: 50,
+        meta: 80,
+        atual: 68,
         peso: 1,
-        progresso: 70,
+        progresso: 60,
         tarefas: [],
       },
     ],
@@ -80,39 +97,39 @@ const objetivosMock: Objetivo[] = [
     atualizadoEm: new Date('2026-01-15'),
   },
   {
-    id: '2',
-    titulo: 'Melhorar satisfação do cliente',
-    descricao: 'Implementar melhorias no atendimento e produto baseado em feedback dos clientes',
-    donoId: '2',
-    dono: { id: '2', nome: 'Maria Santos', avatarUrl: undefined },
+    id: objetivosOKR[1]?.id || '2',
+    titulo: objetivosOKR[1]?.titulo || 'Reduzir Inadimplência',
+    descricao: objetivosOKR[1]?.meta || 'Reduzir inadimplência para 3%',
+    donoId: usuarios[2]?.id || '2',
+    dono: { id: usuarios[2]?.id || '2', nome: usuarios[2]?.nome || 'Ricardo Santos', avatarUrl: undefined },
     periodoTipo: 'TRIMESTRE',
     trimestre: 'Q1',
     ano: 2026,
-    status: 'ATRASADO',
-    progresso: 35,
+    status: mapStatusOKR(objetivosOKR[1]?.status || 'atrasado'),
+    progresso: objetivosOKR[1]?.progresso || 35,
     keyResults: [
       {
         id: 'kr3',
-        objetivoId: '2',
-        titulo: 'Aumentar NPS para 70',
-        metrica: 'NPS Score',
-        baseline: 45,
-        meta: 70,
-        atual: 52,
+        objetivoId: objetivosOKR[1]?.id || '2',
+        titulo: 'Implementar cobrança automatizada',
+        metrica: 'Sistema implementado',
+        baseline: 0,
+        meta: 100,
+        atual: 60,
         peso: 2,
-        progresso: 28,
+        progresso: 60,
         tarefas: [],
       },
       {
         id: 'kr4',
-        objetivoId: '2',
-        titulo: 'Reduzir tempo de resposta para 2h',
-        metrica: 'Horas',
-        baseline: 8,
-        meta: 2,
-        atual: 4,
+        objetivoId: objetivosOKR[1]?.id || '2',
+        titulo: 'Reduzir prazo médio de recebimento',
+        metrica: 'Dias',
+        baseline: 45,
+        meta: 30,
+        atual: 38,
         peso: 1,
-        progresso: 67,
+        progresso: 47,
         tarefas: [],
       },
     ],
@@ -120,27 +137,39 @@ const objetivosMock: Objetivo[] = [
     atualizadoEm: new Date('2026-01-10'),
   },
   {
-    id: '3',
-    titulo: 'Lançar nova funcionalidade de relatórios',
-    descricao: 'Desenvolver e lançar módulo de relatórios avançados para os clientes',
-    donoId: '1',
-    dono: { id: '1', nome: 'João Silva', avatarUrl: undefined },
+    id: objetivosOKR[2]?.id || '3',
+    titulo: objetivosOKR[2]?.titulo || 'Organizar Processos Internos',
+    descricao: objetivosOKR[2]?.meta || 'Documentar e otimizar 100% dos processos',
+    donoId: usuarios[1]?.id || '1',
+    dono: { id: usuarios[1]?.id || '1', nome: usuarios[1]?.nome || 'Fernanda Lima', avatarUrl: undefined },
     periodoTipo: 'TRIMESTRE',
     trimestre: 'Q1',
     ano: 2026,
-    status: 'CONCLUIDO',
-    progresso: 100,
+    status: mapStatusOKR(objetivosOKR[2]?.status || 'em_dia'),
+    progresso: objetivosOKR[2]?.progresso || 78,
     keyResults: [
       {
         id: 'kr5',
-        objetivoId: '3',
-        titulo: 'Desenvolver 5 tipos de relatório',
-        metrica: 'Relatórios desenvolvidos',
+        objetivoId: objetivosOKR[2]?.id || '3',
+        titulo: 'Documentar processos principais',
+        metrica: 'Processos documentados',
         baseline: 0,
-        meta: 5,
-        atual: 5,
+        meta: 15,
+        atual: 12,
         peso: 1,
-        progresso: 100,
+        progresso: 80,
+        tarefas: [],
+      },
+      {
+        id: 'kr6',
+        objetivoId: objetivosOKR[2]?.id || '3',
+        titulo: 'Treinar equipe nos novos processos',
+        metrica: 'Colaboradores treinados',
+        baseline: 0,
+        meta: 18,
+        atual: 14,
+        peso: 1,
+        progresso: 78,
         tarefas: [],
       },
     ],
@@ -149,10 +178,10 @@ const objetivosMock: Objetivo[] = [
   },
   {
     id: '4',
-    titulo: 'Expandir para novos mercados',
-    descricao: 'Iniciar operações em 2 novas regiões do Brasil',
-    donoId: '2',
-    dono: { id: '2', nome: 'Maria Santos', avatarUrl: undefined },
+    titulo: 'Expandir serviços de suporte técnico',
+    descricao: 'Aumentar capacidade de atendimento e contratos de suporte',
+    donoId: usuarios[3]?.id || '4',
+    dono: { id: usuarios[3]?.id || '4', nome: usuarios[3]?.nome || 'Bruno Alves', avatarUrl: undefined },
     periodoTipo: 'TRIMESTRE',
     trimestre: 'Q1',
     ano: 2026,
@@ -160,12 +189,12 @@ const objetivosMock: Objetivo[] = [
     progresso: 0,
     keyResults: [
       {
-        id: 'kr6',
+        id: 'kr7',
         objetivoId: '4',
-        titulo: 'Abrir escritório em SP',
-        metrica: 'Escritório inaugurado',
+        titulo: 'Contratar 3 técnicos',
+        metrica: 'Técnicos contratados',
         baseline: 0,
-        meta: 1,
+        meta: 3,
         atual: 0,
         peso: 1,
         progresso: 0,
@@ -188,10 +217,10 @@ const statusOptions: { value: StatusOKR | 'TODOS'; label: string }[] = [
   { value: 'CANCELADO', label: 'Cancelado' },
 ]
 
+// Usando usuários do demo-data
 const responsaveis = [
   { id: 'TODOS', nome: 'Todos' },
-  { id: '1', nome: 'João Silva' },
-  { id: '2', nome: 'Maria Santos' },
+  ...usuarios.map(u => ({ id: u.id, nome: u.nome }))
 ]
 
 // Cores dos status para pills
