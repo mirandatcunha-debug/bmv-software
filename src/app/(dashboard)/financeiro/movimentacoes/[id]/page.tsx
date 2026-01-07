@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useEffect, Suspense } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useState, useEffect, use } from 'react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -16,11 +16,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { ArrowLeft, TrendingUp, TrendingDown, Loader2 } from 'lucide-react'
+import { ArrowLeft, TrendingUp, TrendingDown, Loader2, Edit } from 'lucide-react'
 import { useToast } from '@/components/ui/use-toast'
 import { useAuth } from '@/contexts/auth-context'
 import { useTenantContext } from '@/contexts/tenant-context'
-import { financeiroService } from '@/services/financeiro.service'
+import { financeiroService, UpdateMovimentacaoData } from '@/services/financeiro.service'
 import {
   TipoTransacao,
   Frequencia,
@@ -28,26 +28,31 @@ import {
   categoriasDespesa,
   frequenciaLabels,
   ContaBancaria,
+  Movimentacao,
 } from '@/types/financeiro'
 import { cn } from '@/lib/utils'
 
 const frequenciaOptions: Frequencia[] = ['DIARIA', 'SEMANAL', 'QUINZENAL', 'MENSAL', 'ANUAL']
 
-function NovaMovimentacaoContent() {
+interface EditarMovimentacaoPageProps {
+  params: Promise<{ id: string }>
+}
+
+export default function EditarMovimentacaoPage({ params }: EditarMovimentacaoPageProps) {
+  const resolvedParams = use(params)
   const router = useRouter()
-  const searchParams = useSearchParams()
   const { toast } = useToast()
   const { user, loading: authLoading } = useAuth()
   const { tenant } = useTenantContext()
 
-  const tipoInicial = (searchParams.get('tipo') as TipoTransacao) || 'RECEITA'
-
   const [loading, setLoading] = useState(false)
+  const [loadingData, setLoadingData] = useState(true)
   const [contas, setContas] = useState<ContaBancaria[]>([])
   const [loadingContas, setLoadingContas] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [movimentacao, setMovimentacao] = useState<Movimentacao | null>(null)
   const [formData, setFormData] = useState({
-    tipo: tipoInicial,
+    tipo: 'RECEITA' as TipoTransacao,
     descricao: '',
     valor: '',
     data: new Date().toISOString().split('T')[0],
@@ -58,6 +63,41 @@ function NovaMovimentacaoContent() {
     frequencia: '' as Frequencia | '',
   })
 
+  // Carregar movimentação pelo ID
+  useEffect(() => {
+    async function loadMovimentacao() {
+      try {
+        setLoadingData(true)
+        const response = await fetch(`/api/financeiro/movimentacoes/${resolvedParams.id}`)
+        if (!response.ok) {
+          throw new Error('Movimentacao nao encontrada')
+        }
+        const data = await response.json()
+        setMovimentacao(data)
+        setFormData({
+          tipo: data.tipo,
+          descricao: data.descricao,
+          valor: String(data.valor),
+          data: new Date(data.dataMovimento).toISOString().split('T')[0],
+          categoria: data.categoria,
+          contaId: data.contaId,
+          observacoes: data.observacoes || '',
+          recorrente: data.recorrente || false,
+          frequencia: data.frequencia || '',
+        })
+      } catch (err) {
+        console.error('Erro ao carregar movimentacao:', err)
+        setError('Movimentacao nao encontrada')
+      } finally {
+        setLoadingData(false)
+      }
+    }
+
+    if (user && tenant && resolvedParams.id) {
+      loadMovimentacao()
+    }
+  }, [user, tenant, resolvedParams.id])
+
   // Carregar contas bancárias
   useEffect(() => {
     async function loadContas() {
@@ -67,7 +107,6 @@ function NovaMovimentacaoContent() {
         setContas(contasData)
       } catch (err) {
         console.error('Erro ao carregar contas:', err)
-        setError('Erro ao carregar contas bancárias')
       } finally {
         setLoadingContas(false)
       }
@@ -94,7 +133,7 @@ function NovaMovimentacaoContent() {
     if (!user) {
       toast({
         title: 'Erro',
-        description: 'Voce precisa estar autenticado para criar movimentacoes',
+        description: 'Voce precisa estar autenticado',
         variant: 'destructive',
       })
       router.push('/login')
@@ -123,15 +162,6 @@ function NovaMovimentacaoContent() {
       toast({
         title: 'Erro',
         description: 'O valor deve ser maior que zero',
-        variant: 'destructive',
-      })
-      return
-    }
-
-    if (!formData.data) {
-      toast({
-        title: 'Erro',
-        description: 'A data e obrigatoria',
         variant: 'destructive',
       })
       return
@@ -167,7 +197,7 @@ function NovaMovimentacaoContent() {
     setLoading(true)
 
     try {
-      await financeiroService.movimentacoes.createMovimentacao({
+      const updateData: UpdateMovimentacaoData = {
         contaId: formData.contaId,
         tipo: formData.tipo,
         categoria: formData.categoria,
@@ -177,21 +207,23 @@ function NovaMovimentacaoContent() {
         recorrente: formData.recorrente,
         frequencia: formData.frequencia || undefined,
         observacoes: formData.observacoes || undefined,
-      })
+      }
+
+      await financeiroService.movimentacoes.updateMovimentacao(resolvedParams.id, updateData)
 
       toast({
-        title: 'Movimentacao criada!',
-        description: `${formData.tipo === 'RECEITA' ? 'Receita' : 'Despesa'} registrada com sucesso.`,
+        title: 'Movimentacao atualizada!',
+        description: 'As alteracoes foram salvas com sucesso.',
       })
 
       router.push('/financeiro/movimentacoes')
     } catch (err) {
-      console.error('Erro ao criar movimentacao:', err)
+      console.error('Erro ao atualizar movimentacao:', err)
       const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido'
       setError(errorMessage)
       toast({
         title: 'Erro',
-        description: 'Nao foi possivel criar a movimentacao. Tente novamente.',
+        description: 'Nao foi possivel atualizar a movimentacao. Tente novamente.',
         variant: 'destructive',
       })
     } finally {
@@ -200,7 +232,7 @@ function NovaMovimentacaoContent() {
   }
 
   // Loading de autenticação
-  if (authLoading) {
+  if (authLoading || loadingData) {
     return (
       <div className="flex items-center justify-center p-8">
         <Loader2 className="h-8 w-8 animate-spin" />
@@ -212,6 +244,26 @@ function NovaMovimentacaoContent() {
   if (!user) {
     router.push('/login')
     return null
+  }
+
+  // Movimentação não encontrada
+  if (!movimentacao && !loadingData) {
+    return (
+      <div className="space-y-6 max-w-2xl">
+        <Link
+          href="/financeiro/movimentacoes"
+          className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Voltar para Movimentacoes
+        </Link>
+        <Card>
+          <CardContent className="p-8 text-center">
+            <p className="text-muted-foreground">Movimentacao nao encontrada</p>
+          </CardContent>
+        </Card>
+      </div>
+    )
   }
 
   return (
@@ -227,15 +279,11 @@ function NovaMovimentacaoContent() {
         </Link>
 
         <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-          {formData.tipo === 'RECEITA' ? (
-            <TrendingUp className="h-7 w-7 text-green-600" />
-          ) : (
-            <TrendingDown className="h-7 w-7 text-red-600" />
-          )}
-          Nova {formData.tipo === 'RECEITA' ? 'Receita' : 'Despesa'}
+          <Edit className="h-7 w-7 text-blue-600" />
+          Editar Movimentacao
         </h1>
         <p className="text-muted-foreground">
-          Registre uma nova movimentacao financeira
+          Altere os dados da movimentacao financeira
         </p>
       </div>
 
@@ -251,7 +299,7 @@ function NovaMovimentacaoContent() {
         <CardHeader>
           <CardTitle>Dados da Movimentacao</CardTitle>
           <CardDescription>
-            Preencha as informacoes da movimentacao
+            Altere as informacoes da movimentacao
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -439,28 +487,16 @@ function NovaMovimentacaoContent() {
               </Button>
               <Button
                 type="submit"
-                className={cn(
-                  formData.tipo === 'RECEITA'
-                    ? 'bg-green-600 hover:bg-green-700'
-                    : 'bg-red-600 hover:bg-red-700'
-                )}
+                className="bg-blue-600 hover:bg-blue-700"
                 disabled={loading || loadingContas}
               >
                 {loading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                Salvar {formData.tipo === 'RECEITA' ? 'Receita' : 'Despesa'}
+                Salvar Alteracoes
               </Button>
             </div>
           </form>
         </CardContent>
       </Card>
     </div>
-  )
-}
-
-export default function NovaMovimentacaoPage() {
-  return (
-    <Suspense fallback={<div className="flex items-center justify-center p-8"><Loader2 className="h-8 w-8 animate-spin" /></div>}>
-      <NovaMovimentacaoContent />
-    </Suspense>
   )
 }

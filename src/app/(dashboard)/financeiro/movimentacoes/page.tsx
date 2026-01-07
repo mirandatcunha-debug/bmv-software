@@ -29,7 +29,6 @@ import {
 } from '@/components/ui/dropdown-menu'
 import {
   BarChart3,
-  Plus,
   Search,
   Filter,
   ArrowLeft,
@@ -54,6 +53,7 @@ import {
   formatDate,
 } from '@/types/financeiro'
 import { cn } from '@/lib/utils'
+import { useModulePermissions } from '@/hooks/use-permissions'
 import {
   movimentacoesFinanceiras,
   contasBancarias,
@@ -140,6 +140,9 @@ export default function MovimentacoesPage() {
   const [periodoFiltro, setPeriodoFiltro] = useState<string>('TODOS')
   const [sortField, setSortField] = useState<SortField>('data')
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc')
+
+  // Verificar permissões do módulo financeiro.movimentacoes
+  const { canCreate, canEdit, canDelete } = useModulePermissions('financeiro.movimentacoes')
 
   // Filtrar por periodo
   const filtrarPorPeriodo = (mov: Movimentacao) => {
@@ -245,26 +248,28 @@ export default function MovimentacoesPage() {
                 </p>
               </div>
             </div>
-            <div className="flex gap-2">
-              <Link href="/financeiro/movimentacoes/nova?tipo=RECEITA">
-                <Button
-                  className="bg-white/20 hover:bg-white/30 border-white/30 text-white backdrop-blur-sm transition-all hover:scale-105"
-                  variant="outline"
-                >
-                  <TrendingUp className="h-4 w-4 mr-2" />
-                  Receita
-                </Button>
-              </Link>
-              <Link href="/financeiro/movimentacoes/nova?tipo=DESPESA">
-                <Button
-                  className="bg-white/20 hover:bg-white/30 border-white/30 text-white backdrop-blur-sm transition-all hover:scale-105"
-                  variant="outline"
-                >
-                  <TrendingDown className="h-4 w-4 mr-2" />
-                  Despesa
-                </Button>
-              </Link>
-            </div>
+            {canCreate && (
+              <div className="flex gap-2">
+                <Link href="/financeiro/movimentacoes/nova?tipo=RECEITA">
+                  <Button
+                    className="bg-white/20 hover:bg-white/30 border-white/30 text-white backdrop-blur-sm transition-all hover:scale-105"
+                    variant="outline"
+                  >
+                    <TrendingUp className="h-4 w-4 mr-2" />
+                    Receita
+                  </Button>
+                </Link>
+                <Link href="/financeiro/movimentacoes/nova?tipo=DESPESA">
+                  <Button
+                    className="bg-white/20 hover:bg-white/30 border-white/30 text-white backdrop-blur-sm transition-all hover:scale-105"
+                    variant="outline"
+                  >
+                    <TrendingDown className="h-4 w-4 mr-2" />
+                    Despesa
+                  </Button>
+                </Link>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -461,7 +466,9 @@ export default function MovimentacoesPage() {
                   <SortIcon field="valor" />
                 </div>
               </TableHead>
-              <TableHead className="w-[50px]"></TableHead>
+              {(canEdit || canDelete) && (
+                <TableHead className="w-[50px]"></TableHead>
+              )}
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -533,34 +540,44 @@ export default function MovimentacoesPage() {
                       {formatCurrency(mov.valor)}
                     </span>
                   </TableCell>
-                  <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="opacity-0 group-hover:opacity-100 transition-opacity"
-                        >
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem className="cursor-pointer">
-                          <Edit className="h-4 w-4 mr-2" />
-                          Editar
-                        </DropdownMenuItem>
-                        <DropdownMenuItem className="text-red-600 cursor-pointer">
-                          <Trash2 className="h-4 w-4 mr-2" />
-                          Excluir
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
+                  {(canEdit || canDelete) && (
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          {canEdit && (
+                            <Link href={`/financeiro/movimentacoes/${mov.id}`}>
+                              <DropdownMenuItem className="cursor-pointer">
+                                <Edit className="h-4 w-4 mr-2" />
+                                Editar
+                              </DropdownMenuItem>
+                            </Link>
+                          )}
+                          {canDelete && (
+                            <Link href={`/financeiro/movimentacoes/${mov.id}/excluir`}>
+                              <DropdownMenuItem className="text-red-600 cursor-pointer">
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                Excluir
+                              </DropdownMenuItem>
+                            </Link>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  )}
                 </TableRow>
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-16">
+                <TableCell colSpan={canEdit || canDelete ? 6 : 5} className="text-center py-16">
                   <div className="flex flex-col items-center animate-fade-in-up">
                     <div className="relative">
                       <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-full blur-xl"></div>
@@ -572,20 +589,22 @@ export default function MovimentacoesPage() {
                     <p className="text-muted-foreground mb-6 max-w-sm text-center">
                       Nao ha movimentacoes para os filtros selecionados. Tente ajustar os filtros ou adicione uma nova movimentacao.
                     </p>
-                    <div className="flex gap-3">
-                      <Link href="/financeiro/movimentacoes/nova?tipo=RECEITA">
-                        <Button variant="outline" className="text-green-600 border-green-200 hover:bg-green-50">
-                          <TrendingUp className="h-4 w-4 mr-2" />
-                          Nova Receita
-                        </Button>
-                      </Link>
-                      <Link href="/financeiro/movimentacoes/nova?tipo=DESPESA">
-                        <Button variant="outline" className="text-red-600 border-red-200 hover:bg-red-50">
-                          <TrendingDown className="h-4 w-4 mr-2" />
-                          Nova Despesa
-                        </Button>
-                      </Link>
-                    </div>
+                    {canCreate && (
+                      <div className="flex gap-3">
+                        <Link href="/financeiro/movimentacoes/nova?tipo=RECEITA">
+                          <Button variant="outline" className="text-green-600 border-green-200 hover:bg-green-50">
+                            <TrendingUp className="h-4 w-4 mr-2" />
+                            Nova Receita
+                          </Button>
+                        </Link>
+                        <Link href="/financeiro/movimentacoes/nova?tipo=DESPESA">
+                          <Button variant="outline" className="text-red-600 border-red-200 hover:bg-red-50">
+                            <TrendingDown className="h-4 w-4 mr-2" />
+                            Nova Despesa
+                          </Button>
+                        </Link>
+                      </div>
+                    )}
                   </div>
                 </TableCell>
               </TableRow>
