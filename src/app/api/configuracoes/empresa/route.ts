@@ -41,6 +41,7 @@ export async function GET(request: NextRequest) {
       telefone: tenant.telefone,
       endereco: tenant.endereco,
       logoUrl: tenant.logoUrl,
+      configuracoes: tenant.configuracoes,
     })
   } catch (error) {
     console.error('Erro ao buscar dados da empresa:', error)
@@ -75,7 +76,7 @@ export async function PUT(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { nome, cnpj, email, telefone, endereco } = body
+    const { nome, cnpj, email, telefone, endereco, logoUrl, configuracoes } = body
 
     if (!nome) {
       return NextResponse.json(
@@ -84,11 +85,21 @@ export async function PUT(request: NextRequest) {
       )
     }
 
-    const updateData: any = { nome }
+    const updateData: {
+      nome: string
+      cnpj?: string
+      email?: string
+      telefone?: string
+      endereco?: string
+      logoUrl?: string
+      configuracoes?: object
+    } = { nome }
     if (cnpj !== undefined) updateData.cnpj = cnpj
     if (email !== undefined) updateData.email = email
     if (telefone !== undefined) updateData.telefone = telefone
     if (endereco !== undefined) updateData.endereco = endereco
+    if (logoUrl !== undefined) updateData.logoUrl = logoUrl
+    if (configuracoes !== undefined) updateData.configuracoes = configuracoes as object
 
     const tenant = await prisma.tenant.update({
       where: { id: user.tenantId },
@@ -103,6 +114,7 @@ export async function PUT(request: NextRequest) {
       telefone: tenant.telefone,
       endereco: tenant.endereco,
       logoUrl: tenant.logoUrl,
+      configuracoes: tenant.configuracoes,
     })
   } catch (error) {
     console.error('Erro ao atualizar empresa:', error)

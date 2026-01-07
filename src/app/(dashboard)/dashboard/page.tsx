@@ -18,7 +18,6 @@ import {
   Wallet,
 } from 'lucide-react'
 import {
-  empresa,
   resumoFinanceiro as demoResumoFinanceiro,
   objetivosOKR,
   projetoConsultoria,
@@ -69,6 +68,26 @@ function formatCurrency(value: number): string {
   })
 }
 
+function formatCurrencyCompact(value: number): string {
+  if (Math.abs(value) >= 1000000) {
+    return (value / 1000000).toLocaleString('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
+      minimumFractionDigits: 1,
+      maximumFractionDigits: 1,
+    }).replace('R$', 'R$') + 'M'
+  }
+  if (Math.abs(value) >= 1000) {
+    return (value / 1000).toLocaleString('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).replace('R$', 'R$') + 'k'
+  }
+  return formatCurrency(value)
+}
+
 function formatDate(date: Date): string {
   const diasSemana = ['Domingo', 'Segunda-feira', 'Terca-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sabado']
   const meses = ['Janeiro', 'Fevereiro', 'Marco', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro']
@@ -78,6 +97,12 @@ function formatDate(date: Date): string {
   const mes = meses[date.getMonth()]
 
   return `${diaSemana}, ${dia} de ${mes}`
+}
+
+function formatDateShort(date: Date): string {
+  const dia = date.getDate()
+  const mes = date.toLocaleString('pt-BR', { month: 'short' })
+  return `${dia} ${mes}`
 }
 
 function getGreetingEmoji(hour: number): string {
@@ -201,74 +226,88 @@ export default function DashboardPage() {
   // Metricas rapidas
   const okrsEmDia = data?.okrs?.filter(o => o.status === 'EM_DIA').length || 0
   const okrsTotal = data?.okrs?.length || 0
-  const progressoMedio = data?.okrs?.length
-    ? Math.round(data.okrs.reduce((acc, o) => acc + o.progresso, 0) / data.okrs.length)
-    : 0
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Header com gradiente */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-bmv-primary via-blue-700 to-blue-600 p-6 text-white animate-fade-in-up">
+      <div className="relative overflow-hidden rounded-xl sm:rounded-2xl bg-gradient-to-r from-bmv-primary via-blue-700 to-blue-600 p-4 sm:p-6 text-white animate-fade-in-up">
         {/* Background pattern */}
         <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-white rounded-full -translate-y-1/2 translate-x-1/2"></div>
-          <div className="absolute bottom-0 left-0 w-48 h-48 bg-white rounded-full translate-y-1/2 -translate-x-1/2"></div>
+          <div className="absolute top-0 right-0 w-32 sm:w-64 h-32 sm:h-64 bg-white rounded-full -translate-y-1/2 translate-x-1/2"></div>
+          <div className="absolute bottom-0 left-0 w-24 sm:w-48 h-24 sm:h-48 bg-white rounded-full translate-y-1/2 -translate-x-1/2"></div>
         </div>
 
         <div className="relative">
           {/* Data atual */}
-          <div className="flex items-center gap-2 text-blue-100 text-sm mb-3 animate-fade-in-up">
-            <Calendar className="h-4 w-4" />
-            <span>{formatDate(currentDate)}</span>
+          <div className="flex items-center gap-2 text-blue-100 text-xs sm:text-sm mb-2 sm:mb-3 animate-fade-in-up">
+            <Calendar className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+            {/* Data completa no desktop, curta no mobile */}
+            <span className="hidden sm:inline">{formatDate(currentDate)}</span>
+            <span className="sm:hidden">{formatDateShort(currentDate)}</span>
           </div>
 
           {/* Saudacao */}
-          <div className="flex items-center gap-3 mb-4">
-            <span className="text-4xl animate-bounce-soft">{getGreetingEmoji(hour)}</span>
+          <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
+            <span className="text-2xl sm:text-4xl animate-bounce-soft">{getGreetingEmoji(hour)}</span>
             <div>
-              <h1 className="text-2xl md:text-3xl font-bold">
-                {getGreeting()}, {data?.usuario?.nome || 'Usuario'}!
+              <h1 className="text-lg sm:text-2xl md:text-3xl font-bold">
+                {getGreeting()}, {data?.usuario?.nome?.split(' ')[0] || 'Usuario'}!
               </h1>
-              <p className="text-blue-100 text-sm md:text-base">
-                Aqui esta o resumo da sua empresa hoje
+              <p className="text-blue-100 text-xs sm:text-sm md:text-base">
+                <span className="hidden sm:inline">Aqui esta o resumo da sua empresa hoje</span>
+                <span className="sm:hidden">Resumo do dia</span>
               </p>
             </div>
           </div>
 
           {/* Mini cards de resumo rapido */}
           {!isCliente && (
-            <div className="grid grid-cols-3 gap-3 mt-5">
-              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 transition-all hover:bg-white/20 animate-fade-in-up animate-stagger-1">
-                <div className="flex items-center gap-2 mb-1">
-                  <Wallet className="h-4 w-4 text-blue-200" />
-                  <span className="text-xs text-blue-200">Saldo</span>
+            <div className="grid grid-cols-3 gap-2 sm:gap-3 mt-4 sm:mt-5">
+              <div className="bg-white/10 backdrop-blur-sm rounded-lg sm:rounded-xl p-2 sm:p-3 transition-all hover:bg-white/20 animate-fade-in-up animate-stagger-1">
+                <div className="flex items-center gap-1 sm:gap-2 mb-0.5 sm:mb-1">
+                  <Wallet className="h-3 w-3 sm:h-4 sm:w-4 text-blue-200" />
+                  <span className="text-[10px] sm:text-xs text-blue-200">Saldo</span>
                 </div>
-                <p className="text-lg font-bold animate-number">
-                  {loading ? '...' : formatCurrency(data?.financeiro?.saldoTotal || 0)}
+                <p className="text-sm sm:text-lg font-bold animate-number truncate">
+                  {loading ? '...' : (
+                    <>
+                      <span className="sm:hidden">{formatCurrencyCompact(data?.financeiro?.saldoTotal || 0)}</span>
+                      <span className="hidden sm:inline">{formatCurrency(data?.financeiro?.saldoTotal || 0)}</span>
+                    </>
+                  )}
                 </p>
               </div>
 
-              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 transition-all hover:bg-white/20 animate-fade-in-up animate-stagger-2">
-                <div className="flex items-center gap-2 mb-1">
-                  <TrendingUp className="h-4 w-4 text-blue-200" />
-                  <span className="text-xs text-blue-200">Resultado</span>
+              <div className="bg-white/10 backdrop-blur-sm rounded-lg sm:rounded-xl p-2 sm:p-3 transition-all hover:bg-white/20 animate-fade-in-up animate-stagger-2">
+                <div className="flex items-center gap-1 sm:gap-2 mb-0.5 sm:mb-1">
+                  <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4 text-blue-200" />
+                  <span className="text-[10px] sm:text-xs text-blue-200">Resultado</span>
                 </div>
                 <p className={cn(
-                  'text-lg font-bold animate-number',
+                  'text-sm sm:text-lg font-bold animate-number truncate',
                   (data?.financeiro?.resultado || 0) >= 0 ? 'text-green-300' : 'text-red-300'
                 )}>
-                  {loading ? '...' : (data?.financeiro?.resultado || 0) >= 0 ? '+' : ''}{formatCurrency(data?.financeiro?.resultado || 0)}
+                  {loading ? '...' : (
+                    <>
+                      <span className="sm:hidden">
+                        {(data?.financeiro?.resultado || 0) >= 0 ? '+' : ''}{formatCurrencyCompact(data?.financeiro?.resultado || 0)}
+                      </span>
+                      <span className="hidden sm:inline">
+                        {(data?.financeiro?.resultado || 0) >= 0 ? '+' : ''}{formatCurrency(data?.financeiro?.resultado || 0)}
+                      </span>
+                    </>
+                  )}
                 </p>
               </div>
 
-              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 transition-all hover:bg-white/20 animate-fade-in-up animate-stagger-3">
-                <div className="flex items-center gap-2 mb-1">
-                  <Target className="h-4 w-4 text-blue-200" />
-                  <span className="text-xs text-blue-200">OKRs</span>
+              <div className="bg-white/10 backdrop-blur-sm rounded-lg sm:rounded-xl p-2 sm:p-3 transition-all hover:bg-white/20 animate-fade-in-up animate-stagger-3">
+                <div className="flex items-center gap-1 sm:gap-2 mb-0.5 sm:mb-1">
+                  <Target className="h-3 w-3 sm:h-4 sm:w-4 text-blue-200" />
+                  <span className="text-[10px] sm:text-xs text-blue-200">OKRs</span>
                 </div>
-                <p className="text-lg font-bold animate-number">
+                <p className="text-sm sm:text-lg font-bold animate-number">
                   {loading ? '...' : `${okrsEmDia}/${okrsTotal}`}
-                  <span className="text-xs font-normal text-blue-200 ml-1">em dia</span>
+                  <span className="hidden sm:inline text-xs font-normal text-blue-200 ml-1">em dia</span>
                 </p>
               </div>
             </div>
@@ -307,7 +346,8 @@ export default function DashboardPage() {
       )}
 
       {/* SECAO 3 e 4 - OKRs e Projeto */}
-      <div className="grid gap-6 lg:grid-cols-2">
+      {/* Mobile: empilhado (1 coluna), Desktop: 2 colunas */}
+      <div className="grid gap-4 sm:gap-6 grid-cols-1 lg:grid-cols-2">
         {/* SECAO 3 - OKRs EM DESTAQUE */}
         <div className="animate-fade-in-up animate-stagger-4">
           <OKRsDestaque

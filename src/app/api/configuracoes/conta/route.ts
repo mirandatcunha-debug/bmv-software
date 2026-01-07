@@ -38,7 +38,7 @@ export async function GET() {
   }
 }
 
-// PUT - Atualizar dados da conta
+// PUT - Atualizar dados da conta (nome, email, avatar)
 export async function PUT(request: NextRequest) {
   try {
     const supabase = await createSupabaseServerClient()
@@ -57,10 +57,12 @@ export async function PUT(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { nome } = body
+    const { nome, email, avatarUrl } = body
 
-    const updateData: { nome?: string } = {}
+    const updateData: { nome?: string; email?: string; avatarUrl?: string } = {}
     if (nome !== undefined) updateData.nome = nome
+    if (email !== undefined) updateData.email = email
+    if (avatarUrl !== undefined) updateData.avatarUrl = avatarUrl
 
     const updatedUser = await prisma.user.update({
       where: { id: user.id },
@@ -73,6 +75,8 @@ export async function PUT(request: NextRequest) {
       email: updatedUser.email,
       avatarUrl: updatedUser.avatarUrl,
       perfil: updatedUser.perfil,
+      primeiroAcesso: updatedUser.primeiroAcesso,
+      ultimoAcesso: updatedUser.ultimoAcesso,
     })
   } catch (error) {
     console.error('Erro ao atualizar conta:', error)

@@ -184,35 +184,35 @@ export default function LoginPage() {
       </div>
 
       {/* Right Side - Login Form */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-4 sm:p-8 min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
         <div className="w-full max-w-md animate-slide-in-right">
           {/* Mobile Logo */}
-          <div className="lg:hidden flex flex-col items-center mb-8 animate-fade-in-up">
-            <div className="w-20 h-20 bg-bmv-primary rounded-xl flex items-center justify-center mb-4 shadow-lg">
+          <div className="lg:hidden flex flex-col items-center mb-6 sm:mb-8 animate-fade-in-up">
+            <div className="w-16 h-16 sm:w-20 sm:h-20 bg-bmv-primary rounded-xl flex items-center justify-center mb-3 sm:mb-4 shadow-lg">
               <Image
                 src="/logo.png"
                 alt="BM&V Logo"
                 width={56}
                 height={56}
-                className="object-contain"
+                className="object-contain w-10 h-10 sm:w-14 sm:h-14"
               />
             </div>
-            <h1 className="text-2xl font-bold text-bmv-primary">BM&V Consultoria</h1>
+            <h1 className="text-xl sm:text-2xl font-bold text-bmv-primary">BM&V Consultoria</h1>
           </div>
 
           {/* Login Card */}
-          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl p-8 border border-slate-200 dark:border-slate-700">
-            <div className="text-center mb-8">
-              <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">
+          <div className="bg-white dark:bg-slate-800 rounded-xl sm:rounded-2xl shadow-xl p-5 sm:p-8 border border-slate-200 dark:border-slate-700">
+            <div className="text-center mb-6 sm:mb-8">
+              <h2 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white mb-1 sm:mb-2">
                 Bem-vindo de volta
               </h2>
-              <p className="text-slate-600 dark:text-slate-400">
+              <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400">
                 Entre com suas credenciais para acessar
               </p>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-5">
-              <div className="space-y-2">
+            <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
+              <div className="space-y-1.5 sm:space-y-2">
                 <Label htmlFor="email" className="text-sm font-medium">
                   E-mail
                 </Label>
@@ -228,25 +228,25 @@ export default function LoginPage() {
                   onBlur={() => validateEmail(email)}
                   disabled={isLoading}
                   className={cn(
-                    "h-12 transition-all duration-200",
+                    "h-11 sm:h-12 transition-all duration-200",
                     emailError && "border-red-500 focus-visible:ring-red-500"
                   )}
                 />
                 {emailError && (
-                  <p className="text-sm text-red-500 flex items-center gap-1 animate-fade-in">
+                  <p className="text-xs sm:text-sm text-red-500 flex items-center gap-1 animate-fade-in">
                     <span>{emailError}</span>
                   </p>
                 )}
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-1.5 sm:space-y-2">
                 <div className="flex items-center justify-between">
                   <Label htmlFor="password" className="text-sm font-medium">
                     Senha
                   </Label>
                   <Link
                     href="/esqueci-senha"
-                    className="text-sm text-bmv-secondary hover:text-bmv-primary transition-colors font-medium"
+                    className="text-xs sm:text-sm text-bmv-secondary hover:text-bmv-primary transition-colors font-medium"
                   >
                     Esqueceu a senha?
                   </Link>
@@ -264,7 +264,7 @@ export default function LoginPage() {
                     onBlur={() => validatePassword(password)}
                     disabled={isLoading}
                     className={cn(
-                      "h-12 pr-12 transition-all duration-200",
+                      "h-11 sm:h-12 pr-12 transition-all duration-200",
                       passwordError && "border-red-500 focus-visible:ring-red-500"
                     )}
                   />
@@ -282,7 +282,7 @@ export default function LoginPage() {
                   </button>
                 </div>
                 {passwordError && (
-                  <p className="text-sm text-red-500 flex items-center gap-1 animate-fade-in">
+                  <p className="text-xs sm:text-sm text-red-500 flex items-center gap-1 animate-fade-in">
                     <span>{passwordError}</span>
                   </p>
                 )}
@@ -290,12 +290,12 @@ export default function LoginPage() {
 
               <Button
                 type="submit"
-                className="w-full h-12 bg-bmv-primary hover:bg-bmv-secondary transition-all duration-300 text-base font-semibold shadow-lg hover:shadow-xl"
+                className="w-full h-11 sm:h-12 bg-bmv-primary hover:bg-bmv-secondary transition-all duration-300 text-sm sm:text-base font-semibold shadow-lg hover:shadow-xl"
                 disabled={isLoading}
               >
                 {isLoading ? (
                   <>
-                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                    <Loader2 className="mr-2 h-4 w-4 sm:h-5 sm:w-5 animate-spin" />
                     Entrando...
                   </>
                 ) : (
@@ -304,8 +304,8 @@ export default function LoginPage() {
               </Button>
             </form>
 
-            <div className="mt-8 pt-6 border-t border-slate-200 dark:border-slate-700 text-center">
-              <p className="text-sm text-slate-600 dark:text-slate-400">
+            <div className="mt-6 sm:mt-8 pt-4 sm:pt-6 border-t border-slate-200 dark:border-slate-700 text-center">
+              <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400">
                 Não tem uma conta?{' '}
                 <Link
                   href="/cadastro"
@@ -318,7 +318,7 @@ export default function LoginPage() {
           </div>
 
           {/* Footer */}
-          <div className="mt-8 text-center text-sm text-slate-500 dark:text-slate-400">
+          <div className="mt-6 sm:mt-8 text-center text-xs sm:text-sm text-slate-500 dark:text-slate-400">
             <p>&copy; 2026 BM&V Consultoria. Todos os direitos reservados.</p>
           </div>
         </div>

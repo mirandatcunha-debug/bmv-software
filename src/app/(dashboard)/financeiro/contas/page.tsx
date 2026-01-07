@@ -193,8 +193,8 @@ export default function ContasPage() {
             )}
           </div>
 
-          {/* Mini cards de resumo no header */}
-          <div className="grid grid-cols-2 gap-3 mt-6">
+          {/* Mini cards de resumo no header - empilhados no mobile */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-6">
             <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 transition-all hover:bg-white/20 animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
               <div className="flex items-center gap-2 mb-1">
                 <Wallet className="h-4 w-4 text-purple-200" />
@@ -225,9 +225,9 @@ export default function ContasPage() {
         </div>
       </div>
 
-      {/* Lista de Contas */}
+      {/* Lista de Contas - 1 col mobile, 2 col tablet+ */}
       {contas.length > 0 ? (
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
           {contas.map((conta, index) => {
             const Icon = getIconByTipo(conta.tipo)
             const bancoConfig = getBancoConfig(conta.banco || '')
@@ -306,7 +306,7 @@ export default function ContasPage() {
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="opacity-0 group-hover:opacity-100 transition-opacity"
+                            className="opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity"
                           >
                             <MoreHorizontal className="h-4 w-4" />
                           </Button>

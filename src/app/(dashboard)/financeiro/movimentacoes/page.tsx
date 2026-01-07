@@ -28,6 +28,11 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible'
+import {
   BarChart3,
   Search,
   Filter,
@@ -45,6 +50,8 @@ import {
   FileX2,
   ArrowUpRight,
   ArrowDownRight,
+  Plus,
+  SlidersHorizontal,
 } from 'lucide-react'
 import {
   Movimentacao,
@@ -140,6 +147,7 @@ export default function MovimentacoesPage() {
   const [periodoFiltro, setPeriodoFiltro] = useState<string>('TODOS')
   const [sortField, setSortField] = useState<SortField>('data')
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc')
+  const [filtrosAbertos, setFiltrosAbertos] = useState(false)
 
   // Verificar permissões do módulo financeiro.movimentacoes
   const { canCreate, canEdit, canDelete } = useModulePermissions('financeiro.movimentacoes')
@@ -249,33 +257,64 @@ export default function MovimentacoesPage() {
               </div>
             </div>
             {canCreate && (
-              <div className="flex gap-2">
-                <Link href="/financeiro/movimentacoes/nova?tipo=RECEITA">
-                  <Button
-                    className="bg-white/20 hover:bg-white/30 border-white/30 text-white backdrop-blur-sm transition-all hover:scale-105"
-                    variant="outline"
-                  >
-                    <TrendingUp className="h-4 w-4 mr-2" />
-                    Receita
-                  </Button>
-                </Link>
-                <Link href="/financeiro/movimentacoes/nova?tipo=DESPESA">
-                  <Button
-                    className="bg-white/20 hover:bg-white/30 border-white/30 text-white backdrop-blur-sm transition-all hover:scale-105"
-                    variant="outline"
-                  >
-                    <TrendingDown className="h-4 w-4 mr-2" />
-                    Despesa
-                  </Button>
-                </Link>
-              </div>
+              <>
+                {/* Botões visíveis em desktop */}
+                <div className="hidden sm:flex gap-2">
+                  <Link href="/financeiro/movimentacoes/nova?tipo=RECEITA">
+                    <Button
+                      className="bg-white/20 hover:bg-white/30 border-white/30 text-white backdrop-blur-sm transition-all hover:scale-105"
+                      variant="outline"
+                    >
+                      <TrendingUp className="h-4 w-4 mr-2" />
+                      Receita
+                    </Button>
+                  </Link>
+                  <Link href="/financeiro/movimentacoes/nova?tipo=DESPESA">
+                    <Button
+                      className="bg-white/20 hover:bg-white/30 border-white/30 text-white backdrop-blur-sm transition-all hover:scale-105"
+                      variant="outline"
+                    >
+                      <TrendingDown className="h-4 w-4 mr-2" />
+                      Despesa
+                    </Button>
+                  </Link>
+                </div>
+                {/* Dropdown no mobile */}
+                <div className="sm:hidden">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        className="bg-white/20 hover:bg-white/30 border-white/30 text-white backdrop-blur-sm"
+                        variant="outline"
+                      >
+                        <Plus className="h-4 w-4 mr-2" />
+                        Nova
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <Link href="/financeiro/movimentacoes/nova?tipo=RECEITA">
+                        <DropdownMenuItem className="cursor-pointer text-green-600">
+                          <TrendingUp className="h-4 w-4 mr-2" />
+                          Nova Receita
+                        </DropdownMenuItem>
+                      </Link>
+                      <Link href="/financeiro/movimentacoes/nova?tipo=DESPESA">
+                        <DropdownMenuItem className="cursor-pointer text-red-600">
+                          <TrendingDown className="h-4 w-4 mr-2" />
+                          Nova Despesa
+                        </DropdownMenuItem>
+                      </Link>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+              </>
             )}
           </div>
         </div>
       </div>
 
-      {/* Cards de Totais */}
-      <div className="grid gap-4 md:grid-cols-3 animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
+      {/* Cards de Totais - empilhados no mobile */}
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-3 animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
         <Card className="relative overflow-hidden border-2 border-green-500/20 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20">
           <div className="absolute top-0 right-0 w-24 h-24 bg-green-500/10 rounded-full -translate-y-1/2 translate-x-1/2"></div>
           <CardContent className="p-5">
@@ -354,10 +393,11 @@ export default function MovimentacoesPage() {
         </Card>
       </div>
 
-      {/* Filters */}
+      {/* Filters - Collapsible no mobile */}
       <Card className="animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
         <CardContent className="p-4">
-          <div className="flex flex-wrap items-center gap-3">
+          {/* Versão Desktop - sempre visível */}
+          <div className="hidden md:flex flex-wrap items-center gap-3">
             <div className="flex items-center gap-2 text-muted-foreground">
               <Filter className="h-4 w-4" />
               <span className="text-sm font-medium">Filtros:</span>
@@ -421,12 +461,83 @@ export default function MovimentacoesPage() {
               {movimentacoesFiltradas.length} registro(s)
             </Badge>
           </div>
+
+          {/* Versão Mobile - Collapsible */}
+          <div className="md:hidden">
+            <Collapsible open={filtrosAbertos} onOpenChange={setFiltrosAbertos}>
+              <div className="flex items-center justify-between gap-3">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Buscar..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-9"
+                  />
+                </div>
+                <CollapsibleTrigger asChild>
+                  <Button variant="outline" size="icon" className="shrink-0">
+                    <SlidersHorizontal className="h-4 w-4" />
+                  </Button>
+                </CollapsibleTrigger>
+                <Badge variant="outline" className="shrink-0">
+                  {movimentacoesFiltradas.length}
+                </Badge>
+              </div>
+              <CollapsibleContent className="mt-3 space-y-3">
+                <Select value={periodoFiltro} onValueChange={setPeriodoFiltro}>
+                  <SelectTrigger className="w-full">
+                    <Calendar className="h-4 w-4 mr-2 text-muted-foreground" />
+                    <SelectValue placeholder="Periodo" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {periodoOptions.map((opt) => (
+                      <SelectItem key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                <Select
+                  value={tipoFiltro}
+                  onValueChange={(value) => setTipoFiltro(value as TipoTransacao | 'TODOS')}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Tipo" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {tipoOptions.map((opt) => (
+                      <SelectItem key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                <Select value={contaFiltro} onValueChange={setContaFiltro}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Conta" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="TODOS">Todas as Contas</SelectItem>
+                    {contasMock.map((conta) => (
+                      <SelectItem key={conta.id} value={conta.id}>
+                        {conta.nome}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </CollapsibleContent>
+            </Collapsible>
+          </div>
         </CardContent>
       </Card>
 
-      {/* Table */}
-      <Card className="animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
-        <Table>
+      {/* Table - com scroll horizontal no mobile */}
+      <Card className="animate-fade-in-up overflow-hidden" style={{ animationDelay: '0.3s' }}>
+        <div className="overflow-x-auto">
+        <Table className="min-w-[700px]">
           <TableHeader>
             <TableRow className="hover:bg-transparent">
               <TableHead
@@ -611,6 +722,7 @@ export default function MovimentacoesPage() {
             )}
           </TableBody>
         </Table>
+        </div>
       </Card>
     </div>
   )

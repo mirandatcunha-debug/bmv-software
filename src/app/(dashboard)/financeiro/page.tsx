@@ -164,14 +164,14 @@ export default function FinanceiroPage() {
             </div>
           </div>
 
-          {/* Mini cards de resumo no header */}
-          <div className="grid grid-cols-3 gap-3 mt-6">
+          {/* Mini cards de resumo no header - empilhados no mobile */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-6">
             <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 transition-all hover:bg-white/20 animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
               <div className="flex items-center gap-2 mb-1">
                 <Wallet className="h-4 w-4 text-emerald-200" />
                 <span className="text-xs text-emerald-200">Saldo Total</span>
               </div>
-              <p className="text-lg font-bold">
+              <p className="text-base sm:text-lg font-bold">
                 {formatCurrency(resumo.saldoTotal)}
               </p>
             </div>
@@ -182,7 +182,7 @@ export default function FinanceiroPage() {
                 <span className="text-xs text-emerald-200">Receitas</span>
               </div>
               <div className="flex items-center gap-2">
-                <p className="text-lg font-bold text-green-300">
+                <p className="text-base sm:text-lg font-bold text-green-300">
                   {formatCurrency(resumo.receitasMes)}
                 </p>
                 <div className="flex items-center text-xs text-green-300">
@@ -198,7 +198,7 @@ export default function FinanceiroPage() {
                 <span className="text-xs text-emerald-200">Despesas</span>
               </div>
               <div className="flex items-center gap-2">
-                <p className="text-lg font-bold text-red-300">
+                <p className="text-base sm:text-lg font-bold text-red-300">
                   {formatCurrency(resumo.despesasMes)}
                 </p>
                 <div className="flex items-center text-xs text-green-300">
@@ -211,8 +211,8 @@ export default function FinanceiroPage() {
         </div>
       </div>
 
-      {/* Atalhos rápidos com animação stagger */}
-      <div className="grid gap-4 md:grid-cols-4">
+      {/* Atalhos rápidos com animação stagger - 1 col mobile, 2 col tablet, 4 col desktop */}
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
         <Link href="/financeiro/movimentacoes" className="group">
           <Card className="relative overflow-hidden border-2 border-transparent hover:border-blue-500/50 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/10 hover:-translate-y-1 animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
             <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-blue-600/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
@@ -294,8 +294,8 @@ export default function FinanceiroPage() {
         </Link>
       </div>
 
-      {/* Cards de Resumo com indicadores de tendência */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 animate-fade-in-up" style={{ animationDelay: '0.5s' }}>
+      {/* Cards de Resumo com indicadores de tendência - 1 col mobile, 2 col tablet, 4 col desktop */}
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 animate-fade-in-up" style={{ animationDelay: '0.5s' }}>
         <Card className="relative overflow-hidden">
           <div className="absolute top-0 right-0 w-20 h-20 bg-blue-500/10 rounded-full -translate-y-1/2 translate-x-1/2"></div>
           <CardContent className="p-6">

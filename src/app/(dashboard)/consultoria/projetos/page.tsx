@@ -227,32 +227,34 @@ export default function ProjetosPage() {
         </div>
       </div>
 
-      {/* Filtros por Status (Pills) */}
-      <div className="flex flex-wrap gap-2">
-        {statusOptions.map((opt) => (
-          <button
-            key={opt.value}
-            onClick={() => setStatusFiltro(opt.value)}
-            className={cn(
-              'px-4 py-2 rounded-full text-sm font-medium transition-all',
-              statusFiltro === opt.value
-                ? statusFilterColorsActive[opt.value]
-                : statusFilterColors[opt.value]
-            )}
-          >
-            {opt.label}
-            <span className="ml-2 px-1.5 py-0.5 rounded-full bg-white/20 text-xs">
-              {countByStatus(opt.value)}
-            </span>
-          </button>
-        ))}
+      {/* Filtros por Status (Pills) - scroll horizontal no mobile */}
+      <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0 pb-2 sm:pb-0">
+        <div className="flex gap-2 min-w-max sm:min-w-0 sm:flex-wrap">
+          {statusOptions.map((opt) => (
+            <button
+              key={opt.value}
+              onClick={() => setStatusFiltro(opt.value)}
+              className={cn(
+                'px-3 sm:px-4 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap',
+                statusFiltro === opt.value
+                  ? statusFilterColorsActive[opt.value]
+                  : statusFilterColors[opt.value]
+              )}
+            >
+              {opt.label}
+              <span className="ml-2 px-1.5 py-0.5 rounded-full bg-white/20 text-xs">
+                {countByStatus(opt.value)}
+              </span>
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Barra de Filtros e Visualização */}
-      <div className="flex flex-wrap items-center justify-between gap-4 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl border">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-4 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl border">
         <div className="flex items-center gap-3 flex-1">
-          <Filter className="h-4 w-4 text-muted-foreground" />
-          <div className="relative flex-1 max-w-md">
+          <Filter className="h-4 w-4 text-muted-foreground shrink-0" />
+          <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Buscar projeto ou cliente..."
@@ -264,7 +266,7 @@ export default function ProjetosPage() {
         </div>
 
         {/* Toggle de Visualização */}
-        <div className="flex items-center gap-2 p-1 bg-white dark:bg-slate-900 rounded-lg border">
+        <div className="flex items-center gap-2 p-1 bg-white dark:bg-slate-900 rounded-lg border self-end sm:self-auto">
           <Button
             variant={viewMode === 'cards' ? 'default' : 'ghost'}
             size="sm"
@@ -273,8 +275,8 @@ export default function ProjetosPage() {
               viewMode === 'cards' && 'bg-orange-500 hover:bg-orange-600'
             )}
           >
-            <LayoutGrid className="h-4 w-4 mr-2" />
-            Cards
+            <LayoutGrid className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">Cards</span>
           </Button>
           <Button
             variant={viewMode === 'lista' ? 'default' : 'ghost'}
@@ -284,8 +286,8 @@ export default function ProjetosPage() {
               viewMode === 'lista' && 'bg-orange-500 hover:bg-orange-600'
             )}
           >
-            <List className="h-4 w-4 mr-2" />
-            Lista
+            <List className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">Lista</span>
           </Button>
         </div>
       </div>
@@ -299,7 +301,7 @@ export default function ProjetosPage() {
 
       {/* Visualização em Cards */}
       {viewMode === 'cards' && (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
           {projetosFiltrados.length > 0 ? (
             projetosFiltrados.map((projeto) => (
               <Link
@@ -308,11 +310,11 @@ export default function ProjetosPage() {
                 className="block group"
               >
                 <Card className="h-full hover:shadow-lg hover:border-orange-200 dark:hover:border-orange-800 transition-all">
-                  <CardContent className="p-5">
+                  <CardContent className="p-4 sm:p-5">
                     {/* Header do Card */}
-                    <div className="flex items-start justify-between mb-4">
+                    <div className="flex items-start justify-between mb-3 sm:mb-4 gap-2">
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold text-lg truncate group-hover:text-orange-600 transition-colors">
+                        <h3 className="font-semibold text-base sm:text-lg line-clamp-2 sm:truncate group-hover:text-orange-600 transition-colors">
                           {projeto.nome}
                         </h3>
                         <p className="text-sm text-muted-foreground truncate">
@@ -321,7 +323,7 @@ export default function ProjetosPage() {
                       </div>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild onClick={(e) => e.preventDefault()}>
-                          <Button variant="ghost" size="icon" className="shrink-0">
+                          <Button variant="ghost" size="icon" className="shrink-0 -mr-2">
                             <MoreHorizontal className="h-4 w-4" />
                           </Button>
                         </DropdownMenuTrigger>
@@ -358,7 +360,7 @@ export default function ProjetosPage() {
                     </div>
 
                     {/* Status Badge */}
-                    <div className="flex items-center gap-2 mb-4">
+                    <div className="flex flex-wrap items-center gap-2 mb-3 sm:mb-4">
                       <Badge
                         className={cn(
                           'text-xs',
@@ -377,18 +379,18 @@ export default function ProjetosPage() {
 
                     {/* Descrição */}
                     {projeto.descricao && (
-                      <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
+                      <p className="text-sm text-muted-foreground line-clamp-2 mb-3 sm:mb-4">
                         {projeto.descricao}
                       </p>
                     )}
 
                     {/* Barra de Progresso */}
-                    <div className="mb-4">
+                    <div className="mb-3 sm:mb-4">
                       <div className="flex justify-between text-sm mb-1.5">
-                        <span className="text-muted-foreground">Progresso</span>
+                        <span className="text-muted-foreground text-xs sm:text-sm">Progresso</span>
                         <span className="font-semibold text-orange-600">{projeto.progresso}%</span>
                       </div>
-                      <div className="h-2.5 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
+                      <div className="h-2 sm:h-2.5 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
                         <div
                           className={cn(
                             "h-full rounded-full transition-all",
@@ -402,13 +404,13 @@ export default function ProjetosPage() {
                     </div>
 
                     {/* Footer - Consultor e Data */}
-                    <div className="flex items-center justify-between text-sm pt-4 border-t">
-                      <div className="flex items-center gap-2 text-muted-foreground">
-                        <Users className="h-4 w-4" />
+                    <div className="flex items-center justify-between text-xs sm:text-sm pt-3 sm:pt-4 border-t gap-2">
+                      <div className="flex items-center gap-1.5 sm:gap-2 text-muted-foreground min-w-0">
+                        <Users className="h-3.5 sm:h-4 w-3.5 sm:w-4 shrink-0" />
                         <span className="truncate">{getConsultor(projeto.id)}</span>
                       </div>
-                      <div className="flex items-center gap-1 text-muted-foreground">
-                        <Calendar className="h-4 w-4" />
+                      <div className="flex items-center gap-1 text-muted-foreground shrink-0">
+                        <Calendar className="h-3.5 sm:h-4 w-3.5 sm:w-4" />
                         <span>{formatDateShort(projeto.dataFim)}</span>
                       </div>
                     </div>
@@ -426,7 +428,8 @@ export default function ProjetosPage() {
 
       {/* Visualização em Lista/Tabela */}
       {viewMode === 'lista' && (
-        <Card>
+        <Card className="overflow-hidden">
+          <div className="overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
@@ -553,6 +556,7 @@ export default function ProjetosPage() {
               )}
             </TableBody>
           </Table>
+          </div>
         </Card>
       )}
     </div>
