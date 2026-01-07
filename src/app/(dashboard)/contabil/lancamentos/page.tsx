@@ -6,11 +6,11 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import Link from 'next/link'
+import { useModulePermissions } from '@/hooks/use-permissions'
 import {
   FileText,
   Plus,
   Search,
-  Filter,
   Download,
   Upload,
   ArrowLeft,
@@ -23,7 +23,6 @@ import {
   CheckCircle2,
   Clock,
   XCircle,
-  MoreHorizontal,
   ChevronLeft,
   ChevronRight,
   ChevronsLeft,
@@ -236,6 +235,9 @@ export default function LancamentosPage() {
   const [currentPage, setCurrentPage] = useState(1)
   const itemsPerPage = 10
 
+  // Permissões do módulo contábil
+  const { canCreate, canEdit, canDelete } = useModulePermissions('contabil.lancamentos')
+
   const totalLancamentos = lancamentos.length
   const totalDebitos = lancamentos.reduce((acc, l) => acc + l.valor, 0)
   const totalCreditos = totalDebitos // Em partida dobrada, débito = crédito
@@ -413,18 +415,24 @@ export default function LancamentosPage() {
         </div>
 
         <div className="flex gap-2">
-          <Button variant="outline" className="gap-2">
-            <Upload className="h-4 w-4" />
-            Importar
-          </Button>
+          {canCreate && (
+            <Button variant="outline" className="gap-2">
+              <Upload className="h-4 w-4" />
+              Importar
+            </Button>
+          )}
           <Button variant="outline" className="gap-2">
             <Download className="h-4 w-4" />
             Exportar
           </Button>
-          <Button className="gap-2 bg-violet-600 hover:bg-violet-700">
-            <Plus className="h-4 w-4" />
-            Novo Lançamento
-          </Button>
+          {canCreate && (
+            <Link href="/contabil/lancamentos/novo">
+              <Button className="gap-2 bg-violet-600 hover:bg-violet-700">
+                <Plus className="h-4 w-4" />
+                Novo Lançamento
+              </Button>
+            </Link>
+          )}
         </div>
       </div>
 
@@ -513,15 +521,25 @@ export default function LancamentosPage() {
                       </td>
                       <td className="p-4">
                         <div className="flex items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <button className="p-1.5 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700" title="Visualizar">
-                            <Eye className="h-4 w-4 text-slate-500" />
-                          </button>
-                          <button className="p-1.5 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700" title="Editar">
-                            <Edit2 className="h-4 w-4 text-slate-500" />
-                          </button>
-                          <button className="p-1.5 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700" title="Excluir">
-                            <Trash2 className="h-4 w-4 text-slate-500" />
-                          </button>
+                          <Link href={`/contabil/lancamentos/${lancamento.id}`}>
+                            <button className="p-1.5 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700" title="Visualizar">
+                              <Eye className="h-4 w-4 text-slate-500" />
+                            </button>
+                          </Link>
+                          {canEdit && (
+                            <Link href={`/contabil/lancamentos/${lancamento.id}?edit=true`}>
+                              <button className="p-1.5 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700" title="Editar">
+                                <Edit2 className="h-4 w-4 text-slate-500" />
+                              </button>
+                            </Link>
+                          )}
+                          {canDelete && (
+                            <Link href={`/contabil/lancamentos/${lancamento.id}/excluir`}>
+                              <button className="p-1.5 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700" title="Excluir">
+                                <Trash2 className="h-4 w-4 text-red-500" />
+                              </button>
+                            </Link>
+                          )}
                         </div>
                       </td>
                     </tr>

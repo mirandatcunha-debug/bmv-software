@@ -33,6 +33,9 @@ import {
 import { useToast } from '@/components/ui/use-toast'
 import { PeriodoTipo } from '@/types/okr'
 import { cn } from '@/lib/utils'
+import { useAuth } from '@/contexts/auth-context'
+import { useTenant } from '@/hooks/use-tenant'
+import { okrService } from '@/services/okr.service'
 
 const trimestres = [
   { value: 'Q1', label: 'Q1 - Jan a Mar' },
@@ -67,7 +70,10 @@ const steps = [
 export default function NovoObjetivoPage() {
   const router = useRouter()
   const { toast } = useToast()
+  const { user, loading: authLoading } = useAuth()
+  const { tenant } = useTenant()
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const [currentStep, setCurrentStep] = useState(1)
   const [usuarios] = useState(usuariosMock)
 
@@ -162,6 +168,26 @@ export default function NovoObjetivoPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setError(null)
+
+    if (!user) {
+      toast({
+        title: 'Erro',
+        description: 'Voce precisa estar autenticado',
+        variant: 'destructive',
+      })
+      router.push('/login')
+      return
+    }
+
+    if (!tenant) {
+      toast({
+        title: 'Erro',
+        description: 'Nenhuma empresa selecionada',
+        variant: 'destructive',
+      })
+      return
+    }
 
     if (!validateStep(3)) return
 
@@ -171,7 +197,7 @@ export default function NovoObjetivoPage() {
       const payload = {
         titulo: formData.titulo,
         descricao: formData.descricao,
-        responsavelId: formData.responsavelId,
+        donoId: formData.responsavelId,
         periodoTipo: formData.periodoTipo,
         ...(formData.periodoTipo === 'TRIMESTRE'
           ? {
@@ -179,39 +205,39 @@ export default function NovoObjetivoPage() {
               ano: parseInt(formData.ano),
             }
           : {
-              dataInicio: new Date(formData.dataInicio),
-              dataFim: new Date(formData.dataFim),
+              dataInicio: formData.dataInicio,
+              dataFim: formData.dataFim,
             }),
-        keyResults: keyResults.map((kr) => ({
-          titulo: kr.titulo,
-          metrica: kr.metrica,
-          baseline: parseFloat(kr.baseline) || 0,
-          meta: parseFloat(kr.meta) || 0,
-        })),
       }
 
-      const response = await fetch('/api/okr', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      })
+      const objetivo = await okrService.objetivos.createObjetivo(payload)
 
-      if (!response.ok) {
-        throw new Error('Erro ao criar objetivo')
+      // Criar os Key Results para o objetivo criado
+      for (const kr of keyResults) {
+        if (kr.titulo.trim()) {
+          await okrService.keyResults.createKeyResult({
+            objetivoId: objetivo.id,
+            titulo: kr.titulo,
+            metrica: kr.metrica,
+            baseline: parseFloat(kr.baseline) || 0,
+            meta: parseFloat(kr.meta) || 0,
+          })
+        }
       }
-
-      const data = await response.json()
 
       toast({
         title: 'Objetivo criado!',
         description: 'Seu objetivo foi criado com sucesso.',
       })
 
-      router.push(`/processos/okr/${data.id}`)
-    } catch (error) {
+      router.push(`/processos/okr/${objetivo.id}`)
+    } catch (err) {
+      console.error('Erro ao criar objetivo:', err)
+      const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido'
+      setError(errorMessage)
       toast({
         title: 'Erro',
-        description: 'Não foi possível criar o objetivo. Tente novamente.',
+        description: 'Nao foi possivel criar o objetivo. Tente novamente.',
         variant: 'destructive',
       })
     } finally {
@@ -223,8 +249,30 @@ export default function NovoObjetivoPage() {
     return usuarios.find((u) => u.id === formData.responsavelId)?.nome || '-'
   }
 
+  // Loading de autenticação
+  if (authLoading) {
+    return (
+      <div className="flex items-center justify-center p-8">
+        <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+      </div>
+    )
+  }
+
+  // Usuário não autenticado
+  if (!user) {
+    router.push('/login')
+    return null
+  }
+
   return (
     <div className="space-y-6 animate-in">
+      {/* Error Alert */}
+      {error && (
+        <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
+          {error}
+        </div>
+      )}
+
       {/* Breadcrumb */}
       <Link
         href="/processos/okr"

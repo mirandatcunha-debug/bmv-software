@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -36,10 +36,14 @@ import {
   BarChart3,
   ListTodo,
   Zap,
+  Loader2,
 } from 'lucide-react'
 import { StatusBadge } from '@/components/okr'
 import { Objetivo, KeyResult, StatusOKR, statusLabels } from '@/types/okr'
 import { cn } from '@/lib/utils'
+import { useModulePermissions } from '@/hooks/use-permissions'
+import { useAuth } from '@/contexts/auth-context'
+import { useTenant } from '@/hooks/use-tenant'
 
 // Dados mockados completos
 const objetivoMock: Objetivo = {
@@ -177,8 +181,30 @@ const statusOptions = Object.entries(statusLabels).map(([value, label]) => ({
 
 export default function ObjetivoDetailPage() {
   const params = useParams()
+  const { user, loading: authLoading } = useAuth()
+  const { tenant } = useTenant()
+  const { canCreate, canEdit, canDelete } = useModulePermissions('okr.objetivos')
+  const { canCreate: canCreateKR } = useModulePermissions('okr.key-results')
+
   const [objetivo, setObjetivo] = useState<Objetivo>(objetivoMock)
   const [expandedKRs, setExpandedKRs] = useState<string[]>(['kr1', 'kr2'])
+  const [loading, setLoading] = useState(true)
+
+  // Simular loading inicial
+  useEffect(() => {
+    if (user && tenant) {
+      setLoading(false)
+    }
+  }, [user, tenant])
+
+  // Loading state
+  if (authLoading || loading) {
+    return (
+      <div className="flex items-center justify-center p-8">
+        <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+      </div>
+    )
+  }
 
   const handleStatusChange = (newStatus: StatusOKR) => {
     setObjetivo((prev) => ({ ...prev, status: newStatus }))
@@ -294,16 +320,30 @@ export default function ObjetivoDetailPage() {
             </div>
 
             <div className="flex gap-2">
-              <Link href={`/processos/okr/${params.id}/novo-kr`}>
-                <Button className="bg-white text-blue-600 hover:bg-white/90 shadow-md">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Novo KR
-                </Button>
-              </Link>
-              <Button variant="secondary" className="bg-white/20 text-white hover:bg-white/30 border-white/30">
-                <Edit className="h-4 w-4 mr-2" />
-                Editar
-              </Button>
+              {canCreateKR && (
+                <Link href={`/processos/okr/${params.id}/novo-kr`}>
+                  <Button className="bg-white text-blue-600 hover:bg-white/90 shadow-md">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Novo KR
+                  </Button>
+                </Link>
+              )}
+              {canEdit && (
+                <Link href={`/processos/okr/${params.id}/editar`}>
+                  <Button variant="secondary" className="bg-white/20 text-white hover:bg-white/30 border-white/30">
+                    <Edit className="h-4 w-4 mr-2" />
+                    Editar
+                  </Button>
+                </Link>
+              )}
+              {canDelete && (
+                <Link href={`/processos/okr/${params.id}/excluir`}>
+                  <Button variant="secondary" className="bg-red-500/20 text-white hover:bg-red-500/30 border-red-300/30">
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Excluir
+                  </Button>
+                </Link>
+              )}
             </div>
           </div>
 
@@ -428,12 +468,14 @@ export default function ObjetivoDetailPage() {
             <Zap className="h-5 w-5 text-blue-500" />
             Key Results ({objetivo.keyResults.length})
           </h2>
-          <Link href={`/processos/okr/${params.id}/novo-kr`}>
-            <Button className="bg-blue-600 hover:bg-blue-700">
-              <Plus className="h-4 w-4 mr-2" />
-              Novo KR
-            </Button>
-          </Link>
+          {canCreateKR && (
+            <Link href={`/processos/okr/${params.id}/novo-kr`}>
+              <Button className="bg-blue-600 hover:bg-blue-700">
+                <Plus className="h-4 w-4 mr-2" />
+                Novo KR
+              </Button>
+            </Link>
+          )}
         </div>
 
         <div className="space-y-4">

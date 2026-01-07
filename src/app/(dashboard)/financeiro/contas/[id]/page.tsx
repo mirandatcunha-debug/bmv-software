@@ -1,13 +1,14 @@
 'use client'
 
-import { useState, useEffect, use } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect } from 'react'
+import { useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
+import { Switch } from '@/components/ui/switch'
 import {
   ArrowLeft,
   Landmark,
@@ -19,13 +20,14 @@ import {
   Check,
   AlertCircle,
   Sparkles,
-  Edit,
+  Save,
 } from 'lucide-react'
 import { useToast } from '@/components/ui/use-toast'
 import { TipoConta, tipoContaLabels, formatCurrency, ContaBancaria } from '@/types/financeiro'
 import { cn } from '@/lib/utils'
 import { useAuth } from '@/contexts/auth-context'
 import { useTenant } from '@/hooks/use-tenant'
+import { useModulePermissions } from '@/hooks/use-permissions'
 import { financeiroService } from '@/services/financeiro.service'
 
 const tipoOptions: { tipo: TipoConta; icon: typeof Building2; descricao: string; cor: string }[] = [
@@ -46,19 +48,17 @@ const coresOptions = [
   { value: '#be185d', label: 'Rosa' },
 ]
 
-interface EditarContaPageProps {
-  params: Promise<{ id: string }>
-}
-
-export default function EditarContaPage({ params }: EditarContaPageProps) {
-  const resolvedParams = use(params)
+export default function EditarContaPage() {
   const router = useRouter()
+  const params = useParams()
+  const id = params.id as string
   const { toast } = useToast()
   const { user, loading: authLoading } = useAuth()
   const { tenant } = useTenant()
+  const { canEdit } = useModulePermissions('financeiro.contas')
 
-  const [loading, setLoading] = useState(false)
-  const [loadingData, setLoadingData] = useState(true)
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [conta, setConta] = useState<ContaBancaria | null>(null)
 
@@ -70,6 +70,7 @@ export default function EditarContaPage({ params }: EditarContaPageProps) {
     tipo: 'CORRENTE' as TipoConta,
     saldoInicial: '',
     cor: '#1a365d',
+    ativo: true,
   })
 
   const [touched, setTouched] = useState<Record<string, boolean>>({})
@@ -78,31 +79,32 @@ export default function EditarContaPage({ params }: EditarContaPageProps) {
   useEffect(() => {
     async function loadConta() {
       try {
-        setLoadingData(true)
+        setLoading(true)
         setError(null)
-        const contaData = await financeiroService.contas.getConta(resolvedParams.id)
+        const contaData = await financeiroService.contas.getConta(id)
         setConta(contaData)
         setFormData({
-          nome: contaData.nome,
+          nome: contaData.nome || '',
           banco: contaData.banco || '',
           agencia: contaData.agencia || '',
           conta: contaData.conta || '',
-          tipo: contaData.tipo,
-          saldoInicial: String(contaData.saldoInicial),
+          tipo: contaData.tipo || 'CORRENTE',
+          saldoInicial: contaData.saldoInicial?.toString() || '0',
           cor: contaData.cor || '#1a365d',
+          ativo: contaData.ativo ?? true,
         })
       } catch (err) {
         console.error('Erro ao carregar conta:', err)
-        setError('Conta nao encontrada')
+        setError('Erro ao carregar dados da conta')
       } finally {
-        setLoadingData(false)
+        setLoading(false)
       }
     }
 
-    if (user && tenant && resolvedParams.id) {
+    if (user && tenant && id) {
       loadConta()
     }
-  }, [user, tenant, resolvedParams.id])
+  }, [user, tenant, id])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData((prev) => ({
@@ -151,6 +153,15 @@ export default function EditarContaPage({ params }: EditarContaPageProps) {
       return
     }
 
+    if (!canEdit) {
+      toast({
+        title: 'Erro',
+        description: 'Voce nao tem permissao para editar contas',
+        variant: 'destructive',
+      })
+      return
+    }
+
     if (!formData.nome.trim()) {
       toast({
         title: 'Erro',
@@ -160,10 +171,10 @@ export default function EditarContaPage({ params }: EditarContaPageProps) {
       return
     }
 
-    setLoading(true)
+    setSaving(true)
 
     try {
-      await financeiroService.contas.updateConta(resolvedParams.id, {
+      await financeiroService.contas.updateConta(id, {
         nome: formData.nome,
         banco: formData.banco || undefined,
         agencia: formData.agencia || undefined,
@@ -175,7 +186,7 @@ export default function EditarContaPage({ params }: EditarContaPageProps) {
 
       toast({
         title: 'Conta atualizada!',
-        description: 'As alteracoes foram salvas com sucesso.',
+        description: 'A conta bancaria foi atualizada com sucesso.',
       })
 
       router.push('/financeiro/contas')
@@ -189,14 +200,14 @@ export default function EditarContaPage({ params }: EditarContaPageProps) {
         variant: 'destructive',
       })
     } finally {
-      setLoading(false)
+      setSaving(false)
     }
   }
 
   const tipoSelecionado = tipoOptions.find(t => t.tipo === formData.tipo)
 
   // Loading de autenticação ou dados
-  if (authLoading || loadingData) {
+  if (authLoading || loading) {
     return (
       <div className="flex items-center justify-center p-8">
         <Loader2 className="h-8 w-8 animate-spin text-purple-600" />
@@ -210,10 +221,10 @@ export default function EditarContaPage({ params }: EditarContaPageProps) {
     return null
   }
 
-  // Conta não encontrada
-  if (!conta && !loadingData) {
+  // Sem permissão
+  if (!canEdit) {
     return (
-      <div className="space-y-6 max-w-4xl">
+      <div className="space-y-6">
         <Link
           href="/financeiro/contas"
           className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors group"
@@ -223,7 +234,35 @@ export default function EditarContaPage({ params }: EditarContaPageProps) {
         </Link>
         <Card>
           <CardContent className="p-8 text-center">
-            <p className="text-muted-foreground">Conta nao encontrada</p>
+            <AlertCircle className="h-12 w-12 mx-auto text-red-500 mb-4" />
+            <p className="text-red-600">Voce nao tem permissao para editar contas bancarias.</p>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
+  // Error state
+  if (error && !conta) {
+    return (
+      <div className="space-y-6">
+        <Link
+          href="/financeiro/contas"
+          className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors group"
+        >
+          <ArrowLeft className="h-4 w-4 group-hover:-translate-x-1 transition-transform" />
+          Voltar para Contas
+        </Link>
+        <Card>
+          <CardContent className="p-8 text-center">
+            <p className="text-red-600">{error}</p>
+            <Button
+              onClick={() => window.location.reload()}
+              className="mt-4"
+              variant="outline"
+            >
+              Tentar novamente
+            </Button>
           </CardContent>
         </Card>
       </div>
@@ -249,7 +288,7 @@ export default function EditarContaPage({ params }: EditarContaPageProps) {
       </Link>
 
       {/* Header com gradiente */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 p-6 text-white animate-fade-in-up">
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-purple-600 via-violet-600 to-indigo-600 p-6 text-white animate-fade-in-up">
         <div className="absolute inset-0 opacity-10">
           <div className="absolute top-0 right-0 w-64 h-64 bg-white rounded-full -translate-y-1/2 translate-x-1/2"></div>
           <div className="absolute bottom-0 left-0 w-48 h-48 bg-white rounded-full translate-y-1/2 -translate-x-1/2"></div>
@@ -257,12 +296,12 @@ export default function EditarContaPage({ params }: EditarContaPageProps) {
 
         <div className="relative flex items-center gap-4">
           <div className="p-3 bg-white/20 rounded-xl backdrop-blur-sm">
-            <Edit className="h-8 w-8" />
+            <Landmark className="h-8 w-8" />
           </div>
           <div>
             <h1 className="text-2xl md:text-3xl font-bold">Editar Conta Bancaria</h1>
-            <p className="text-blue-100 text-sm md:text-base">
-              Altere os dados da conta {conta?.nome}
+            <p className="text-purple-100 text-sm md:text-base">
+              Altere as informacoes da conta
             </p>
           </div>
         </div>
@@ -273,11 +312,11 @@ export default function EditarContaPage({ params }: EditarContaPageProps) {
         <Card className="lg:col-span-3 animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Sparkles className="h-5 w-5 text-blue-500" />
+              <Sparkles className="h-5 w-5 text-purple-500" />
               Dados da Conta
             </CardTitle>
             <CardDescription>
-              Altere as informacoes da conta bancaria
+              Edite as informacoes da conta bancaria
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -297,19 +336,19 @@ export default function EditarContaPage({ params }: EditarContaPageProps) {
                         className={cn(
                           "relative p-4 rounded-xl border-2 text-left transition-all duration-200",
                           isSelected
-                            ? "border-blue-500 bg-blue-50 dark:bg-blue-950/30 shadow-lg shadow-blue-500/20"
-                            : "border-slate-200 dark:border-slate-700 hover:border-blue-300 hover:bg-slate-50 dark:hover:bg-slate-800"
+                            ? "border-purple-500 bg-purple-50 dark:bg-purple-950/30 shadow-lg shadow-purple-500/20"
+                            : "border-slate-200 dark:border-slate-700 hover:border-purple-300 hover:bg-slate-50 dark:hover:bg-slate-800"
                         )}
                       >
                         {isSelected && (
-                          <div className="absolute top-2 right-2 w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
+                          <div className="absolute top-2 right-2 w-5 h-5 bg-purple-500 rounded-full flex items-center justify-center">
                             <Check className="h-3 w-3 text-white" />
                           </div>
                         )}
                         <div
                           className={cn(
                             "p-2 rounded-lg w-fit mb-2",
-                            isSelected ? "bg-blue-500/20" : "bg-slate-100 dark:bg-slate-800"
+                            isSelected ? "bg-purple-500/20" : "bg-slate-100 dark:bg-slate-800"
                           )}
                         >
                           <Icon
@@ -319,7 +358,7 @@ export default function EditarContaPage({ params }: EditarContaPageProps) {
                         </div>
                         <p className={cn(
                           "font-medium",
-                          isSelected && "text-blue-700 dark:text-blue-300"
+                          isSelected && "text-purple-700 dark:text-purple-300"
                         )}>
                           {tipoContaLabels[opcao.tipo]}
                         </p>
@@ -458,23 +497,39 @@ export default function EditarContaPage({ params }: EditarContaPageProps) {
                 </div>
               </div>
 
+              {/* Status Ativo */}
+              <div className="flex items-center justify-between p-4 rounded-xl border bg-slate-50 dark:bg-slate-900">
+                <div>
+                  <Label htmlFor="ativo" className="font-semibold">Conta Ativa</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Contas inativas nao aparecem nas movimentacoes
+                  </p>
+                </div>
+                <Switch
+                  id="ativo"
+                  checked={formData.ativo}
+                  onCheckedChange={(checked) => setFormData((prev) => ({ ...prev, ativo: checked }))}
+                />
+              </div>
+
               {/* Botões */}
               <div className="flex gap-3 pt-4 border-t">
                 <Button
                   type="button"
                   variant="outline"
                   onClick={() => router.back()}
-                  disabled={loading}
+                  disabled={saving}
                   className="flex-1"
                 >
                   Cancelar
                 </Button>
                 <Button
                   type="submit"
-                  className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg shadow-blue-500/25 transition-all"
-                  disabled={loading || !formData.nome.trim()}
+                  className="flex-1 bg-gradient-to-r from-purple-600 to-violet-600 hover:from-purple-700 hover:to-violet-700 text-white shadow-lg shadow-purple-500/25 transition-all"
+                  disabled={saving || !formData.nome.trim()}
                 >
-                  {loading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                  {saving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                  <Save className="h-4 w-4 mr-2" />
                   Salvar Alteracoes
                 </Button>
               </div>
@@ -549,8 +604,12 @@ export default function EditarContaPage({ params }: EditarContaPageProps) {
                         {formatCurrency(conta?.saldoAtual || parseFloat(formData.saldoInicial) || 0)}
                       </p>
                     </div>
-                    <Badge className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
-                      Ativa
+                    <Badge className={cn(
+                      formData.ativo
+                        ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                        : "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400"
+                    )}>
+                      {formData.ativo ? 'Ativa' : 'Inativa'}
                     </Badge>
                   </div>
                 </div>
@@ -558,7 +617,7 @@ export default function EditarContaPage({ params }: EditarContaPageProps) {
             </Card>
 
             <p className="text-xs text-muted-foreground mt-3 text-center">
-              Preview atualizado em tempo real
+              Assim ficara o card da sua conta
             </p>
           </div>
         </div>

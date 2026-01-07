@@ -2,17 +2,10 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
 import {
   Table,
   TableBody,
@@ -37,16 +30,12 @@ import {
   MoreHorizontal,
   Eye,
   Edit,
-  Archive,
   Calendar,
   LayoutGrid,
   List,
   Users,
-  Clock,
   AlertTriangle,
-  CheckCircle2,
-  Briefcase,
-  TrendingUp,
+  Trash2,
 } from 'lucide-react'
 import {
   Projeto,
@@ -55,6 +44,7 @@ import {
   statusProjetoCores,
 } from '@/types/consultoria'
 import { cn } from '@/lib/utils'
+import { usePermissions } from '@/hooks/use-permissions'
 
 // Dados mockados
 const projetosMock: Projeto[] = [
@@ -158,6 +148,9 @@ export default function ProjetosPage() {
   const [statusFiltro, setStatusFiltro] = useState<StatusProjeto | 'TODOS'>('TODOS')
   const [viewMode, setViewMode] = useState<'cards' | 'lista'>('cards')
 
+  // Permissões
+  const { canCreate, canEdit, canDelete, canView } = usePermissions()
+
   // Filtrar projetos
   const projetosFiltrados = projetos.filter((projeto) => {
     const matchSearch =
@@ -223,12 +216,14 @@ export default function ProjetosPage() {
               </p>
             </div>
           </div>
-          <Link href="/consultoria/projetos/novo">
-            <Button className="bg-white text-orange-600 hover:bg-white/90 shadow-md">
-              <Plus className="h-4 w-4 mr-2" />
-              Novo Projeto
-            </Button>
-          </Link>
+{canCreate('consultoria.projetos') && (
+            <Link href="/consultoria/projetos/novo">
+              <Button className="bg-white text-orange-600 hover:bg-white/90 shadow-md">
+                <Plus className="h-4 w-4 mr-2" />
+                Novo Projeto
+              </Button>
+            </Link>
+          )}
         </div>
       </div>
 
@@ -331,23 +326,33 @@ export default function ProjetosPage() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem asChild>
-                            <Link href={`/consultoria/projetos/${projeto.id}`}>
-                              <Eye className="h-4 w-4 mr-2" />
-                              Ver Detalhes
-                            </Link>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem asChild>
-                            <Link href={`/consultoria/projetos/${projeto.id}/editar`}>
-                              <Edit className="h-4 w-4 mr-2" />
-                              Editar
-                            </Link>
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem className="text-amber-600">
-                            <Archive className="h-4 w-4 mr-2" />
-                            Arquivar
-                          </DropdownMenuItem>
+                          {canView('consultoria.projetos') && (
+                            <DropdownMenuItem asChild>
+                              <Link href={`/consultoria/projetos/${projeto.id}`}>
+                                <Eye className="h-4 w-4 mr-2" />
+                                Ver Detalhes
+                              </Link>
+                            </DropdownMenuItem>
+                          )}
+                          {canEdit('consultoria.projetos') && (
+                            <DropdownMenuItem asChild>
+                              <Link href={`/consultoria/projetos/${projeto.id}/editar`}>
+                                <Edit className="h-4 w-4 mr-2" />
+                                Editar
+                              </Link>
+                            </DropdownMenuItem>
+                          )}
+                          {canDelete('consultoria.projetos') && (
+                            <>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem asChild className="text-red-600">
+                                <Link href={`/consultoria/projetos/${projeto.id}/excluir`}>
+                                  <Trash2 className="h-4 w-4 mr-2" />
+                                  Excluir
+                                </Link>
+                              </DropdownMenuItem>
+                            </>
+                          )}
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </div>
@@ -507,23 +512,33 @@ export default function ProjetosPage() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem asChild>
-                            <Link href={`/consultoria/projetos/${projeto.id}`}>
-                              <Eye className="h-4 w-4 mr-2" />
-                              Ver Detalhes
-                            </Link>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem asChild>
-                            <Link href={`/consultoria/projetos/${projeto.id}/editar`}>
-                              <Edit className="h-4 w-4 mr-2" />
-                              Editar
-                            </Link>
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem className="text-amber-600">
-                            <Archive className="h-4 w-4 mr-2" />
-                            Arquivar
-                          </DropdownMenuItem>
+                          {canView('consultoria.projetos') && (
+                            <DropdownMenuItem asChild>
+                              <Link href={`/consultoria/projetos/${projeto.id}`}>
+                                <Eye className="h-4 w-4 mr-2" />
+                                Ver Detalhes
+                              </Link>
+                            </DropdownMenuItem>
+                          )}
+                          {canEdit('consultoria.projetos') && (
+                            <DropdownMenuItem asChild>
+                              <Link href={`/consultoria/projetos/${projeto.id}/editar`}>
+                                <Edit className="h-4 w-4 mr-2" />
+                                Editar
+                              </Link>
+                            </DropdownMenuItem>
+                          )}
+                          {canDelete('consultoria.projetos') && (
+                            <>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem asChild className="text-red-600">
+                                <Link href={`/consultoria/projetos/${projeto.id}/excluir`}>
+                                  <Trash2 className="h-4 w-4 mr-2" />
+                                  Excluir
+                                </Link>
+                              </DropdownMenuItem>
+                            </>
+                          )}
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>
@@ -547,6 +562,7 @@ export default function ProjetosPage() {
 // Componente Empty State
 function EmptyState({ searchTerm, statusFiltro }: { searchTerm: string; statusFiltro: StatusProjeto | 'TODOS' }) {
   const hasFilters = searchTerm || statusFiltro !== 'TODOS'
+  const { canCreate } = usePermissions()
 
   return (
     <div className="text-center py-16">
@@ -561,7 +577,7 @@ function EmptyState({ searchTerm, statusFiltro }: { searchTerm: string; statusFi
           ? 'Tente ajustar os filtros ou buscar por outro termo.'
           : 'Comece criando seu primeiro projeto de consultoria para gerenciar tarefas e entregas.'}
       </p>
-      {!hasFilters && (
+      {!hasFilters && canCreate('consultoria.projetos') && (
         <Link href="/consultoria/projetos/novo">
           <Button className="bg-orange-500 hover:bg-orange-600">
             <Plus className="h-4 w-4 mr-2" />

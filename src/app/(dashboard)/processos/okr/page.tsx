@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -33,10 +33,14 @@ import {
   CheckCircle2,
   TrendingUp,
   BarChart3,
+  Loader2,
 } from 'lucide-react'
 import { Objetivo, StatusOKR, statusLabels, statusColors } from '@/types/okr'
 import { cn } from '@/lib/utils'
 import { objetivosOKR, usuarios } from '@/data/demo-data'
+import { useModulePermissions } from '@/hooks/use-permissions'
+import { useAuth } from '@/contexts/auth-context'
+import { useTenant } from '@/hooks/use-tenant'
 
 // Função para mapear status do demo-data para o formato esperado
 const mapStatusOKR = (status: string): StatusOKR => {
@@ -252,12 +256,33 @@ function getPrazoIndicador(status: StatusOKR, progresso: number) {
 }
 
 export default function OKRPage() {
+  const { user, loading: authLoading } = useAuth()
+  const { tenant } = useTenant()
+  const { canCreate, canEdit, canDelete } = useModulePermissions('okr.objetivos')
+
   const [periodoTrimestre, setPeriodoTrimestre] = useState('Q1')
   const [periodoAno, setPeriodoAno] = useState('2026')
   const [statusFiltro, setStatusFiltro] = useState<StatusOKR | 'TODOS'>('TODOS')
   const [responsavelFiltro, setResponsavelFiltro] = useState('TODOS')
   const [searchTerm, setSearchTerm] = useState('')
   const [expandedIds, setExpandedIds] = useState<string[]>(['1', '2'])
+  const [loading, setLoading] = useState(true)
+
+  // Simular loading inicial
+  useEffect(() => {
+    if (user && tenant) {
+      setLoading(false)
+    }
+  }, [user, tenant])
+
+  // Loading state
+  if (authLoading || loading) {
+    return (
+      <div className="flex items-center justify-center p-8">
+        <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+      </div>
+    )
+  }
 
   // Filtrar objetivos
   const objetivosFiltrados = objetivosMock.filter((obj) => {
@@ -314,12 +339,14 @@ export default function OKRPage() {
               </p>
             </div>
           </div>
-          <Link href="/processos/okr/novo">
-            <Button className="bg-white text-blue-600 hover:bg-white/90 shadow-md">
-              <Plus className="h-4 w-4 mr-2" />
-              Novo Objetivo
-            </Button>
-          </Link>
+          {canCreate && (
+            <Link href="/processos/okr/novo">
+              <Button className="bg-white text-blue-600 hover:bg-white/90 shadow-md">
+                <Plus className="h-4 w-4 mr-2" />
+                Novo Objetivo
+              </Button>
+            </Link>
+          )}
         </div>
       </div>
 
@@ -612,12 +639,14 @@ export default function OKRPage() {
               <p className="text-muted-foreground mb-4">
                 Não há objetivos para os filtros selecionados.
               </p>
-              <Link href="/processos/okr/novo">
-                <Button className="bg-blue-600 hover:bg-blue-700">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Criar Primeiro Objetivo
-                </Button>
-              </Link>
+              {canCreate && (
+                <Link href="/processos/okr/novo">
+                  <Button className="bg-blue-600 hover:bg-blue-700">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Criar Primeiro Objetivo
+                  </Button>
+                </Link>
+              )}
             </CardContent>
           </Card>
         )}
