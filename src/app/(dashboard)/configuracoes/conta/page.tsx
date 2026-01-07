@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
@@ -9,6 +9,8 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Separator } from '@/components/ui/separator'
+import { Badge } from '@/components/ui/badge'
+import { Progress } from '@/components/ui/progress'
 import { useToast } from '@/hooks/use-toast'
 import {
   ArrowLeft,
@@ -20,12 +22,19 @@ import {
   Camera,
   Eye,
   EyeOff,
+  CheckCircle2,
+  XCircle,
+  Shield,
+  Calendar,
+  Upload,
 } from 'lucide-react'
 import { PerfilUsuario, perfilLabels } from '@/types/configuracoes'
+import { cn } from '@/lib/utils'
 
 export default function MinhaContaPage() {
   const router = useRouter()
   const { toast } = useToast()
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [showCurrentPassword, setShowCurrentPassword] = useState(false)
@@ -44,6 +53,17 @@ export default function MinhaContaPage() {
     novaSenha: '',
     confirmarSenha: '',
   })
+
+  // Validação de senha
+  const senhaValidations = {
+    minLength: senhaData.novaSenha.length >= 6,
+    hasUppercase: /[A-Z]/.test(senhaData.novaSenha),
+    hasNumber: /[0-9]/.test(senhaData.novaSenha),
+    matches: senhaData.novaSenha === senhaData.confirmarSenha && senhaData.confirmarSenha.length > 0,
+  }
+
+  const senhaStrength = Object.values(senhaValidations).filter(Boolean).length
+  const senhaStrengthPercent = (senhaStrength / 4) * 100
 
   useEffect(() => {
     fetchPerfil()
@@ -74,6 +94,15 @@ export default function MinhaContaPage() {
   }
 
   const handleSavePerfil = async () => {
+    if (!formData.nome.trim()) {
+      toast({
+        title: 'Erro',
+        description: 'O nome é obrigatório',
+        variant: 'destructive',
+      })
+      return
+    }
+
     setSaving(true)
     try {
       const response = await fetch('/api/configuracoes/conta', {
@@ -112,7 +141,7 @@ export default function MinhaContaPage() {
     if (senhaData.novaSenha !== senhaData.confirmarSenha) {
       toast({
         title: 'Erro',
-        description: 'As senhas nao coincidem',
+        description: 'As senhas não coincidem',
         variant: 'destructive',
       })
       return
@@ -177,63 +206,122 @@ export default function MinhaContaPage() {
       .toUpperCase()
   }
 
+  const formatPhone = (value: string) => {
+    const numbers = value.replace(/\D/g, '')
+    if (numbers.length <= 10) {
+      return numbers
+        .replace(/(\d{2})(\d)/, '($1) $2')
+        .replace(/(\d{4})(\d)/, '$1-$2')
+    }
+    return numbers
+      .replace(/(\d{2})(\d)/, '($1) $2')
+      .replace(/(\d{5})(\d)/, '$1-$2')
+      .slice(0, 15)
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-bmv-primary"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600"></div>
       </div>
     )
   }
 
   return (
     <div className="space-y-6 animate-in">
-      {/* Header */}
-      <div className="flex items-center gap-4">
-        <Link href="/configuracoes">
-          <Button variant="ghost" size="icon">
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-        </Link>
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-            <User className="h-7 w-7 text-bmv-primary" />
-            Minha Conta
-          </h1>
-          <p className="text-muted-foreground">
-            Gerencie suas informacoes pessoais
-          </p>
+      {/* Breadcrumb */}
+      <Link
+        href="/configuracoes"
+        className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-emerald-600 transition-colors"
+      >
+        <ArrowLeft className="h-4 w-4" />
+        Voltar para Configurações
+      </Link>
+
+      {/* Header com Gradiente */}
+      <div className="relative overflow-hidden rounded-xl bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 p-6 text-white shadow-lg">
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4xIj48cGF0aCBkPSJNMCAwaDQwdjQwSDB6Ii8+PC9nPjwvZz48L3N2Zz4=')] opacity-30" />
+        <div className="relative flex items-center gap-4">
+          <div className="p-3 bg-white/20 rounded-xl backdrop-blur-sm">
+            <User className="h-8 w-8" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold">Minha Conta</h1>
+            <p className="text-white/80">
+              Gerencie suas informações pessoais e segurança
+            </p>
+          </div>
         </div>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-3">
-        {/* Coluna Esquerda - Avatar e Info */}
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex flex-col items-center text-center">
-              <div className="relative">
-                <Avatar className="h-24 w-24">
+      <div className="grid gap-6 lg:grid-cols-3">
+        {/* Coluna Esquerda - Preview do Perfil */}
+        <div className="space-y-4">
+          <Card className="overflow-hidden">
+            <div className="h-20 bg-gradient-to-r from-emerald-500 to-teal-500" />
+            <CardContent className="pt-0 -mt-10 text-center">
+              <div className="relative inline-block">
+                <Avatar className="h-24 w-24 border-4 border-white dark:border-slate-900 shadow-lg">
                   <AvatarImage src={perfil?.avatarUrl} />
-                  <AvatarFallback className="bg-bmv-primary text-white text-2xl">
+                  <AvatarFallback className="bg-emerald-600 text-white text-2xl">
                     {perfil?.nome ? getInitials(perfil.nome) : 'U'}
                   </AvatarFallback>
                 </Avatar>
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  className="hidden"
+                  accept="image/*"
+                />
                 <Button
                   variant="outline"
                   size="icon"
-                  className="absolute bottom-0 right-0 h-8 w-8 rounded-full"
+                  className="absolute bottom-0 right-0 h-8 w-8 rounded-full bg-white shadow-md hover:bg-slate-50"
+                  onClick={() => fileInputRef.current?.click()}
                 >
                   <Camera className="h-4 w-4" />
                 </Button>
               </div>
-              <h3 className="mt-4 font-semibold text-lg">{perfil?.nome}</h3>
-              <p className="text-sm text-muted-foreground">{perfil?.email}</p>
-              <div className="mt-2 px-3 py-1 bg-bmv-primary/10 text-bmv-primary rounded-full text-xs font-medium">
+
+              <h3 className="mt-4 font-semibold text-lg">{formData.nome || perfil?.nome}</h3>
+              <p className="text-sm text-muted-foreground">{formData.email || perfil?.email}</p>
+
+              <Badge className="mt-3 bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">
                 {perfil?.perfil ? perfilLabels[perfil.perfil] || perfil.perfil : ''}
+              </Badge>
+
+              <Separator className="my-4" />
+
+              <div className="space-y-3 text-sm">
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground flex items-center gap-2">
+                    <Calendar className="h-4 w-4" />
+                    Membro desde
+                  </span>
+                  <span className="font-medium">
+                    {perfil?.criadoEm
+                      ? new Date(perfil.criadoEm).toLocaleDateString('pt-BR', {
+                          month: 'short',
+                          year: 'numeric',
+                        })
+                      : '-'}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground flex items-center gap-2">
+                    <Shield className="h-4 w-4" />
+                    Status
+                  </span>
+                  <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                    <CheckCircle2 className="h-3 w-3 mr-1" />
+                    Ativo
+                  </Badge>
+                </div>
               </div>
 
               {perfil?.ultimoAcesso && (
                 <p className="mt-4 text-xs text-muted-foreground">
-                  Ultimo acesso:{' '}
+                  Último acesso:{' '}
                   {new Date(perfil.ultimoAcesso).toLocaleDateString('pt-BR', {
                     day: '2-digit',
                     month: '2-digit',
@@ -243,24 +331,42 @@ export default function MinhaContaPage() {
                   })}
                 </p>
               )}
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
 
-        {/* Coluna Direita - Formularios */}
-        <div className="md:col-span-2 space-y-6">
+          {/* Dica de Upload */}
+          <Card className="border-dashed bg-slate-50 dark:bg-slate-900/50">
+            <CardContent className="p-4">
+              <div className="flex items-start gap-3">
+                <Upload className="h-5 w-5 text-muted-foreground mt-0.5" />
+                <div>
+                  <p className="text-sm font-medium">Foto de perfil</p>
+                  <p className="text-xs text-muted-foreground">
+                    Clique no ícone de câmera para fazer upload de uma nova foto. Formatos: JPG, PNG.
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Coluna Direita - Formulários */}
+        <div className="lg:col-span-2 space-y-6">
           {/* Dados Pessoais */}
           <Card>
             <CardHeader>
-              <CardTitle>Dados Pessoais</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <User className="h-5 w-5 text-emerald-600" />
+                Dados Pessoais
+              </CardTitle>
               <CardDescription>
-                Atualize suas informacoes de perfil
+                Atualize suas informações de perfil
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-2">
-                  <Label htmlFor="nome">Nome Completo</Label>
+                  <Label htmlFor="nome">Nome Completo *</Label>
                   <div className="relative">
                     <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
@@ -269,7 +375,10 @@ export default function MinhaContaPage() {
                       onChange={(e) =>
                         setFormData({ ...formData, nome: e.target.value })
                       }
-                      className="pl-10"
+                      className={cn(
+                        "pl-10",
+                        formData.nome && "border-emerald-300 focus:border-emerald-500"
+                      )}
                       placeholder="Seu nome completo"
                     />
                   </div>
@@ -283,16 +392,13 @@ export default function MinhaContaPage() {
                       id="email"
                       type="email"
                       value={formData.email}
-                      onChange={(e) =>
-                        setFormData({ ...formData, email: e.target.value })
-                      }
-                      className="pl-10"
+                      className="pl-10 bg-slate-50 dark:bg-slate-800"
                       placeholder="seu@email.com"
                       disabled
                     />
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    O e-mail nao pode ser alterado
+                    O e-mail não pode ser alterado
                   </p>
                 </div>
 
@@ -304,7 +410,7 @@ export default function MinhaContaPage() {
                       id="telefone"
                       value={formData.telefone}
                       onChange={(e) =>
-                        setFormData({ ...formData, telefone: e.target.value })
+                        setFormData({ ...formData, telefone: formatPhone(e.target.value) })
                       }
                       className="pl-10"
                       placeholder="(00) 00000-0000"
@@ -313,10 +419,10 @@ export default function MinhaContaPage() {
                 </div>
               </div>
 
-              <div className="flex justify-end">
-                <Button onClick={handleSavePerfil} disabled={saving}>
+              <div className="flex justify-end pt-4">
+                <Button onClick={handleSavePerfil} disabled={saving} className="bg-emerald-600 hover:bg-emerald-700">
                   <Save className="h-4 w-4 mr-2" />
-                  {saving ? 'Salvando...' : 'Salvar Alteracoes'}
+                  {saving ? 'Salvando...' : 'Salvar Alterações'}
                 </Button>
               </div>
             </CardContent>
@@ -326,7 +432,7 @@ export default function MinhaContaPage() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Lock className="h-5 w-5" />
+                <Lock className="h-5 w-5 text-amber-600" />
                 Alterar Senha
               </CardTitle>
               <CardDescription>
@@ -411,7 +517,10 @@ export default function MinhaContaPage() {
                           confirmarSenha: e.target.value,
                         })
                       }
-                      className="pl-10 pr-10"
+                      className={cn(
+                        "pl-10 pr-10",
+                        senhaValidations.matches && "border-green-300 focus:border-green-500"
+                      )}
                       placeholder="Confirme a nova senha"
                     />
                     <Button
@@ -431,16 +540,64 @@ export default function MinhaContaPage() {
                 </div>
               </div>
 
-              <div className="flex justify-end">
+              {/* Validação visual da senha */}
+              {senhaData.novaSenha && (
+                <div className="space-y-3 p-4 rounded-lg bg-slate-50 dark:bg-slate-800/50">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium">Força da senha</span>
+                    <span className={cn(
+                      "text-xs font-medium",
+                      senhaStrength <= 1 ? "text-red-500" :
+                      senhaStrength <= 2 ? "text-amber-500" :
+                      senhaStrength <= 3 ? "text-blue-500" : "text-green-500"
+                    )}>
+                      {senhaStrength <= 1 ? "Fraca" :
+                       senhaStrength <= 2 ? "Regular" :
+                       senhaStrength <= 3 ? "Boa" : "Forte"}
+                    </span>
+                  </div>
+                  <Progress
+                    value={senhaStrengthPercent}
+                    className={cn(
+                      "h-2",
+                      senhaStrength <= 1 ? "[&>div]:bg-red-500" :
+                      senhaStrength <= 2 ? "[&>div]:bg-amber-500" :
+                      senhaStrength <= 3 ? "[&>div]:bg-blue-500" : "[&>div]:bg-green-500"
+                    )}
+                  />
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <div className={cn("flex items-center gap-1", senhaValidations.minLength ? "text-green-600" : "text-muted-foreground")}>
+                      {senhaValidations.minLength ? <CheckCircle2 className="h-3 w-3" /> : <XCircle className="h-3 w-3" />}
+                      Mínimo 6 caracteres
+                    </div>
+                    <div className={cn("flex items-center gap-1", senhaValidations.hasUppercase ? "text-green-600" : "text-muted-foreground")}>
+                      {senhaValidations.hasUppercase ? <CheckCircle2 className="h-3 w-3" /> : <XCircle className="h-3 w-3" />}
+                      Uma letra maiúscula
+                    </div>
+                    <div className={cn("flex items-center gap-1", senhaValidations.hasNumber ? "text-green-600" : "text-muted-foreground")}>
+                      {senhaValidations.hasNumber ? <CheckCircle2 className="h-3 w-3" /> : <XCircle className="h-3 w-3" />}
+                      Um número
+                    </div>
+                    <div className={cn("flex items-center gap-1", senhaValidations.matches ? "text-green-600" : "text-muted-foreground")}>
+                      {senhaValidations.matches ? <CheckCircle2 className="h-3 w-3" /> : <XCircle className="h-3 w-3" />}
+                      Senhas coincidem
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <div className="flex justify-end pt-4">
                 <Button
                   onClick={handleAlterarSenha}
                   disabled={
                     saving ||
                     !senhaData.senhaAtual ||
                     !senhaData.novaSenha ||
-                    !senhaData.confirmarSenha
+                    !senhaData.confirmarSenha ||
+                    !senhaValidations.matches
                   }
                   variant="outline"
+                  className="border-amber-300 text-amber-700 hover:bg-amber-50"
                 >
                   <Lock className="h-4 w-4 mr-2" />
                   {saving ? 'Alterando...' : 'Alterar Senha'}

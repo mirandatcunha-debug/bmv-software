@@ -12,6 +12,7 @@ export interface PerfilUsuario {
   perfil: string
   primeiroAcesso: boolean
   ultimoAcesso?: Date
+  criadoEm?: Date
 }
 
 export interface DadosEmpresa {
@@ -33,6 +34,7 @@ export interface UsuarioLista {
   primeiroAcesso: boolean
   ultimoAcesso?: Date | string
   criadoEm: Date | string
+  avatarUrl?: string
 }
 
 export interface ConfiguracoesNotificacao {

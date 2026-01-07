@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {
@@ -19,6 +19,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import {
@@ -37,6 +38,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { useToast } from '@/hooks/use-toast'
+import { cn } from '@/lib/utils'
 import {
   ArrowLeft,
   Users,
@@ -49,6 +51,11 @@ import {
   Clock,
   AlertCircle,
   Filter,
+  Shield,
+  UserPlus,
+  Trash2,
+  Eye,
+  RefreshCw,
 } from 'lucide-react'
 import { UsuarioLista, perfilLabels } from '@/types/configuracoes'
 
@@ -90,7 +97,7 @@ export default function UsuariosPage() {
 
       await fetchUsuarios()
     } catch (error) {
-      console.error('Erro ao verificar permissao:', error)
+      console.error('Erro ao verificar permissão:', error)
     } finally {
       setLoading(false)
     }
@@ -104,10 +111,10 @@ export default function UsuariosPage() {
         setUsuarios(data)
       }
     } catch (error) {
-      console.error('Erro ao buscar usuarios:', error)
+      console.error('Erro ao buscar usuários:', error)
       toast({
         title: 'Erro',
-        description: 'Erro ao carregar lista de usuarios',
+        description: 'Erro ao carregar lista de usuários',
         variant: 'destructive',
       })
     }
@@ -156,22 +163,22 @@ export default function UsuariosPage() {
       if (response.ok) {
         toast({
           title: 'Sucesso',
-          description: `Usuario ${selectedUser.ativo ? 'desativado' : 'ativado'} com sucesso`,
+          description: `Usuário ${selectedUser.ativo ? 'desativado' : 'ativado'} com sucesso`,
         })
         fetchUsuarios()
       } else {
         const error = await response.json()
         toast({
           title: 'Erro',
-          description: error.message || 'Erro ao atualizar usuario',
+          description: error.message || 'Erro ao atualizar usuário',
           variant: 'destructive',
         })
       }
     } catch (error) {
-      console.error('Erro ao atualizar usuario:', error)
+      console.error('Erro ao atualizar usuário:', error)
       toast({
         title: 'Erro',
-        description: 'Erro ao atualizar usuario',
+        description: 'Erro ao atualizar usuário',
         variant: 'destructive',
       })
     } finally {
@@ -228,10 +235,51 @@ export default function UsuariosPage() {
     })
   }
 
+  const getStatusBadge = (user: UsuarioLista) => {
+    if (user.primeiroAcesso) {
+      return (
+        <Badge className="bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-900/30 dark:text-amber-400 dark:border-amber-700">
+          <Clock className="h-3 w-3 mr-1" />
+          Pendente
+        </Badge>
+      )
+    }
+    if (user.ativo) {
+      return (
+        <Badge className="bg-green-100 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-700">
+          <UserCheck className="h-3 w-3 mr-1" />
+          Ativo
+        </Badge>
+      )
+    }
+    return (
+      <Badge className="bg-red-100 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-700">
+        <UserX className="h-3 w-3 mr-1" />
+        Inativo
+      </Badge>
+    )
+  }
+
+  const getPerfilBadge = (perfil: string) => {
+    const colors: Record<string, string> = {
+      'ADMIN_BMV': 'bg-purple-100 text-purple-700 border-purple-200 dark:bg-purple-900/30 dark:text-purple-400',
+      'CONSULTOR_BMV': 'bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-400',
+      'GESTOR': 'bg-indigo-100 text-indigo-700 border-indigo-200 dark:bg-indigo-900/30 dark:text-indigo-400',
+      'COLABORADOR': 'bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-400',
+      'CLIENTE': 'bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-400',
+    }
+    return (
+      <Badge variant="outline" className={colors[perfil] || colors['COLABORADOR']}>
+        <Shield className="h-3 w-3 mr-1" />
+        {perfilLabels[perfil] || perfil}
+      </Badge>
+    )
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-bmv-primary"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
       </div>
     )
   }
@@ -239,18 +287,13 @@ export default function UsuariosPage() {
   if (!hasPermission) {
     return (
       <div className="space-y-6 animate-in">
-        <div className="flex items-center gap-4">
-          <Link href="/configuracoes">
-            <Button variant="ghost" size="icon">
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-          </Link>
-          <div>
-            <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
-              Usuarios
-            </h1>
-          </div>
-        </div>
+        <Link
+          href="/configuracoes"
+          className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-purple-600 transition-colors"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Voltar para Configurações
+        </Link>
 
         <Card className="border-amber-200 bg-amber-50 dark:bg-amber-900/20">
           <CardContent className="p-6">
@@ -261,7 +304,7 @@ export default function UsuariosPage() {
                   Acesso Restrito
                 </h3>
                 <p className="text-sm text-amber-700 dark:text-amber-400">
-                  Voce nao tem permissao para gerenciar usuarios.
+                  Você não tem permissão para gerenciar usuários.
                   Entre em contato com o administrador.
                 </p>
               </div>
@@ -274,30 +317,110 @@ export default function UsuariosPage() {
 
   return (
     <div className="space-y-6 animate-in">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Link href="/configuracoes">
-            <Button variant="ghost" size="icon">
-              <ArrowLeft className="h-5 w-5" />
+      {/* Breadcrumb */}
+      <Link
+        href="/configuracoes"
+        className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-purple-600 transition-colors"
+      >
+        <ArrowLeft className="h-4 w-4" />
+        Voltar para Configurações
+      </Link>
+
+      {/* Header com Gradiente */}
+      <div className="relative overflow-hidden rounded-xl bg-gradient-to-r from-purple-600 via-violet-600 to-purple-700 p-6 text-white shadow-lg">
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4xIj48cGF0aCBkPSJNMCAwaDQwdjQwSDB6Ii8+PC9nPjwvZz48L3N2Zz4=')] opacity-30" />
+        <div className="relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <div className="p-3 bg-white/20 rounded-xl backdrop-blur-sm">
+              <Users className="h-8 w-8" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold">Usuários</h1>
+              <p className="text-white/80">
+                Gerencie os usuários e permissões da empresa
+              </p>
+            </div>
+          </div>
+          <Link href="/configuracoes/usuarios/convidar">
+            <Button className="bg-white text-purple-600 hover:bg-white/90">
+              <UserPlus className="h-4 w-4 mr-2" />
+              Convidar Usuário
             </Button>
           </Link>
-          <div>
-            <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-              <Users className="h-7 w-7 text-purple-600" />
-              Usuarios
-            </h1>
-            <p className="text-muted-foreground">
-              Gerencie os usuarios da empresa
-            </p>
-          </div>
         </div>
-        <Link href="/configuracoes/usuarios/convidar">
-          <Button>
-            <Plus className="h-4 w-4 mr-2" />
-            Convidar Usuario
-          </Button>
-        </Link>
+      </div>
+
+      {/* Estatísticas */}
+      <div className="grid gap-4 md:grid-cols-4">
+        <Card className="overflow-hidden">
+          <CardContent className="p-0">
+            <div className="p-4 bg-gradient-to-br from-purple-500/10 to-violet-500/10">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-xl bg-purple-100 dark:bg-purple-900/50">
+                  <Users className="h-5 w-5 text-purple-600" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold">{usuarios.length}</p>
+                  <p className="text-xs text-muted-foreground">Total de Usuários</p>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="overflow-hidden">
+          <CardContent className="p-0">
+            <div className="p-4 bg-gradient-to-br from-green-500/10 to-emerald-500/10">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-xl bg-green-100 dark:bg-green-900/50">
+                  <UserCheck className="h-5 w-5 text-green-600" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold">
+                    {usuarios.filter((u) => u.ativo && !u.primeiroAcesso).length}
+                  </p>
+                  <p className="text-xs text-muted-foreground">Ativos</p>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="overflow-hidden">
+          <CardContent className="p-0">
+            <div className="p-4 bg-gradient-to-br from-amber-500/10 to-orange-500/10">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-xl bg-amber-100 dark:bg-amber-900/50">
+                  <Clock className="h-5 w-5 text-amber-600" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold">
+                    {usuarios.filter((u) => u.primeiroAcesso).length}
+                  </p>
+                  <p className="text-xs text-muted-foreground">Pendentes</p>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="overflow-hidden">
+          <CardContent className="p-0">
+            <div className="p-4 bg-gradient-to-br from-red-500/10 to-rose-500/10">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-xl bg-red-100 dark:bg-red-900/50">
+                  <UserX className="h-5 w-5 text-red-600" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold">
+                    {usuarios.filter((u) => !u.ativo).length}
+                  </p>
+                  <p className="text-xs text-muted-foreground">Inativos</p>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Filtros */}
@@ -313,10 +436,10 @@ export default function UsuariosPage() {
                 className="pl-10"
               />
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-2 flex-wrap">
               <Select value={filterPerfil} onValueChange={setFilterPerfil}>
                 <SelectTrigger className="w-[160px]">
-                  <Filter className="h-4 w-4 mr-2" />
+                  <Shield className="h-4 w-4 mr-2" />
                   <SelectValue placeholder="Perfil" />
                 </SelectTrigger>
                 <SelectContent>
@@ -328,6 +451,7 @@ export default function UsuariosPage() {
               </Select>
               <Select value={filterStatus} onValueChange={setFilterStatus}>
                 <SelectTrigger className="w-[140px]">
+                  <Filter className="h-4 w-4 mr-2" />
                   <SelectValue placeholder="Status" />
                 </SelectTrigger>
                 <SelectContent>
@@ -336,196 +460,143 @@ export default function UsuariosPage() {
                   <SelectItem value="inativo">Inativos</SelectItem>
                 </SelectContent>
               </Select>
+              <Button variant="outline" size="icon" onClick={fetchUsuarios}>
+                <RefreshCw className="h-4 w-4" />
+              </Button>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Estatisticas */}
-      <div className="grid gap-4 md:grid-cols-4">
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-purple-100 dark:bg-purple-900/30">
-                <Users className="h-5 w-5 text-purple-600" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold">{usuarios.length}</p>
-                <p className="text-xs text-muted-foreground">Total</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-green-100 dark:bg-green-900/30">
-                <UserCheck className="h-5 w-5 text-green-600" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold">
-                  {usuarios.filter((u) => u.ativo).length}
-                </p>
-                <p className="text-xs text-muted-foreground">Ativos</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-amber-100 dark:bg-amber-900/30">
-                <Clock className="h-5 w-5 text-amber-600" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold">
-                  {usuarios.filter((u) => u.primeiroAcesso).length}
-                </p>
-                <p className="text-xs text-muted-foreground">Pendentes</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-red-100 dark:bg-red-900/30">
-                <UserX className="h-5 w-5 text-red-600" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold">
-                  {usuarios.filter((u) => !u.ativo).length}
-                </p>
-                <p className="text-xs text-muted-foreground">Inativos</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Tabela de Usuarios */}
+      {/* Tabela de Usuários */}
       <Card>
         <CardHeader>
-          <CardTitle>Lista de Usuarios</CardTitle>
+          <CardTitle>Lista de Usuários</CardTitle>
+          <CardDescription>
+            {filteredUsuarios.length} usuário(s) encontrado(s)
+          </CardDescription>
         </CardHeader>
         <CardContent>
           {filteredUsuarios.length === 0 ? (
-            <div className="text-center py-8">
+            <div className="text-center py-12">
               <Users className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-              <p className="text-muted-foreground">Nenhum usuario encontrado</p>
+              <p className="text-lg font-medium text-muted-foreground">Nenhum usuário encontrado</p>
+              <p className="text-sm text-muted-foreground mt-1">
+                Tente ajustar os filtros ou convide novos usuários
+              </p>
             </div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Usuario</TableHead>
-                  <TableHead>Perfil</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Ultimo Acesso</TableHead>
-                  <TableHead>Criado em</TableHead>
-                  <TableHead className="text-right">Acoes</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredUsuarios.map((user) => (
-                  <TableRow key={user.id}>
-                    <TableCell>
-                      <div className="flex items-center gap-3">
-                        <Avatar className="h-9 w-9">
-                          <AvatarFallback className="bg-bmv-primary/10 text-bmv-primary text-sm">
-                            {getInitials(user.nome)}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <p className="font-medium">{user.nome}</p>
-                          <p className="text-sm text-muted-foreground">{user.email}</p>
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="outline">
-                        {perfilLabels[user.perfil] || user.perfil}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      {user.primeiroAcesso ? (
-                        <Badge variant="outline" className="bg-amber-100 text-amber-700 border-amber-300">
-                          Pendente
-                        </Badge>
-                      ) : user.ativo ? (
-                        <Badge variant="outline" className="bg-green-100 text-green-700 border-green-300">
-                          Ativo
-                        </Badge>
-                      ) : (
-                        <Badge variant="outline" className="bg-red-100 text-red-700 border-red-300">
-                          Inativo
-                        </Badge>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {formatDate(user.ultimoAcesso)}
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {formatDate(user.criadoEm)}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon">
-                            <MoreVertical className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          {user.primeiroAcesso && (
-                            <DropdownMenuItem onClick={() => handleResendInvite(user)}>
-                              <Mail className="h-4 w-4 mr-2" />
-                              Reenviar Convite
-                            </DropdownMenuItem>
-                          )}
-                          <DropdownMenuItem onClick={() => handleToggleStatus(user)}>
-                            {user.ativo ? (
-                              <>
-                                <UserX className="h-4 w-4 mr-2" />
-                                Desativar
-                              </>
-                            ) : (
-                              <>
-                                <UserCheck className="h-4 w-4 mr-2" />
-                                Ativar
-                              </>
-                            )}
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
+            <div className="rounded-lg border overflow-hidden">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-slate-50 dark:bg-slate-800/50">
+                    <TableHead>Usuário</TableHead>
+                    <TableHead>Perfil</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="hidden md:table-cell">Último Acesso</TableHead>
+                    <TableHead className="hidden lg:table-cell">Criado em</TableHead>
+                    <TableHead className="text-right">Ações</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {filteredUsuarios.map((user) => (
+                    <TableRow key={user.id} className="group hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                      <TableCell>
+                        <div className="flex items-center gap-3">
+                          <Avatar className="h-10 w-10 border-2 border-white shadow-sm">
+                            <AvatarImage src={user.avatarUrl} />
+                            <AvatarFallback className="bg-gradient-to-br from-purple-500 to-violet-600 text-white text-sm">
+                              {getInitials(user.nome)}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <p className="font-medium">{user.nome}</p>
+                            <p className="text-sm text-muted-foreground">{user.email}</p>
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        {getPerfilBadge(user.perfil)}
+                      </TableCell>
+                      <TableCell>
+                        {getStatusBadge(user)}
+                      </TableCell>
+                      <TableCell className="hidden md:table-cell text-muted-foreground">
+                        {formatDate(user.ultimoAcesso)}
+                      </TableCell>
+                      <TableCell className="hidden lg:table-cell text-muted-foreground">
+                        {formatDate(user.criadoEm)}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="opacity-0 group-hover:opacity-100 transition-opacity">
+                              <MoreVertical className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem>
+                              <Eye className="h-4 w-4 mr-2" />
+                              Ver Detalhes
+                            </DropdownMenuItem>
+                            {user.primeiroAcesso && (
+                              <DropdownMenuItem onClick={() => handleResendInvite(user)}>
+                                <Mail className="h-4 w-4 mr-2" />
+                                Reenviar Convite
+                              </DropdownMenuItem>
+                            )}
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem onClick={() => handleToggleStatus(user)}>
+                              {user.ativo ? (
+                                <>
+                                  <UserX className="h-4 w-4 mr-2 text-red-500" />
+                                  <span className="text-red-600">Desativar</span>
+                                </>
+                              ) : (
+                                <>
+                                  <UserCheck className="h-4 w-4 mr-2 text-green-500" />
+                                  <span className="text-green-600">Ativar</span>
+                                </>
+                              )}
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           )}
         </CardContent>
       </Card>
 
-      {/* Dialog de Confirmacao */}
+      {/* Dialog de Confirmação */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>
-              {dialogAction === 'ativar' ? 'Ativar Usuario' : 'Desativar Usuario'}
+            <DialogTitle className="flex items-center gap-2">
+              {dialogAction === 'ativar' ? (
+                <UserCheck className="h-5 w-5 text-green-500" />
+              ) : (
+                <UserX className="h-5 w-5 text-red-500" />
+              )}
+              {dialogAction === 'ativar' ? 'Ativar Usuário' : 'Desativar Usuário'}
             </DialogTitle>
             <DialogDescription>
               {dialogAction === 'ativar'
-                ? `Tem certeza que deseja ativar o usuario "${selectedUser?.nome}"? Ele podera acessar o sistema novamente.`
-                : `Tem certeza que deseja desativar o usuario "${selectedUser?.nome}"? Ele nao podera mais acessar o sistema.`}
+                ? `Tem certeza que deseja ativar o usuário "${selectedUser?.nome}"? Ele poderá acessar o sistema novamente.`
+                : `Tem certeza que deseja desativar o usuário "${selectedUser?.nome}"? Ele não poderá mais acessar o sistema.`}
             </DialogDescription>
           </DialogHeader>
-          <DialogFooter>
+          <DialogFooter className="gap-2">
             <Button variant="outline" onClick={() => setDialogOpen(false)}>
               Cancelar
             </Button>
             <Button
               variant={dialogAction === 'desativar' ? 'destructive' : 'default'}
               onClick={confirmToggleStatus}
+              className={dialogAction === 'ativar' ? 'bg-green-600 hover:bg-green-700' : ''}
             >
               {dialogAction === 'ativar' ? 'Ativar' : 'Desativar'}
             </Button>
