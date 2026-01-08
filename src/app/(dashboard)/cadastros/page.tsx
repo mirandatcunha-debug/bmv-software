@@ -10,6 +10,7 @@ import {
   UserPlus,
   ArrowRight,
   ClipboardList,
+  Truck,
 } from 'lucide-react'
 
 const cadastrosItems = [
@@ -28,13 +29,12 @@ const cadastrosItems = [
     title: 'Fornecedores',
     description: 'Cadastro de fornecedores e parceiros',
     href: '/cadastros/fornecedores',
-    icon: Building2,
+    icon: Truck,
     iconColor: 'from-purple-500 to-purple-600',
     hoverBorder: 'hover:border-purple-500/50',
     hoverShadow: 'hover:shadow-purple-500/10',
     badgeClass: 'bg-purple-100 text-purple-700 dark:bg-purple-900/50 dark:text-purple-300',
-    badge: 'Em breve',
-    disabled: true,
+    badge: 'Ativo',
   },
 ]
 
@@ -100,7 +100,7 @@ export default function CadastrosPage() {
           const Icon = item.icon
           const cardContent = (
             <Card
-              className={`relative overflow-hidden border-2 border-transparent ${item.hoverBorder} transition-all duration-300 hover:shadow-lg ${item.hoverShadow} ${!item.disabled ? 'hover:-translate-y-1 cursor-pointer' : 'opacity-60'} animate-fade-in-up`}
+              className={`relative overflow-hidden border-2 border-transparent ${item.hoverBorder} transition-all duration-300 hover:shadow-lg ${item.hoverShadow} hover:-translate-y-1 cursor-pointer animate-fade-in-up`}
               style={{ animationDelay: `${0.1 * (index + 1)}s` }}
             >
               <div className={`absolute inset-0 bg-gradient-to-br ${item.iconColor.replace('from-', 'from-').replace('to-', 'to-')}/5 opacity-0 group-hover:opacity-100 transition-opacity`}></div>
@@ -117,7 +117,7 @@ export default function CadastrosPage() {
               <CardContent>
                 <CardTitle className="text-xl mb-2 flex items-center gap-2">
                   {item.title}
-                  {!item.disabled && <ArrowRight className="h-4 w-4 opacity-0 group-hover:opacity-100 transition-all group-hover:translate-x-1" />}
+                  <ArrowRight className="h-4 w-4 opacity-0 group-hover:opacity-100 transition-all group-hover:translate-x-1" />
                 </CardTitle>
                 <CardDescription className="text-sm">
                   {item.description}
@@ -125,14 +125,6 @@ export default function CadastrosPage() {
               </CardContent>
             </Card>
           )
-
-          if (item.disabled) {
-            return (
-              <div key={item.href} className="group">
-                {cardContent}
-              </div>
-            )
-          }
 
           return (
             <Link key={item.href} href={item.href} className="group">
@@ -167,15 +159,17 @@ export default function CadastrosPage() {
               </div>
             </Link>
 
-            <div className="flex items-center gap-3 p-4 rounded-xl border-2 border-dashed border-slate-200 dark:border-slate-700 opacity-50 cursor-not-allowed">
-              <div className="p-2 rounded-lg bg-purple-100 dark:bg-purple-900/50">
-                <Building2 className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+            <Link href="/cadastros/fornecedores/novo">
+              <div className="flex items-center gap-3 p-4 rounded-xl border-2 border-dashed border-slate-200 dark:border-slate-700 hover:border-purple-500 hover:bg-purple-50 dark:hover:bg-purple-950/20 transition-all cursor-pointer group">
+                <div className="p-2 rounded-lg bg-purple-100 dark:bg-purple-900/50 group-hover:bg-purple-200 dark:group-hover:bg-purple-900 transition-colors">
+                  <Truck className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                </div>
+                <div>
+                  <p className="font-medium text-sm group-hover:text-purple-600 transition-colors">Novo Fornecedor</p>
+                  <p className="text-xs text-muted-foreground">Cadastrar fornecedor</p>
+                </div>
               </div>
-              <div>
-                <p className="font-medium text-sm">Novo Fornecedor</p>
-                <p className="text-xs text-muted-foreground">Em breve</p>
-              </div>
-            </div>
+            </Link>
 
             <Link href="/cadastros/clientes">
               <div className="flex items-center gap-3 p-4 rounded-xl border-2 border-dashed border-slate-200 dark:border-slate-700 hover:border-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-950/20 transition-all cursor-pointer group">
