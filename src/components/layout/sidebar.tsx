@@ -19,6 +19,7 @@ import {
   ExternalLink,
   Menu,
   X,
+  Users,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { canManageTenants } from '@/lib/permissions'
@@ -65,6 +66,12 @@ const sidebarItems: SidebarItem[] = [
     icon: <Briefcase className="h-5 w-5" />,
     iconColor: 'text-rose-500',
     consultorOnly: true,
+  },
+  {
+    title: 'Cadastros',
+    href: '/cadastros',
+    icon: <Users className="h-5 w-5" />,
+    iconColor: 'text-indigo-500',
   },
 ]
 

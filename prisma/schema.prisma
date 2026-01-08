@@ -24,6 +24,7 @@ model Tenant {
   planoContas         ChartOfAccount[]
   projetosConsultoria ConsultingProject[]
   centrosCusto        CostCenter[]
+  clientes            Client[]
   objetivos           Objective[]
   contasPagar         Payable[]
   contasReceber       Receivable[]
@@ -122,9 +123,38 @@ model Transaction {
   @@map("transactions")
 }
 
+model Client {
+  id            String       @id @default(cuid())
+  tenantId      String       @map("tenant_id")
+  codigo        String
+  nome          String
+  tipo          String       // PF ou PJ
+  cpfCnpj       String?      @unique @map("cpf_cnpj")
+  endereco      String?
+  cidade        String?
+  uf            String?
+  cep           String?
+  telefone      String?
+  email         String?
+  nomeContato   String?      @map("nome_contato")
+  observacoes   String?
+  ativo         Boolean      @default(true)
+  criadoEm      DateTime     @default(now()) @map("criado_em")
+  atualizadoEm  DateTime     @updatedAt @map("atualizado_em")
+  tenant        Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  contasReceber Receivable[]
+
+  @@unique([tenantId, codigo])
+  @@index([tenantId])
+  @@index([nome])
+  @@index([cpfCnpj])
+  @@map("clients")
+}
+
 model Receivable {
   id             String        @id @default(cuid())
   tenantId       String        @map("tenant_id")
+  clienteId      String?       @map("cliente_id")
   cliente        String
   descricao      String
   valor          Decimal       @db.Decimal(15, 2)
@@ -136,9 +166,11 @@ model Receivable {
   observacoes    String?
   criadoEm       DateTime      @default(now()) @map("criado_em")
   atualizadoEm   DateTime      @updatedAt @map("atualizado_em")
+  clienteRef     Client?       @relation(fields: [clienteId], references: [id])
   tenant         Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
   @@index([tenantId])
+  @@index([clienteId])
   @@index([dataVencimento])
   @@index([status])
   @@map("receivables")
