@@ -4,22 +4,43 @@ import { prisma } from '@/lib/prisma'
 import { createServerComponentClient } from '@/lib/supabase/server'
 
 // GET - Buscar dados do usuário atual
-export async function GET(_request: NextRequest) {
+export async function GET(request: NextRequest) {
   try {
-    const supabase = await createServerComponentClient()
-    const { data: { session } } = await supabase.auth.getSession()
+    // Verificar se é uma requisição interna do middleware
+    const isInternalRequest = request.headers.get('x-internal-request') === 'true'
+    const internalAuthId = request.headers.get('x-auth-id')
 
-    if (!session) {
+    let authId: string | null = null
+
+    if (isInternalRequest && internalAuthId) {
+      // Requisição interna do middleware - usar authId do header
+      authId = internalAuthId
+    } else {
+      // Requisição normal - verificar sessão
+      const supabase = await createServerComponentClient()
+      const { data: { session } } = await supabase.auth.getSession()
+
+      if (!session) {
+        return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
+      }
+
+      authId = session.user.id
+    }
+
+    if (!authId) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
     }
 
     const user = await prisma.user.findUnique({
-      where: { authId: session.user.id },
+      where: { authId },
       include: {
         tenant: {
           select: {
             id: true,
             nome: true,
+            plano: true,
+            trialExpira: true,
+            assinaturaAtiva: true,
           },
         },
       },
@@ -30,13 +51,15 @@ export async function GET(_request: NextRequest) {
     }
 
     return NextResponse.json({
-      id: user.id,
-      nome: user.nome,
-      email: user.email,
-      perfil: user.perfil,
-      avatarUrl: user.avatarUrl,
-      tenantId: user.tenantId,
-      tenant: user.tenant,
+      user: {
+        id: user.id,
+        nome: user.nome,
+        email: user.email,
+        perfil: user.perfil,
+        avatarUrl: user.avatarUrl,
+        tenantId: user.tenantId,
+        tenant: user.tenant,
+      },
     })
   } catch (error) {
     console.error('Erro ao buscar usuário:', error)

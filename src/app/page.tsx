@@ -72,23 +72,29 @@ export default function Home() {
             </div>
             <span className="font-bold text-xl text-bmv-primary">BM&V</span>
           </div>
-          <Button
-            onClick={handleLogin}
-            className="bg-bmv-primary hover:bg-bmv-secondary transition-all duration-300"
-            disabled={isRedirecting}
-          >
-            {isRedirecting ? (
-              <>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Carregando...
-              </>
-            ) : (
-              <>
-                Acessar Sistema
+          <div className="flex items-center gap-3">
+            <Button
+              onClick={handleLogin}
+              variant="ghost"
+              className="text-slate-700 dark:text-slate-300 hover:text-bmv-primary"
+              disabled={isRedirecting}
+            >
+              {isRedirecting ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Carregando...
+                </>
+              ) : (
+                'Acessar Sistema'
+              )}
+            </Button>
+            <Link href="/cadastro">
+              <Button className="bg-bmv-primary hover:bg-bmv-secondary transition-all duration-300">
+                Criar Conta Grátis
                 <ArrowRight className="h-4 w-4 ml-2" />
-              </>
-            )}
-          </Button>
+              </Button>
+            </Link>
+          </div>
         </div>
       </header>
 
@@ -112,10 +118,20 @@ export default function Home() {
             </p>
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-fade-in-up-delay-2">
+              <Link href="/cadastro">
+                <Button
+                  size="lg"
+                  className="bg-bmv-primary hover:bg-bmv-secondary transition-all duration-300 px-8 h-14 text-lg shadow-lg hover:shadow-xl"
+                >
+                  Começar Grátis
+                  <ArrowRight className="h-5 w-5 ml-2" />
+                </Button>
+              </Link>
               <Button
                 onClick={handleLogin}
+                variant="outline"
                 size="lg"
-                className="bg-bmv-primary hover:bg-bmv-secondary transition-all duration-300 px-8 h-14 text-lg shadow-lg hover:shadow-xl"
+                className="px-8 h-14 text-lg border-2"
                 disabled={isRedirecting}
               >
                 {isRedirecting ? (
@@ -124,22 +140,14 @@ export default function Home() {
                     Carregando...
                   </>
                 ) : (
-                  <>
-                    Entrar no Sistema
-                    <ArrowRight className="h-5 w-5 ml-2" />
-                  </>
+                  'Fale Conosco'
                 )}
               </Button>
-              <Link href="/cadastro">
-                <Button
-                  variant="outline"
-                  size="lg"
-                  className="px-8 h-14 text-lg border-2"
-                >
-                  Fale Conosco
-                </Button>
-              </Link>
             </div>
+
+            <p className="mt-6 text-sm text-slate-500 dark:text-slate-400 animate-fade-in-up-delay-3">
+              7 dias grátis • Sem cartão de crédito
+            </p>
           </div>
         </div>
       </section>
@@ -210,28 +218,25 @@ export default function Home() {
           <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">
             Pronto para transformar sua gestão?
           </h2>
-          <p className="text-white/90 text-lg mb-10 max-w-xl mx-auto">
+          <p className="text-white/90 text-lg mb-8 max-w-xl mx-auto">
             Junte-se a mais de 500 empresas que já confiam na BM&V para impulsionar seus resultados.
           </p>
-          <Button
-            onClick={handleLogin}
-            size="lg"
-            variant="secondary"
-            className="bg-white text-bmv-primary hover:bg-slate-100 px-10 h-14 text-lg shadow-lg hover:shadow-xl transition-all duration-300"
-            disabled={isRedirecting}
-          >
-            {isRedirecting ? (
-              <>
-                <Loader2 className="h-5 w-5 mr-2 animate-spin" />
-                Carregando...
-              </>
-            ) : (
-              <>
-                Começar Agora
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/20 rounded-full text-white text-sm font-medium mb-8">
+            <CheckCircle2 className="h-4 w-4" />
+            Teste grátis por 7 dias • Sem cartão de crédito
+          </div>
+          <div>
+            <Link href="/cadastro">
+              <Button
+                size="lg"
+                variant="secondary"
+                className="bg-white text-bmv-primary hover:bg-slate-100 px-10 h-14 text-lg shadow-lg hover:shadow-xl transition-all duration-300"
+              >
+                Começar Grátis Agora
                 <ArrowRight className="h-5 w-5 ml-2" />
-              </>
-            )}
-          </Button>
+              </Button>
+            </Link>
+          </div>
         </div>
       </section>
 

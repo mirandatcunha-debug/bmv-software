@@ -9,6 +9,8 @@ const publicRoutes = [
   '/cadastro',
   '/esqueci-senha',
   '/verificar-email',
+  '/trial-expirado',
+  '/acesso-negado',
 ]
 
 // Rotas que começam com estes prefixos são públicas
@@ -28,6 +30,22 @@ const protectedPrefixes = [
   '/contabil',
   '/processos',
   '/cadastros',
+]
+
+// Módulos bloqueados durante o período de trial
+const trialBlockedPrefixes = [
+  '/admin',
+  '/consultoria',
+  '/contabil',
+  '/processos',
+]
+
+// Módulos permitidos durante o período de trial
+const trialAllowedPrefixes = [
+  '/dashboard',
+  '/financeiro',
+  '/cadastros',
+  '/configuracoes',
 ]
 
 function isPublicRoute(pathname: string): boolean {
@@ -53,6 +71,61 @@ function isProtectedRoute(pathname: string): boolean {
     }
   }
   return false
+}
+
+function isTrialBlockedRoute(pathname: string): boolean {
+  for (const prefix of trialBlockedPrefixes) {
+    if (pathname.startsWith(prefix)) {
+      return true
+    }
+  }
+  return false
+}
+
+interface TenantInfo {
+  plano: string
+  trialExpira: string | null
+  assinaturaAtiva: boolean
+}
+
+async function getTenantInfo(authId: string, baseUrl: string): Promise<TenantInfo | null> {
+  try {
+    const response = await fetch(`${baseUrl}/api/auth/me`, {
+      method: 'GET',
+      headers: {
+        'x-auth-id': authId,
+        'x-internal-request': 'true',
+      },
+      cache: 'no-store',
+    })
+
+    if (!response.ok) {
+      return null
+    }
+
+    const data = await response.json()
+
+    if (data.user?.tenant) {
+      return {
+        plano: data.user.tenant.plano,
+        trialExpira: data.user.tenant.trialExpira,
+        assinaturaAtiva: data.user.tenant.assinaturaAtiva,
+      }
+    }
+
+    return null
+  } catch (error) {
+    console.error('Erro ao buscar informações do tenant:', error)
+    return null
+  }
+}
+
+function isTrialExpired(trialExpira: string | null): boolean {
+  if (!trialExpira) return true
+  const expirationDate = new Date(trialExpira)
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  return expirationDate < today
 }
 
 export async function middleware(req: NextRequest) {
@@ -100,6 +173,41 @@ export async function middleware(req: NextRequest) {
     const redirectUrl = req.nextUrl.clone()
     redirectUrl.pathname = '/dashboard'
     return NextResponse.redirect(redirectUrl)
+  }
+
+  // Verificação de trial e permissões para rotas protegidas
+  if (session && isProtected) {
+    const baseUrl = req.nextUrl.origin
+    const tenantInfo = await getTenantInfo(session.user.id, baseUrl)
+
+    if (tenantInfo) {
+      // Se assinatura ativa, permitir acesso a tudo
+      if (tenantInfo.assinaturaAtiva) {
+        return supabaseResponse
+      }
+
+      // Verificar se é plano TRIAL
+      if (tenantInfo.plano === 'TRIAL') {
+        // Verificar se o trial expirou
+        if (isTrialExpired(tenantInfo.trialExpira)) {
+          // Trial expirado - redirecionar para página de trial expirado
+          if (pathname !== '/trial-expirado') {
+            const redirectUrl = req.nextUrl.clone()
+            redirectUrl.pathname = '/trial-expirado'
+            return NextResponse.redirect(redirectUrl)
+          }
+        } else {
+          // Trial ainda válido - verificar se está tentando acessar módulo bloqueado
+          if (isTrialBlockedRoute(pathname)) {
+            const redirectUrl = req.nextUrl.clone()
+            redirectUrl.pathname = '/acesso-negado'
+            redirectUrl.searchParams.set('motivo', 'trial')
+            redirectUrl.searchParams.set('modulo', pathname.split('/')[1])
+            return NextResponse.redirect(redirectUrl)
+          }
+        }
+      }
+    }
   }
 
   return supabaseResponse

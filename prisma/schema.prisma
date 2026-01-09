@@ -18,6 +18,10 @@ model Tenant {
   logoUrl             String?             @map("logo_url")
   configuracoes       Json?               @default("{}")
   ativo               Boolean             @default(true)
+  plano               String              @default("TRIAL") // TRIAL, BASICO, PROFISSIONAL, ENTERPRISE
+  trialInicio         DateTime?           @map("trial_inicio")
+  trialExpira         DateTime?           @map("trial_expira")
+  assinaturaAtiva     Boolean             @default(false) @map("assinatura_ativa")
   criadoEm            DateTime            @default(now()) @map("criado_em")
   atualizadoEm        DateTime            @updatedAt @map("atualizado_em")
   contasBancarias     BankAccount[]
@@ -46,6 +50,7 @@ model User {
   avatarUrl          String?          @map("avatar_url")
   perfil             UserRole         @default(COLABORADOR)
   ativo              Boolean          @default(true)
+  emailVerificado    Boolean          @default(false) @map("email_verificado")
   ultimoAcesso       DateTime?        @map("ultimo_acesso")
   criadoEm           DateTime         @default(now()) @map("criado_em")
   atualizadoEm       DateTime         @updatedAt @map("atualizado_em")
