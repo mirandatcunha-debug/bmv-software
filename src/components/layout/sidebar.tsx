@@ -13,6 +13,7 @@ import {
   Settings,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
   HelpCircle,
   Building2,
   Shield,
@@ -20,9 +21,25 @@ import {
   Menu,
   X,
   Users,
+  Truck,
+  Database,
+  ArrowDownCircle,
+  ArrowUpCircle,
+  ArrowLeftRight,
+  CalendarDays,
+  Target,
+  Landmark,
+  Receipt,
+  BarChart3,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { canManageTenants } from '@/lib/permissions'
+
+interface SubMenuItem {
+  title: string
+  href: string
+  icon: React.ReactNode
+}
 
 interface SidebarItem {
   title: string
@@ -32,6 +49,7 @@ interface SidebarItem {
   badge?: number
   adminOnly?: boolean
   consultorOnly?: boolean
+  subItems?: SubMenuItem[]
 }
 
 const sidebarItems: SidebarItem[] = [
@@ -46,9 +64,30 @@ const sidebarItems: SidebarItem[] = [
     href: '/financeiro',
     icon: <Wallet className="h-5 w-5" />,
     iconColor: 'text-emerald-500',
+    subItems: [
+      { title: 'Visao Geral', href: '/financeiro', icon: <BarChart3 className="h-4 w-4" /> },
+      { title: 'Contas Bancarias', href: '/financeiro/contas', icon: <Landmark className="h-4 w-4" /> },
+      { title: 'Movimentacoes', href: '/financeiro/movimentacoes', icon: <Receipt className="h-4 w-4" /> },
+      { title: 'Contas a Receber', href: '/financeiro/contas-receber', icon: <ArrowDownCircle className="h-4 w-4" /> },
+      { title: 'Contas a Pagar', href: '/financeiro/contas-pagar', icon: <ArrowUpCircle className="h-4 w-4" /> },
+      { title: 'Transferencias', href: '/financeiro/transferencias', icon: <ArrowLeftRight className="h-4 w-4" /> },
+      { title: 'Fluxo de Caixa', href: '/financeiro/fluxo-caixa', icon: <BarChart3 className="h-4 w-4" /> },
+      { title: 'Fluxo Diario', href: '/financeiro/fluxo-caixa-diario', icon: <CalendarDays className="h-4 w-4" /> },
+      { title: 'Orcamento', href: '/financeiro/orcamento', icon: <Target className="h-4 w-4" /> },
+    ],
   },
   {
-    title: 'Contábil',
+    title: 'Cadastros',
+    href: '/cadastros',
+    icon: <Database className="h-5 w-5" />,
+    iconColor: 'text-indigo-500',
+    subItems: [
+      { title: 'Clientes', href: '/cadastros/clientes', icon: <Users className="h-4 w-4" /> },
+      { title: 'Fornecedores', href: '/cadastros/fornecedores', icon: <Truck className="h-4 w-4" /> },
+    ],
+  },
+  {
+    title: 'Contabil',
     href: '/contabil',
     icon: <Calculator className="h-5 w-5" />,
     iconColor: 'text-purple-500',
@@ -66,12 +105,6 @@ const sidebarItems: SidebarItem[] = [
     icon: <Briefcase className="h-5 w-5" />,
     iconColor: 'text-rose-500',
     consultorOnly: true,
-  },
-  {
-    title: 'Cadastros',
-    href: '/cadastros',
-    icon: <Users className="h-5 w-5" />,
-    iconColor: 'text-indigo-500',
   },
 ]
 
@@ -103,7 +136,30 @@ export function Sidebar({ isMobileOpen = false, onMobileClose }: SidebarProps) {
   const [isCollapsed, setIsCollapsed] = useState(false)
   const [userRole, setUserRole] = useState<string | null>(null)
   const [mounted, setMounted] = useState(false)
+  const [expandedMenus, setExpandedMenus] = useState<string[]>([])
   const pathname = usePathname()
+
+  // Expandir automaticamente o menu que contém a rota atual
+  useEffect(() => {
+    sidebarItems.forEach((item) => {
+      if (item.subItems) {
+        const hasActiveSubItem = item.subItems.some(
+          (sub) => pathname === sub.href || pathname.startsWith(sub.href + '/')
+        )
+        if (hasActiveSubItem) {
+          setExpandedMenus((prev) =>
+            prev.includes(item.href) ? prev : [...prev, item.href]
+          )
+        }
+      }
+    })
+  }, [pathname])
+
+  const toggleMenu = (href: string) => {
+    setExpandedMenus((prev) =>
+      prev.includes(href) ? prev.filter((h) => h !== href) : [...prev, href]
+    )
+  }
 
   useEffect(() => {
     setMounted(true)
@@ -212,6 +268,92 @@ export function Sidebar({ isMobileOpen = false, onMobileClose }: SidebarProps) {
         <div className="space-y-1">
           {filteredSidebarItems.map((item) => {
             const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
+            const hasSubItems = item.subItems && item.subItems.length > 0
+            const isExpanded = expandedMenus.includes(item.href)
+
+            // Se tem subitens, renderiza como menu expansível
+            if (hasSubItems) {
+              return (
+                <div key={item.href}>
+                  <button
+                    onClick={() => toggleMenu(item.href)}
+                    className={cn(
+                      'group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium w-full',
+                      'transition-all duration-200 ease-in-out',
+                      isActive
+                        ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400'
+                        : 'text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800',
+                      isCollapsed && 'lg:justify-center lg:px-2'
+                    )}
+                  >
+                    <span className={cn(
+                      'transition-colors duration-200',
+                      isActive ? 'text-emerald-600' : item.iconColor
+                    )}>
+                      {item.icon}
+                    </span>
+
+                    <span className={cn(
+                      'transition-all duration-300 ease-in-out whitespace-nowrap flex-1 text-left',
+                      isCollapsed ? 'lg:w-0 lg:opacity-0 lg:hidden' : 'w-auto opacity-100'
+                    )}>
+                      {item.title}
+                    </span>
+
+                    {!isCollapsed && (
+                      <ChevronDown className={cn(
+                        'h-4 w-4 transition-transform duration-200',
+                        isExpanded && 'rotate-180'
+                      )} />
+                    )}
+
+                    {/* Tooltip when collapsed - apenas desktop */}
+                    {isCollapsed && mounted && (
+                      <div className={cn(
+                        'absolute left-full ml-3 px-3 py-1.5 bg-slate-900 text-white text-sm rounded-lg',
+                        'opacity-0 invisible group-hover:opacity-100 group-hover:visible',
+                        'transition-all duration-200 ease-in-out whitespace-nowrap z-50',
+                        'shadow-lg hidden lg:block'
+                      )}>
+                        {item.title}
+                        <div className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1 w-2 h-2 bg-slate-900 rotate-45" />
+                      </div>
+                    )}
+                  </button>
+
+                  {/* SubItems */}
+                  {!isCollapsed && isExpanded && (
+                    <div className="ml-4 mt-1 space-y-1 border-l-2 border-slate-200 dark:border-slate-700 pl-3">
+                      {item.subItems!.map((subItem) => {
+                        const isSubActive = pathname === subItem.href ||
+                          (subItem.href !== '/financeiro' && pathname.startsWith(subItem.href + '/'))
+                        return (
+                          <Link
+                            key={subItem.href}
+                            href={subItem.href}
+                            onClick={handleItemClick}
+                            className={cn(
+                              'flex items-center gap-2 rounded-lg px-3 py-2 text-sm',
+                              'transition-all duration-200 ease-in-out',
+                              isSubActive
+                                ? 'bg-bmv-primary text-white shadow-md'
+                                : 'text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800'
+                            )}
+                          >
+                            <span className={isSubActive ? 'text-white' : 'text-slate-400'}>
+                              {subItem.icon}
+                            </span>
+                            <span>{subItem.title}</span>
+                          </Link>
+                        )
+                      })}
+                    </div>
+                  )}
+                </div>
+              )
+            }
+
+            // Se não tem subitens, renderiza como link normal
             return (
               <Link
                 key={item.href}
