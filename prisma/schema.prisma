@@ -30,6 +30,8 @@ model Tenant {
   contasPagar         Payable[]
   contasReceber       Receivable[]
   transacoes          Transaction[]
+  transferencias      Transfer[]
+  orcamentos          Budget[]
   usuarios            User[]
 
   @@map("tenants")
@@ -90,8 +92,10 @@ model BankAccount {
   ativo        Boolean         @default(true)
   criadoEm     DateTime        @default(now()) @map("criado_em")
   atualizadoEm DateTime        @updatedAt @map("atualizado_em")
-  tenant       Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  transacoes   Transaction[]
+  tenant                Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  transacoes            Transaction[]
+  transferenciasOrigem  Transfer[]      @relation("TransferOrigem")
+  transferenciasDestino Transfer[]      @relation("TransferDestino")
 
   @@index([tenantId])
   @@map("bank_accounts")
@@ -595,4 +599,43 @@ enum ConsultingTaskStatus {
   EM_ANDAMENTO
   EM_VALIDACAO
   CONCLUIDO
+}
+
+model Transfer {
+  id             String      @id @default(cuid())
+  tenantId       String      @map("tenant_id")
+  contaOrigemId  String      @map("conta_origem_id")
+  contaDestinoId String      @map("conta_destino_id")
+  valor          Decimal     @db.Decimal(15, 2)
+  data           DateTime
+  descricao      String?
+  criadoEm       DateTime    @default(now()) @map("criado_em")
+  atualizadoEm   DateTime    @updatedAt @map("atualizado_em")
+  tenant         Tenant      @relation(fields: [tenantId], references: [id])
+  contaOrigem    BankAccount @relation("TransferOrigem", fields: [contaOrigemId], references: [id])
+  contaDestino   BankAccount @relation("TransferDestino", fields: [contaDestinoId], references: [id])
+
+  @@index([tenantId])
+  @@index([contaOrigemId])
+  @@index([contaDestinoId])
+  @@index([data])
+  @@map("transfers")
+}
+
+model Budget {
+  id           String   @id @default(cuid())
+  tenantId     String   @map("tenant_id")
+  ano          Int
+  mes          Int
+  categoria    String
+  tipo         String   // RECEITA ou DESPESA
+  valorOrcado  Decimal  @map("valor_orcado") @db.Decimal(15, 2)
+  criadoEm     DateTime @default(now()) @map("criado_em")
+  atualizadoEm DateTime @updatedAt @map("atualizado_em")
+  tenant       Tenant   @relation(fields: [tenantId], references: [id])
+
+  @@unique([tenantId, ano, mes, categoria])
+  @@index([tenantId])
+  @@index([ano, mes])
+  @@map("budgets")
 }
