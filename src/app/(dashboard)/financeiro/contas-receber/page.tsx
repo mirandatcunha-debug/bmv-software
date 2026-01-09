@@ -142,11 +142,12 @@ const getStatusDisplay = (conta: ContaReceber) => {
 
 export default function ContasReceberPage() {
   const { user, loading: authLoading } = useAuth()
-  const { tenant } = useTenant()
+  const { tenant, loading: tenantLoading } = useTenant()
 
   const [contas, setContas] = useState<ContaReceber[]>([])
   const [clientes, setClientes] = useState<Cliente[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('todos')
   const [clienteFilter, setClienteFilter] = useState<string>('todos')
@@ -175,6 +176,12 @@ export default function ContasReceberPage() {
   useEffect(() => {
     const fetchContas = async () => {
       setLoading(true)
+      setError(null)
+
+      // Controller para timeout
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 10000) // 10 segundos
+
       try {
         const params = new URLSearchParams()
         if (search) params.append('search', search)
@@ -182,18 +189,49 @@ export default function ContasReceberPage() {
         if (clienteFilter !== 'todos') params.append('clienteId', clienteFilter)
         if (periodoFilter !== 'todos') params.append('periodo', periodoFilter)
 
-        const response = await fetch(`/api/financeiro/contas-receber?${params.toString()}`)
-        if (response.ok) {
-          const data = await response.json()
-          setContas(data)
-        } else {
-          // Se a API nao existe ainda, usar dados mock
-          setContas(getMockData())
+        const response = await fetch(`/api/financeiro/contas-receber?${params.toString()}`, {
+          signal: controller.signal
+        })
+
+        clearTimeout(timeoutId)
+
+        if (response.status === 401) {
+          setError('Voce nao tem permissao para acessar este recurso.')
+          setContas([])
+          return
         }
-      } catch (error) {
-        console.error('Erro ao buscar contas a receber:', error)
-        // Fallback para dados mock em caso de erro
-        setContas(getMockData())
+
+        if (response.status === 403) {
+          setError('Acesso negado. Seu perfil nao possui permissao para esta funcionalidade.')
+          setContas([])
+          return
+        }
+
+        if (response.status >= 500) {
+          setError('Nao foi possivel carregar os dados. Tente novamente.')
+          setContas([])
+          return
+        }
+
+        if (!response.ok) {
+          setError('Nao foi possivel carregar os dados. Tente novamente.')
+          setContas([])
+          return
+        }
+
+        const data = await response.json()
+        setContas(data)
+        setError(null)
+      } catch (err) {
+        clearTimeout(timeoutId)
+        console.error('Erro ao buscar contas a receber:', err)
+
+        if (err instanceof Error && err.name === 'AbortError') {
+          setError('A conexao demorou muito. Verifique sua internet e tente novamente.')
+        } else {
+          setError('Nao foi possivel carregar os dados. Tente novamente.')
+        }
+        setContas([])
       } finally {
         setLoading(false)
       }
@@ -201,8 +239,16 @@ export default function ContasReceberPage() {
 
     if (user && tenant) {
       fetchContas()
+    } else if (!authLoading && !tenantLoading) {
+      // Se terminou de carregar mas nao tem user/tenant, para o loading
+      setLoading(false)
+      if (!user) {
+        setError('Faca login para continuar.')
+      } else if (!tenant) {
+        setError('Nenhuma empresa selecionada.')
+      }
     }
-  }, [user, tenant, search, statusFilter, clienteFilter, periodoFilter, triggerSearch])
+  }, [user, tenant, authLoading, tenantLoading, search, statusFilter, clienteFilter, periodoFilter, triggerSearch])
 
   // Dados mock para demonstracao
   const getMockData = (): ContaReceber[] => {
@@ -321,6 +367,40 @@ export default function ContasReceberPage() {
     return (
       <div className="flex items-center justify-center p-8">
         <Loader2 className="h-8 w-8 animate-spin text-green-600" />
+      </div>
+    )
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <Link
+          href="/financeiro"
+          className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors group"
+        >
+          <ArrowLeft className="h-4 w-4 group-hover:-translate-x-1 transition-transform" />
+          Voltar para Financeiro
+        </Link>
+
+        <Card className="border-red-200 dark:border-red-800">
+          <CardContent className="py-16">
+            <div className="flex flex-col items-center text-center">
+              <div className="p-4 bg-red-100 dark:bg-red-900/30 rounded-full mb-4">
+                <AlertTriangle className="h-8 w-8 text-red-600 dark:text-red-400" />
+              </div>
+              <h3 className="text-xl font-semibold mb-2">Erro ao carregar</h3>
+              <p className="text-muted-foreground mb-6 max-w-md">{error}</p>
+              <Button
+                onClick={handleRefresh}
+                className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white"
+              >
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Tentar novamente
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     )
   }

@@ -77,7 +77,7 @@ const getBancoConfig = (banco: string) => {
 
 export default function ContasPage() {
   const { user, loading: authLoading } = useAuth()
-  const { tenant } = useTenant()
+  const { tenant, loading: tenantLoading } = useTenant()
   const { canView, canCreate, canEdit, canDelete } = useModulePermissions('financeiro.contas')
 
   const [contas, setContas] = useState<ContaBancaria[]>([])
@@ -94,16 +94,25 @@ export default function ContasPage() {
         setContas(contasData)
       } catch (err) {
         console.error('Erro ao carregar contas:', err)
-        setError('Erro ao carregar contas bancarias')
+        setError('Erro ao carregar contas bancarias. Verifique sua conexao.')
       } finally {
         setLoading(false)
       }
     }
 
+    // Só carrega se tiver user e tenant, mas para de carregar se os contextos terminaram
     if (user && tenant) {
       loadContas()
+    } else if (!authLoading && !tenantLoading) {
+      // Se não está mais carregando e não tem user/tenant, para o loading
+      setLoading(false)
+      if (!user) {
+        setError('Usuario nao autenticado. Faca login novamente.')
+      } else if (!tenant) {
+        setError('Nenhuma empresa selecionada.')
+      }
     }
-  }, [user, tenant])
+  }, [user, tenant, authLoading, tenantLoading])
 
   // Calcular saldo total
   const saldoTotal = contas

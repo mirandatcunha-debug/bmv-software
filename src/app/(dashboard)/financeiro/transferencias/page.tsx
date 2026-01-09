@@ -68,11 +68,12 @@ interface ContaBancaria {
 
 export default function TransferenciasPage() {
   const { user, loading: authLoading } = useAuth()
-  const { tenant } = useTenant()
+  const { tenant, loading: tenantLoading } = useTenant()
 
   const [transferencias, setTransferencias] = useState<Transfer[]>([])
   const [contas, setContas] = useState<ContaBancaria[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [contaOrigemFilter, setContaOrigemFilter] = useState<string>('todas')
   const [contaDestinoFilter, setContaDestinoFilter] = useState<string>('todas')
   const [periodoFilter, setPeriodoFilter] = useState<string>('mes')
@@ -100,6 +101,7 @@ export default function TransferenciasPage() {
   useEffect(() => {
     const fetchTransferencias = async () => {
       setLoading(true)
+      setError(null)
       try {
         const params = new URLSearchParams()
         if (contaOrigemFilter !== 'todas') params.append('contaOrigemId', contaOrigemFilter)
@@ -113,8 +115,8 @@ export default function TransferenciasPage() {
         } else {
           setTransferencias(getMockData())
         }
-      } catch (error) {
-        console.error('Erro ao buscar transferências:', error)
+      } catch (err) {
+        console.error('Erro ao buscar transferências:', err)
         setTransferencias(getMockData())
       } finally {
         setLoading(false)
@@ -123,8 +125,16 @@ export default function TransferenciasPage() {
 
     if (user && tenant) {
       fetchTransferencias()
+    } else if (!authLoading && !tenantLoading) {
+      // Se terminou de carregar mas nao tem user/tenant, para o loading
+      setLoading(false)
+      if (!user) {
+        setError('Usuario nao autenticado. Faca login novamente.')
+      } else if (!tenant) {
+        setError('Nenhuma empresa selecionada.')
+      }
     }
-  }, [user, tenant, contaOrigemFilter, contaDestinoFilter, periodoFilter, triggerSearch])
+  }, [user, tenant, authLoading, tenantLoading, contaOrigemFilter, contaDestinoFilter, periodoFilter, triggerSearch])
 
   // Dados mock para demonstração
   const getMockData = (): Transfer[] => {

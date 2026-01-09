@@ -27,6 +27,7 @@ const protectedPrefixes = [
   '/consultoria',
   '/contabil',
   '/processos',
+  '/cadastros',
 ]
 
 function isPublicRoute(pathname: string): boolean {

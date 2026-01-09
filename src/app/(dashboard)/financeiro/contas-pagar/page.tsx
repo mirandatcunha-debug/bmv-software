@@ -141,11 +141,12 @@ const getStatusDisplay = (conta: ContaPagar) => {
 
 export default function ContasPagarPage() {
   const { user, loading: authLoading } = useAuth()
-  const { tenant } = useTenant()
+  const { tenant, loading: tenantLoading } = useTenant()
 
   const [contas, setContas] = useState<ContaPagar[]>([])
   const [fornecedores, setFornecedores] = useState<Fornecedor[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('todos')
   const [fornecedorFilter, setFornecedorFilter] = useState<string>('todos')
@@ -174,6 +175,7 @@ export default function ContasPagarPage() {
   useEffect(() => {
     const fetchContas = async () => {
       setLoading(true)
+      setError(null)
       try {
         const params = new URLSearchParams()
         if (search) params.append('search', search)
@@ -189,8 +191,8 @@ export default function ContasPagarPage() {
           // Se a API nao existe ainda, usar dados mock
           setContas(getMockData())
         }
-      } catch (error) {
-        console.error('Erro ao buscar contas a pagar:', error)
+      } catch (err) {
+        console.error('Erro ao buscar contas a pagar:', err)
         // Fallback para dados mock em caso de erro
         setContas(getMockData())
       } finally {
@@ -200,8 +202,16 @@ export default function ContasPagarPage() {
 
     if (user && tenant) {
       fetchContas()
+    } else if (!authLoading && !tenantLoading) {
+      // Se terminou de carregar mas nao tem user/tenant, para o loading
+      setLoading(false)
+      if (!user) {
+        setError('Usuario nao autenticado. Faca login novamente.')
+      } else if (!tenant) {
+        setError('Nenhuma empresa selecionada.')
+      }
     }
-  }, [user, tenant, search, statusFilter, fornecedorFilter, periodoFilter, triggerSearch])
+  }, [user, tenant, authLoading, tenantLoading, search, statusFilter, fornecedorFilter, periodoFilter, triggerSearch])
 
   // Dados mock para demonstracao
   const getMockData = (): ContaPagar[] => {

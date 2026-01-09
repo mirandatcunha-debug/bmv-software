@@ -1,15 +1,26 @@
 'use client'
 
 import { createContext, useContext, useEffect, useState, useCallback, ReactNode } from 'react'
-import { User, Session, AuthError } from '@supabase/supabase-js'
+import { Session, AuthError } from '@supabase/supabase-js'
 import { createClient } from '@/lib/supabase/client'
+
+interface Tenant {
+  id: string
+  nome: string
+  cnpj?: string
+  email?: string
+}
 
 interface AuthUser {
   id: string
   email: string | undefined
+  nome?: string
   name?: string
+  perfil?: string
   role?: string
   tenantId?: string
+  tenant?: Tenant
+  primeiroAcesso?: boolean
 }
 
 interface AuthContextType {
@@ -36,17 +47,73 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const supabase = createClient()
 
-  const mapSupabaseUser = useCallback((supabaseUser: User | null): AuthUser | null => {
-    if (!supabaseUser) return null
+  // Vincular usuario do Supabase com o Prisma
+  const vincularUsuario = useCallback(async (): Promise<AuthUser | null> => {
+    try {
+      const response = await fetch('/api/auth/vincular', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
 
-    return {
-      id: supabaseUser.id,
-      email: supabaseUser.email,
-      name: supabaseUser.user_metadata?.name || supabaseUser.user_metadata?.full_name,
-      role: supabaseUser.user_metadata?.role,
-      tenantId: supabaseUser.user_metadata?.tenant_id,
+      if (!response.ok) {
+        console.error('Erro ao vincular usuario:', response.status)
+        return null
+      }
+
+      const data = await response.json()
+
+      if (data.user) {
+        return {
+          id: data.user.id,
+          email: data.user.email,
+          nome: data.user.nome,
+          name: data.user.nome,
+          perfil: data.user.perfil,
+          role: data.user.perfil,
+          tenantId: data.user.tenantId,
+          tenant: data.user.tenant,
+          primeiroAcesso: data.user.primeiroAcesso,
+        }
+      }
+
+      return null
+    } catch (err) {
+      console.error('Erro ao vincular usuario:', err)
+      return null
     }
   }, [])
+
+  // Inicializar usuario apos sessao do Supabase
+  const initializeUser = useCallback(async (currentSession: Session | null) => {
+    if (!currentSession) {
+      setUser(null)
+      setSession(null)
+      setLoading(false)
+      return
+    }
+
+    setSession(currentSession)
+
+    // Tentar vincular/buscar usuario do Prisma
+    const prismaUser = await vincularUsuario()
+
+    if (prismaUser) {
+      setUser(prismaUser)
+    } else {
+      // Fallback: usar dados basicos do Supabase
+      setUser({
+        id: currentSession.user.id,
+        email: currentSession.user.email,
+        name: currentSession.user.user_metadata?.name || currentSession.user.user_metadata?.full_name,
+        role: currentSession.user.user_metadata?.role,
+        tenantId: currentSession.user.user_metadata?.tenant_id,
+      })
+    }
+
+    setLoading(false)
+  }, [vincularUsuario])
 
   const refreshUser = useCallback(async () => {
     try {
@@ -59,19 +126,18 @@ export function AuthProvider({ children }: AuthProviderProps) {
         setError(sessionError)
         setSession(null)
         setUser(null)
+        setLoading(false)
         return
       }
 
-      setSession(currentSession)
-      setUser(mapSupabaseUser(currentSession?.user ?? null))
+      await initializeUser(currentSession)
     } catch (err) {
       console.error('Error refreshing user:', err)
       setSession(null)
       setUser(null)
-    } finally {
       setLoading(false)
     }
-  }, [supabase, mapSupabaseUser])
+  }, [supabase, initializeUser])
 
   const signIn = useCallback(async (email: string, password: string) => {
     try {
@@ -85,20 +151,21 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
       if (signInError) {
         setError(signInError)
+        setLoading(false)
         return { error: signInError }
       }
 
-      setSession(data.session)
-      setUser(mapSupabaseUser(data.user))
+      // Apos login bem-sucedido, vincular usuario
+      await initializeUser(data.session)
+
       return { error: null }
     } catch (err) {
       const authError = err as AuthError
       setError(authError)
-      return { error: authError }
-    } finally {
       setLoading(false)
+      return { error: authError }
     }
-  }, [supabase, mapSupabaseUser])
+  }, [supabase, initializeUser])
 
   const signOut = useCallback(async () => {
     try {
@@ -115,20 +182,26 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }, [supabase])
 
   useEffect(() => {
+    // Inicializar na montagem
     refreshUser()
 
+    // Escutar mudancas de estado de autenticacao
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, currentSession) => {
-        setSession(currentSession)
-        setUser(mapSupabaseUser(currentSession?.user ?? null))
-        setLoading(false)
+      async (event, currentSession) => {
+        if (event === 'SIGNED_OUT') {
+          setSession(null)
+          setUser(null)
+          setLoading(false)
+        } else if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+          await initializeUser(currentSession)
+        }
       }
     )
 
     return () => {
       subscription.unsubscribe()
     }
-  }, [supabase, refreshUser, mapSupabaseUser])
+  }, [supabase, refreshUser, initializeUser])
 
   const value: AuthContextType = {
     user,
