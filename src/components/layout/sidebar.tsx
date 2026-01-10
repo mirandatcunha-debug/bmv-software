@@ -31,6 +31,7 @@ import {
   Landmark,
   Receipt,
   BarChart3,
+  UserCog,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { canManageTenants } from '@/lib/permissions'
@@ -84,6 +85,7 @@ const sidebarItems: SidebarItem[] = [
     subItems: [
       { title: 'Clientes', href: '/cadastros/clientes', icon: <Users className="h-4 w-4" /> },
       { title: 'Fornecedores', href: '/cadastros/fornecedores', icon: <Truck className="h-4 w-4" /> },
+      { title: 'Colaboradores', href: '/cadastros/colaboradores', icon: <UserCog className="h-4 w-4" /> },
     ],
   },
   {
