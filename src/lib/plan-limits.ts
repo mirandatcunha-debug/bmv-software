@@ -4,21 +4,25 @@ export const PLAN_LIMITS = {
     usuarios: 3,
     contasBancarias: 2,
     projetos: 1,
+    analisesIA: 3,
   },
   BASICO: {
     usuarios: 5,
     contasBancarias: 5,
     projetos: 3,
+    analisesIA: 10,
   },
   PROFISSIONAL: {
     usuarios: 15,
     contasBancarias: 10,
     projetos: 10,
+    analisesIA: 50,
   },
   ENTERPRISE: {
     usuarios: -1, // ilimitado
     contasBancarias: -1,
     projetos: -1,
+    analisesIA: -1,
   },
 } as const
 

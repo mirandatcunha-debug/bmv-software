@@ -9,6 +9,14 @@ import {
   AcoesRapidas,
   GraficoMiniFluxo,
 } from '@/components/dashboard'
+import {
+  TrialCountdown,
+  IAInsightCard,
+  IAAnaliseButton,
+  UsageCounter,
+  UpgradeBanner,
+} from '@/components/upgrade'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Insight } from '@/types/insights'
 import { cn } from '@/lib/utils'
 import {
@@ -16,6 +24,8 @@ import {
   TrendingUp,
   Target,
   Wallet,
+  Brain,
+  Sparkles,
 } from 'lucide-react'
 import {
   resumoFinanceiro as demoResumoFinanceiro,
@@ -24,6 +34,7 @@ import {
   insightsIA,
   usuarios,
 } from '@/data/demo-data'
+import { PlanType } from '@/lib/plan-limits'
 
 interface DashboardData {
   insights: Insight[]
@@ -57,7 +68,42 @@ interface DashboardData {
     nome: string
     perfil: string
   }
+  plano?: {
+    tipo: PlanType
+    isTrial: boolean
+    dataExpiracao?: Date | string
+    analisesIAUsadas: number
+    analisesIALimite: number
+  }
 }
+
+// Insights mockados da IA para demonstração
+const insightsMockadosIA = [
+  {
+    titulo: 'Saldo projetado baixo em 15 dias',
+    descricao: 'Baseado no fluxo atual, seu saldo pode ficar abaixo de R$ 5.000 em 15 dias. Considere adiar despesas não essenciais.',
+    tipo: 'alerta' as const,
+    icone: 'tendencia_baixa' as const,
+  },
+  {
+    titulo: 'Despesas 20% acima do mês passado',
+    descricao: 'Suas despesas operacionais aumentaram significativamente. A categoria "Fornecedores" teve o maior impacto.',
+    tipo: 'critico' as const,
+    icone: 'alerta' as const,
+  },
+  {
+    titulo: 'Receitas recorrentes estáveis',
+    descricao: 'Suas receitas recorrentes mantêm crescimento de 5% ao mês nos últimos 3 meses. Excelente previsibilidade!',
+    tipo: 'positivo' as const,
+    icone: 'tendencia_alta' as const,
+  },
+  {
+    titulo: 'Oportunidade de economia',
+    descricao: 'Identificamos R$ 2.300 em despesas que podem ser renegociadas. Clique para ver detalhes.',
+    tipo: 'sugestao' as const,
+    icone: 'economia' as const,
+  },
+]
 
 function formatCurrency(value: number): string {
   return value.toLocaleString('pt-BR', {
@@ -211,6 +257,14 @@ export default function DashboardPage() {
       nome: usuarios[0]?.nome || 'Usuário',
       perfil: 'GESTOR',
     },
+    // Dados mockados do plano para demonstração (Trial)
+    plano: {
+      tipo: 'TRIAL' as PlanType,
+      isTrial: true,
+      dataExpiracao: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000), // 5 dias restantes
+      analisesIAUsadas: 2,
+      analisesIALimite: 3,
+    },
   })
 
   const getGreeting = () => {
@@ -226,6 +280,12 @@ export default function DashboardPage() {
   // Metricas rapidas
   const okrsEmDia = data?.okrs?.filter(o => o.status === 'EM_DIA').length || 0
   const okrsTotal = data?.okrs?.length || 0
+
+  // Verificações de plano
+  const plano = data?.plano
+  const isTrial = plano?.isTrial || false
+  const isBasico = plano?.tipo === 'BASICO'
+  const mostrarUpgradeBanner = isTrial || isBasico
 
   return (
     <div className="space-y-4 sm:space-y-6">
@@ -315,8 +375,72 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* SECAO 1 - INSIGHTS DA IA */}
-      <div className="animate-fade-in-up animate-stagger-1">
+      {/* TRIAL COUNTDOWN - Exibe apenas se for Trial */}
+      {isTrial && plano?.dataExpiracao && (
+        <div className="animate-fade-in-up">
+          <TrialCountdown dataExpiracao={plano.dataExpiracao} />
+        </div>
+      )}
+
+      {/* SECAO INSIGHTS DA IA - Nova seção com cards mockados */}
+      <Card className="bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 border-indigo-200 dark:border-indigo-800 overflow-hidden animate-fade-in-up animate-stagger-1">
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center justify-between">
+            <div className="flex items-center gap-2 text-indigo-900 dark:text-indigo-100">
+              <div className="p-2 rounded-xl bg-indigo-100 dark:bg-indigo-800">
+                <Brain className="h-5 w-5 text-indigo-600 dark:text-indigo-300" />
+              </div>
+              <div>
+                <span className="block">Insights da IA</span>
+                <span className="text-xs font-normal text-indigo-600 dark:text-indigo-400">
+                  Análises inteligentes do seu negócio
+                </span>
+              </div>
+              <Sparkles className="h-4 w-4 text-indigo-500 ml-1" />
+            </div>
+            <div className="flex items-center gap-3">
+              <UsageCounter
+                usado={plano?.analisesIAUsadas || 0}
+                limite={plano?.analisesIALimite || 3}
+                tipo="analises_ia"
+                className="hidden sm:block w-40"
+              />
+              <IAAnaliseButton
+                bloqueado={(plano?.analisesIAUsadas || 0) >= (plano?.analisesIALimite || 3)}
+                onClick={() => {
+                  console.log('Gerando nova análise...')
+                }}
+              />
+            </div>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {/* Contador de uso mobile */}
+          <div className="sm:hidden mb-4">
+            <UsageCounter
+              usado={plano?.analisesIAUsadas || 0}
+              limite={plano?.analisesIALimite || 3}
+              tipo="analises_ia"
+            />
+          </div>
+
+          {/* Grid de cards de insights */}
+          <div className="grid gap-3 sm:grid-cols-2">
+            {insightsMockadosIA.map((insight, index) => (
+              <IAInsightCard
+                key={index}
+                titulo={insight.titulo}
+                descricao={insight.descricao}
+                tipo={insight.tipo}
+                icone={insight.icone}
+              />
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* SECAO INSIGHTS INTELIGENTES - Card original */}
+      <div className="animate-fade-in-up animate-stagger-2">
         <InsightsCard
           insights={data?.insights || []}
           loading={loading}
@@ -369,6 +493,16 @@ export default function DashboardPage() {
       <div className="animate-slide-up" style={{ animationDelay: '0.6s' }}>
         <AcoesRapidas perfil={data?.usuario?.perfil} />
       </div>
+
+      {/* UPGRADE BANNER - Exibe para Trial ou Básico */}
+      {mostrarUpgradeBanner && (
+        <div className="animate-fade-in-up" style={{ animationDelay: '0.7s' }}>
+          <UpgradeBanner
+            planoPara="Profissional"
+            motivo="modulo_bloqueado"
+          />
+        </div>
+      )}
     </div>
   )
 }
