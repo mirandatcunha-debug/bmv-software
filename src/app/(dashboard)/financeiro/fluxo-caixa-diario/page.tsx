@@ -26,10 +26,11 @@ import {
   TrendingDown,
   Wallet,
   Loader2,
-  AlertCircle,
   ArrowUpRight,
   ArrowDownRight,
   Landmark,
+  Lightbulb,
+  FileText,
 } from 'lucide-react'
 import { formatCurrency } from '@/types/financeiro'
 import { cn } from '@/lib/utils'
@@ -94,7 +95,6 @@ export default function FluxoCaixaDiarioPage() {
   const [anoSelecionado, setAnoSelecionado] = useState(String(new Date().getFullYear()))
   const [contaSelecionada, setContaSelecionada] = useState('todas')
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
   const [dados, setDados] = useState<FluxoCaixaResponse | null>(null)
   const [contas, setContas] = useState<ContaBancaria[]>([])
 
@@ -117,7 +117,6 @@ export default function FluxoCaixaDiarioPage() {
   const carregarDados = useCallback(async () => {
     try {
       setLoading(true)
-      setError(null)
 
       let url = `/api/financeiro/fluxo-caixa-diario?ano=${anoSelecionado}&mes=${mesSelecionado}`
       if (contaSelecionada !== 'todas') {
@@ -133,7 +132,9 @@ export default function FluxoCaixaDiarioPage() {
       const data = await response.json()
       setDados(data)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro desconhecido')
+      // Silenciar erros técnicos - apenas logar no console
+      console.error('Erro ao carregar fluxo de caixa:', err)
+      setDados(null)
     } finally {
       setLoading(false)
     }
@@ -147,7 +148,11 @@ export default function FluxoCaixaDiarioPage() {
     return meses.find((m) => m.value === String(mes))?.label || ''
   }
 
-  // Preparar dados para o grafico
+  // Verificar se há movimentações no período
+  const temMovimentacoes = dados?.fluxoDiario.some(d => d.entradas > 0 || d.saidas > 0) ?? false
+  const temDadosSuficientes = dados && dados.fluxoDiario.length > 0
+
+  // Preparar dados para o grafico (sempre gerar dados zerados para exibir o gráfico)
   const dadosGrafico = dados?.fluxoDiario.map((d) => ({
     dia: d.dia,
     saldo: d.saldoFinal,
@@ -166,80 +171,67 @@ export default function FluxoCaixaDiarioPage() {
         Voltar para Financeiro
       </Link>
 
-      {/* Header com gradiente azul-esverdeado */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-cyan-600 via-teal-600 to-emerald-600 p-6 text-white animate-fade-in-up">
-        {/* Background pattern */}
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-white rounded-full -translate-y-1/2 translate-x-1/2"></div>
-          <div className="absolute bottom-0 left-0 w-48 h-48 bg-white rounded-full translate-y-1/2 -translate-x-1/2"></div>
-        </div>
-
-        <div className="relative">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <div className="p-3 bg-white/20 rounded-xl backdrop-blur-sm">
-                <Calendar className="h-8 w-8" />
-              </div>
-              <div>
-                <h1 className="text-2xl md:text-3xl font-bold">Fluxo de Caixa Diario</h1>
-                <p className="text-cyan-100 text-sm md:text-base">
-                  Acompanhamento dia a dia do mes
-                </p>
-              </div>
-            </div>
+      {/* Header profissional */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 animate-fade-in-up">
+        <div className="flex items-center gap-3">
+          <div className="p-3 bg-gray-100 dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700">
+            <Calendar className="h-8 w-8 text-gray-600 dark:text-slate-300" />
           </div>
-
-          {/* Mini cards no header */}
-          {dados && (
-            <div className="grid grid-cols-3 gap-3 mt-6">
-              <div
-                className="bg-white/10 backdrop-blur-sm rounded-xl p-3 transition-all hover:bg-white/20 animate-fade-in-up"
-                style={{ animationDelay: '0.1s' }}
-              >
-                <div className="flex items-center gap-2 mb-1">
-                  <TrendingUp className="h-4 w-4 text-cyan-200" />
-                  <span className="text-xs text-cyan-200">Total Entradas</span>
-                </div>
-                <p className="text-lg font-bold text-green-300">
-                  {formatCurrency(dados.totalEntradas)}
-                </p>
-              </div>
-
-              <div
-                className="bg-white/10 backdrop-blur-sm rounded-xl p-3 transition-all hover:bg-white/20 animate-fade-in-up"
-                style={{ animationDelay: '0.2s' }}
-              >
-                <div className="flex items-center gap-2 mb-1">
-                  <TrendingDown className="h-4 w-4 text-cyan-200" />
-                  <span className="text-xs text-cyan-200">Total Saidas</span>
-                </div>
-                <p className="text-lg font-bold text-red-300">
-                  {formatCurrency(dados.totalSaidas)}
-                </p>
-              </div>
-
-              <div
-                className="bg-white/10 backdrop-blur-sm rounded-xl p-3 transition-all hover:bg-white/20 animate-fade-in-up"
-                style={{ animationDelay: '0.3s' }}
-              >
-                <div className="flex items-center gap-2 mb-1">
-                  <Wallet className="h-4 w-4 text-cyan-200" />
-                  <span className="text-xs text-cyan-200">Variacao</span>
-                </div>
-                <p
-                  className={cn(
-                    'text-lg font-bold',
-                    dados.variacaoPeriodo >= 0 ? 'text-green-300' : 'text-red-300'
-                  )}
-                >
-                  {dados.variacaoPeriodo >= 0 ? '+' : ''}
-                  {formatCurrency(dados.variacaoPeriodo)}
-                </p>
-              </div>
-            </div>
-          )}
+          <div>
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-800 dark:text-slate-100">Fluxo de Caixa Diario</h1>
+            <p className="text-gray-500 dark:text-slate-400 text-sm md:text-base">
+              Acompanhamento dia a dia do mes
+            </p>
+          </div>
         </div>
       </div>
+
+      {/* Cards de resumo */}
+      {dados && (
+        <div className="grid grid-cols-3 gap-3 animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
+          <Card className="border border-gray-200 dark:border-slate-700">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-2 mb-1">
+                <TrendingUp className="h-4 w-4 text-green-500" />
+                <span className="text-xs text-gray-500 dark:text-slate-400">Total Entradas</span>
+              </div>
+              <p className="text-lg font-bold text-green-600">
+                {formatCurrency(dados.totalEntradas)}
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="border border-gray-200 dark:border-slate-700">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-2 mb-1">
+                <TrendingDown className="h-4 w-4 text-red-500" />
+                <span className="text-xs text-gray-500 dark:text-slate-400">Total Saidas</span>
+              </div>
+              <p className="text-lg font-bold text-red-600">
+                {formatCurrency(dados.totalSaidas)}
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="border border-gray-200 dark:border-slate-700">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-2 mb-1">
+                <Wallet className="h-4 w-4 text-gray-500 dark:text-slate-400" />
+                <span className="text-xs text-gray-500 dark:text-slate-400">Variacao</span>
+              </div>
+              <p
+                className={cn(
+                  'text-lg font-bold',
+                  dados.variacaoPeriodo >= 0 ? 'text-green-600' : 'text-red-600'
+                )}
+              >
+                {dados.variacaoPeriodo >= 0 ? '+' : ''}
+                {formatCurrency(dados.variacaoPeriodo)}
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       {/* Filtros */}
       <Card className="animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
@@ -305,27 +297,43 @@ export default function FluxoCaixaDiarioPage() {
         </div>
       )}
 
-      {/* Error State */}
-      {error && (
-        <Card className="border-red-200 dark:border-red-900">
-          <CardContent className="p-6">
-            <div className="flex items-center gap-3 text-red-600">
-              <AlertCircle className="h-5 w-5" />
-              <span>{error}</span>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
       {/* Conteudo Principal */}
-      {!loading && !error && dados && (
+      {!loading && (
         <>
+          {/* Mensagem amigável quando não há dados */}
+          {(!temDadosSuficientes || !temMovimentacoes) && (
+            <Card className="border-amber-200 dark:border-amber-800 bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950/20 dark:to-orange-950/20 animate-fade-in-up" style={{ animationDelay: '0.15s' }}>
+              <CardContent className="p-6">
+                <div className="flex flex-col items-center text-center gap-4">
+                  <div className="p-3 bg-amber-100 dark:bg-amber-900/50 rounded-full">
+                    <FileText className="h-8 w-8 text-amber-600 dark:text-amber-400" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-amber-800 dark:text-amber-300 mb-1">
+                      {!temDadosSuficientes
+                        ? 'Não existem dados suficientes para exibir o fluxo diário'
+                        : 'Ainda não há movimentações neste período'
+                      }
+                    </h3>
+                    <p className="text-amber-700 dark:text-amber-400 text-sm">
+                      Selecione outro período ou aguarde o lançamento de novas movimentações.
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2 mt-2 text-sm text-amber-600 dark:text-amber-400 bg-amber-100 dark:bg-amber-900/30 px-4 py-2 rounded-lg">
+                    <Lightbulb className="h-4 w-4" />
+                    <span>Dica: Cadastre suas contas a receber e a pagar para visualizar o fluxo de caixa</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           {/* Grafico de Evolucao */}
           <Card className="animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <TrendingUp className="h-5 w-5 text-teal-600" />
-                Evolucao do Saldo - {getNomeMes(dados.mes)} {dados.ano}
+                Evolucao do Saldo - {getNomeMes(dados?.mes ?? parseInt(mesSelecionado))} {dados?.ano ?? anoSelecionado}
               </CardTitle>
               <CardDescription>
                 Grafico mostrando a variacao do saldo ao longo do mes
@@ -382,11 +390,12 @@ export default function FluxoCaixaDiarioPage() {
           </Card>
 
           {/* Tabela Diaria */}
+          {temDadosSuficientes && (
           <Card className="animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Calendar className="h-5 w-5 text-teal-600" />
-                Fluxo Diario - {getNomeMes(dados.mes)} {dados.ano}
+                Fluxo Diario - {getNomeMes(dados?.mes ?? parseInt(mesSelecionado))} {dados?.ano ?? anoSelecionado}
               </CardTitle>
               <CardDescription>Movimentacao detalhada por dia</CardDescription>
             </CardHeader>
@@ -403,7 +412,7 @@ export default function FluxoCaixaDiarioPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {dados.fluxoDiario.map((dia, index) => {
+                    {dados?.fluxoDiario.map((dia, index) => {
                       const temMovimentacao = dia.entradas > 0 || dia.saidas > 0
                       const saldoPositivo = dia.saldoFinal >= 0
 
@@ -472,28 +481,28 @@ export default function FluxoCaixaDiarioPage() {
                     <TableRow className="bg-gradient-to-r from-cyan-100 to-teal-100 dark:from-cyan-900/30 dark:to-teal-900/30 font-semibold">
                       <TableCell>TOTAIS</TableCell>
                       <TableCell className="text-right">
-                        {formatCurrency(dados.saldoInicialMes)}
+                        {formatCurrency(dados?.saldoInicialMes ?? 0)}
                       </TableCell>
                       <TableCell className="text-right text-green-600">
                         <span className="flex items-center justify-end gap-1">
                           <ArrowUpRight className="h-4 w-4" />
-                          {formatCurrency(dados.totalEntradas)}
+                          {formatCurrency(dados?.totalEntradas ?? 0)}
                         </span>
                       </TableCell>
                       <TableCell className="text-right text-red-600">
                         <span className="flex items-center justify-end gap-1">
                           <ArrowDownRight className="h-4 w-4" />
-                          {formatCurrency(dados.totalSaidas)}
+                          {formatCurrency(dados?.totalSaidas ?? 0)}
                         </span>
                       </TableCell>
                       <TableCell className="text-right">
                         <span
                           className={cn(
                             'font-bold',
-                            dados.saldoFinalMes >= 0 ? 'text-green-600' : 'text-red-600'
+                            (dados?.saldoFinalMes ?? 0) >= 0 ? 'text-green-600' : 'text-red-600'
                           )}
                         >
-                          {formatCurrency(dados.saldoFinalMes)}
+                          {formatCurrency(dados?.saldoFinalMes ?? 0)}
                         </span>
                       </TableCell>
                     </TableRow>
@@ -502,12 +511,14 @@ export default function FluxoCaixaDiarioPage() {
               </div>
             </CardContent>
           </Card>
+          )}
 
           {/* Card de Variacao */}
+          {temDadosSuficientes && (
           <Card
             className={cn(
               'animate-fade-in-up border-2',
-              dados.variacaoPeriodo >= 0
+              (dados?.variacaoPeriodo ?? 0) >= 0
                 ? 'border-green-500/20 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20'
                 : 'border-red-500/20 bg-gradient-to-br from-red-50 to-rose-50 dark:from-red-950/20 dark:to-rose-950/20'
             )}
@@ -519,12 +530,12 @@ export default function FluxoCaixaDiarioPage() {
                   <div
                     className={cn(
                       'p-3 rounded-xl',
-                      dados.variacaoPeriodo >= 0
+                      (dados?.variacaoPeriodo ?? 0) >= 0
                         ? 'bg-green-100 dark:bg-green-900/50'
                         : 'bg-red-100 dark:bg-red-900/50'
                     )}
                   >
-                    {dados.variacaoPeriodo >= 0 ? (
+                    {(dados?.variacaoPeriodo ?? 0) >= 0 ? (
                       <ArrowUpRight className="h-6 w-6 text-green-600" />
                     ) : (
                       <ArrowDownRight className="h-6 w-6 text-red-600" />
@@ -535,11 +546,11 @@ export default function FluxoCaixaDiarioPage() {
                     <p
                       className={cn(
                         'text-2xl font-bold',
-                        dados.variacaoPeriodo >= 0 ? 'text-green-600' : 'text-red-600'
+                        (dados?.variacaoPeriodo ?? 0) >= 0 ? 'text-green-600' : 'text-red-600'
                       )}
                     >
-                      {dados.variacaoPeriodo >= 0 ? '+' : ''}
-                      {formatCurrency(dados.variacaoPeriodo)}
+                      {(dados?.variacaoPeriodo ?? 0) >= 0 ? '+' : ''}
+                      {formatCurrency(dados?.variacaoPeriodo ?? 0)}
                     </p>
                   </div>
                 </div>
@@ -547,23 +558,24 @@ export default function FluxoCaixaDiarioPage() {
                 <div className="flex gap-8">
                   <div className="text-center">
                     <p className="text-sm text-muted-foreground">Saldo Inicial</p>
-                    <p className="text-lg font-semibold">{formatCurrency(dados.saldoInicialMes)}</p>
+                    <p className="text-lg font-semibold">{formatCurrency(dados?.saldoInicialMes ?? 0)}</p>
                   </div>
                   <div className="text-center">
                     <p className="text-sm text-muted-foreground">Saldo Final</p>
                     <p
                       className={cn(
                         'text-lg font-semibold',
-                        dados.saldoFinalMes >= 0 ? 'text-green-600' : 'text-red-600'
+                        (dados?.saldoFinalMes ?? 0) >= 0 ? 'text-green-600' : 'text-red-600'
                       )}
                     >
-                      {formatCurrency(dados.saldoFinalMes)}
+                      {formatCurrency(dados?.saldoFinalMes ?? 0)}
                     </p>
                   </div>
                 </div>
               </div>
             </CardContent>
           </Card>
+          )}
         </>
       )}
     </div>

@@ -17,13 +17,14 @@ const config: Config = {
     },
     extend: {
       colors: {
-        // Cores do BM&V baseadas na logo
+        // Cores do BM&V - Paleta Profissional
         bmv: {
-          primary: '#1a365d',      // Azul profundo
-          secondary: '#2d5a87',    // Azul petróleo
-          accent: '#4a7ba7',       // Azul claro
-          steel: '#64748b',        // Cinza metálico
-          light: '#f1f5f9',        // Cinza claro
+          primary: '#1E3A5F',      // Azul escuro institucional
+          secondary: '#0F172A',    // Azul muito escuro (sidebar)
+          accent: '#0D9488',       // Verde petróleo (destaques)
+          steel: '#6B7280',        // Cinza médio (textos secundários)
+          light: '#FAFBFC',        // Cinza muito claro (background)
+          border: '#E5E7EB',       // Cinza claro (bordas)
         },
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',

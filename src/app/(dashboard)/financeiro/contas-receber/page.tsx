@@ -28,6 +28,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import {
+  ArrowDownCircle,
   ArrowDownToLine,
   ArrowLeft,
   Calendar,
@@ -180,7 +181,7 @@ export default function ContasReceberPage() {
 
       // Controller para timeout
       const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 10000) // 10 segundos
+      const timeoutId = setTimeout(() => controller.abort(), 5000) // 5 segundos
 
       try {
         const params = new URLSearchParams()
@@ -249,85 +250,6 @@ export default function ContasReceberPage() {
       }
     }
   }, [user, tenant, authLoading, tenantLoading, search, statusFilter, clienteFilter, periodoFilter, triggerSearch])
-
-  // Dados mock para demonstracao
-  const getMockData = (): ContaReceber[] => {
-    const hoje = new Date()
-    const ontem = new Date(hoje)
-    ontem.setDate(ontem.getDate() - 1)
-    const amanha = new Date(hoje)
-    amanha.setDate(amanha.getDate() + 1)
-    const semanaPassada = new Date(hoje)
-    semanaPassada.setDate(semanaPassada.getDate() - 7)
-    const proximaSemana = new Date(hoje)
-    proximaSemana.setDate(proximaSemana.getDate() + 7)
-
-    return [
-      {
-        id: '1',
-        cliente: 'Tech Solutions Ltda',
-        clienteId: '1',
-        descricao: 'Servicos de Consultoria - Janeiro',
-        documento: 'NF-2024001',
-        parcela: '1/1',
-        valor: 15000,
-        dataEmissao: semanaPassada.toISOString(),
-        dataVencimento: hoje.toISOString(),
-        status: 'PENDENTE',
-      },
-      {
-        id: '2',
-        cliente: 'Comercio ABC',
-        clienteId: '2',
-        descricao: 'Venda de Produtos',
-        documento: 'NF-2024002',
-        parcela: '2/3',
-        valor: 5000,
-        valorPago: 5000,
-        dataEmissao: semanaPassada.toISOString(),
-        dataVencimento: ontem.toISOString(),
-        dataPagamento: ontem.toISOString(),
-        status: 'PAGO',
-      },
-      {
-        id: '3',
-        cliente: 'Industria XYZ',
-        clienteId: '3',
-        descricao: 'Manutencao Mensal',
-        documento: 'NF-2024003',
-        parcela: '1/12',
-        valor: 8500,
-        dataEmissao: new Date(hoje.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString(),
-        dataVencimento: semanaPassada.toISOString(),
-        status: 'VENCIDO',
-      },
-      {
-        id: '4',
-        cliente: 'Servicos Delta',
-        clienteId: '4',
-        descricao: 'Projeto de Desenvolvimento',
-        documento: 'NF-2024004',
-        parcela: '3/3',
-        valor: 12000,
-        dataEmissao: semanaPassada.toISOString(),
-        dataVencimento: proximaSemana.toISOString(),
-        status: 'PENDENTE',
-      },
-      {
-        id: '5',
-        cliente: 'Loja Varejo',
-        clienteId: '5',
-        descricao: 'Licenca de Software',
-        documento: 'NF-2024005',
-        parcela: '1/1',
-        valor: 3500,
-        valorPago: 1500,
-        dataEmissao: semanaPassada.toISOString(),
-        dataVencimento: amanha.toISOString(),
-        status: 'PARCIAL',
-      },
-    ]
-  }
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
@@ -416,72 +338,68 @@ export default function ContasReceberPage() {
         Voltar para Financeiro
       </Link>
 
-      {/* Header com gradiente verde */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-green-600 via-emerald-600 to-teal-600 p-6 text-white animate-fade-in-up">
-        {/* Background pattern */}
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-white rounded-full -translate-y-1/2 translate-x-1/2"></div>
-          <div className="absolute bottom-0 left-0 w-48 h-48 bg-white rounded-full translate-y-1/2 -translate-x-1/2"></div>
-        </div>
-
-        <div className="relative">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <div className="p-3 bg-white/20 rounded-xl backdrop-blur-sm">
-                <TrendingUp className="h-8 w-8" />
-              </div>
-              <div>
-                <h1 className="text-2xl md:text-3xl font-bold">Contas a Receber</h1>
-                <p className="text-green-100 text-sm md:text-base">
-                  Gerencie seus recebiveis e acompanhe pagamentos
-                </p>
-              </div>
-            </div>
-            <Link href="/financeiro/contas-receber/nova">
-              <Button
-                className="bg-white text-green-600 hover:bg-white/90 shadow-lg shadow-green-900/30 transition-all hover:scale-105 font-semibold"
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Nova Conta a Receber
-              </Button>
-            </Link>
+      {/* Header profissional */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 animate-fade-in-up">
+        <div className="flex items-center gap-3">
+          <div className="p-3 bg-gray-100 dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700">
+            <TrendingUp className="h-8 w-8 text-gray-600 dark:text-slate-300" />
           </div>
-
-          {/* Cards de resumo no header */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mt-6">
-            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 transition-all hover:bg-white/20 animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
-              <div className="flex items-center gap-2 mb-1">
-                <Wallet className="h-4 w-4 text-green-200" />
-                <span className="text-xs text-green-200">Total a Receber</span>
-              </div>
-              <p className="text-lg sm:text-xl font-bold">{formatCurrency(totalReceber)}</p>
-            </div>
-
-            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 transition-all hover:bg-white/20 animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
-              <div className="flex items-center gap-2 mb-1">
-                <XCircle className="h-4 w-4 text-red-300" />
-                <span className="text-xs text-green-200">Vencido</span>
-              </div>
-              <p className="text-lg sm:text-xl font-bold text-red-200">{formatCurrency(totalVencido)}</p>
-            </div>
-
-            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 transition-all hover:bg-white/20 animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
-              <div className="flex items-center gap-2 mb-1">
-                <AlertTriangle className="h-4 w-4 text-yellow-300" />
-                <span className="text-xs text-green-200">Vence Hoje</span>
-              </div>
-              <p className="text-lg sm:text-xl font-bold text-yellow-200">{formatCurrency(totalVenceHoje)}</p>
-            </div>
-
-            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 transition-all hover:bg-white/20 animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
-              <div className="flex items-center gap-2 mb-1">
-                <Clock className="h-4 w-4 text-green-200" />
-                <span className="text-xs text-green-200">A Vencer</span>
-              </div>
-              <p className="text-lg sm:text-xl font-bold">{formatCurrency(totalAVencer)}</p>
-            </div>
+          <div>
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-800 dark:text-slate-100">Contas a Receber</h1>
+            <p className="text-gray-500 dark:text-slate-400 text-sm md:text-base">
+              Gerencie seus recebiveis e acompanhe pagamentos
+            </p>
           </div>
         </div>
+        <Link href="/financeiro/contas-receber/nova">
+          <Button className="bg-[#1E3A5F] hover:bg-[#1E3A5F]/90 text-white font-semibold">
+            <Plus className="h-4 w-4 mr-2" />
+            Nova Conta a Receber
+          </Button>
+        </Link>
+      </div>
+
+      {/* Cards de resumo */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
+        <Card className="border border-gray-200 dark:border-slate-700">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2 mb-1">
+              <Wallet className="h-4 w-4 text-gray-500 dark:text-slate-400" />
+              <span className="text-xs text-gray-500 dark:text-slate-400">Total a Receber</span>
+            </div>
+            <p className="text-lg sm:text-xl font-bold text-gray-800 dark:text-slate-100">{formatCurrency(totalReceber)}</p>
+          </CardContent>
+        </Card>
+
+        <Card className="border border-gray-200 dark:border-slate-700">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2 mb-1">
+              <XCircle className="h-4 w-4 text-red-500" />
+              <span className="text-xs text-gray-500 dark:text-slate-400">Vencido</span>
+            </div>
+            <p className="text-lg sm:text-xl font-bold text-red-600">{formatCurrency(totalVencido)}</p>
+          </CardContent>
+        </Card>
+
+        <Card className="border border-gray-200 dark:border-slate-700">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2 mb-1">
+              <AlertTriangle className="h-4 w-4 text-yellow-500" />
+              <span className="text-xs text-gray-500 dark:text-slate-400">Vence Hoje</span>
+            </div>
+            <p className="text-lg sm:text-xl font-bold text-yellow-600">{formatCurrency(totalVenceHoje)}</p>
+          </CardContent>
+        </Card>
+
+        <Card className="border border-gray-200 dark:border-slate-700">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2 mb-1">
+              <Clock className="h-4 w-4 text-gray-500 dark:text-slate-400" />
+              <span className="text-xs text-gray-500 dark:text-slate-400">A Vencer</span>
+            </div>
+            <p className="text-lg sm:text-xl font-bold text-gray-800 dark:text-slate-100">{formatCurrency(totalAVencer)}</p>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Filtros */}
@@ -558,20 +476,21 @@ export default function ContasReceberPage() {
           {contas.length === 0 ? (
             <div className="py-16 text-center">
               <div className="flex flex-col items-center">
-                <div className="relative">
-                  <div className="absolute inset-0 bg-gradient-to-r from-green-500/20 to-emerald-500/20 rounded-full blur-xl"></div>
-                  <div className="relative p-6 bg-gradient-to-br from-green-100 to-emerald-100 dark:from-green-900/30 dark:to-emerald-900/30 rounded-full">
-                    <FileText className="h-12 w-12 text-green-600" />
-                  </div>
+                <div className="p-6 bg-slate-100 dark:bg-slate-800 rounded-full mb-4">
+                  <ArrowDownCircle className="h-12 w-12 text-slate-400 dark:text-slate-500" />
                 </div>
-                <h3 className="text-xl font-semibold mt-4 mb-2">Nenhuma conta a receber</h3>
+                <h3 className="text-xl font-semibold mb-2">
+                  {search || statusFilter !== 'todos' || clienteFilter !== 'todos'
+                    ? 'Nenhum resultado encontrado'
+                    : 'Nenhuma conta a receber cadastrada'}
+                </h3>
                 <p className="text-muted-foreground mb-6 max-w-sm">
                   {search || statusFilter !== 'todos' || clienteFilter !== 'todos'
-                    ? 'Nenhum resultado encontrado. Tente ajustar os filtros.'
-                    : 'Adicione sua primeira conta a receber para comecar a controlar seus recebiveis.'}
+                    ? 'Tente ajustar os filtros para encontrar o que procura.'
+                    : 'Registre suas vendas e recebimentos para acompanhar seu faturamento'}
                 </p>
-                <Link href="/financeiro/contas-receber/nova">
-                  <Button className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white shadow-lg shadow-green-500/25 transition-all hover:scale-105">
+                <Link href="/financeiro/contas-receber/novo">
+                  <Button className="bg-[#1E3A5F] hover:bg-[#1E3A5F]/90 text-white">
                     <Plus className="h-4 w-4 mr-2" />
                     Nova Conta a Receber
                   </Button>

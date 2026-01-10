@@ -217,7 +217,7 @@ export function Header({ user, tenant, onMobileMenuToggle }: HeaderProps) {
   }
 
   return (
-    <header className="sticky top-0 z-30 flex h-14 sm:h-16 items-center justify-between border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 dark:bg-slate-900/95 dark:supports-[backdrop-filter]:bg-slate-900/60 px-3 sm:px-4 lg:px-6">
+    <header className="sticky top-0 z-30 flex h-14 sm:h-16 items-center justify-between border-b border-gray-200 bg-white dark:bg-slate-900 dark:border-slate-800 px-3 sm:px-4 lg:px-6">
       {/* Left side - Menu button (mobile) + Breadcrumb */}
       <div className="flex items-center gap-2 sm:gap-4 flex-1 min-w-0">
         {/* Menu hamburguer - apenas mobile */}
@@ -235,21 +235,21 @@ export function Header({ user, tenant, onMobileMenuToggle }: HeaderProps) {
         <nav className="hidden sm:flex items-center gap-1 text-sm overflow-hidden">
           <Link
             href="/dashboard"
-            className="flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
+            className="flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-slate-300 transition-colors"
           >
             <Home className="h-4 w-4" />
           </Link>
           {breadcrumbs.map((crumb) => (
             <div key={crumb.href} className="flex items-center gap-1">
-              <ChevronRight className="h-4 w-4 text-slate-300 dark:text-slate-600 flex-shrink-0" />
+              <ChevronRight className="h-4 w-4 text-gray-300 dark:text-slate-600 flex-shrink-0" />
               {crumb.isLast ? (
-                <span className="font-medium text-slate-900 dark:text-slate-100 truncate max-w-[100px] md:max-w-[150px]">
+                <span className="font-medium text-gray-800 dark:text-slate-100 truncate max-w-[100px] md:max-w-[150px]">
                   {crumb.label}
                 </span>
               ) : (
                 <Link
                   href={crumb.href}
-                  className="text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 transition-colors truncate max-w-[80px] md:max-w-[120px]"
+                  className="text-gray-500 hover:text-gray-700 dark:text-slate-400 dark:hover:text-slate-200 transition-colors truncate max-w-[80px] md:max-w-[120px]"
                 >
                   {crumb.label}
                 </Link>
@@ -259,7 +259,7 @@ export function Header({ user, tenant, onMobileMenuToggle }: HeaderProps) {
         </nav>
 
         {/* Título da página no mobile pequeno */}
-        <span className="sm:hidden font-medium text-slate-900 dark:text-slate-100 truncate">
+        <span className="sm:hidden font-medium text-gray-800 dark:text-slate-100 truncate">
           {breadcrumbs[breadcrumbs.length - 1]?.label || 'Dashboard'}
         </span>
       </div>

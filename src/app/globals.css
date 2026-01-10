@@ -4,48 +4,50 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    /* Paleta profissional - Modo claro */
+    --background: 210 20% 98%; /* #FAFBFC - cinza muito claro */
+    --foreground: 220 13% 18%; /* #1F2937 - grafite escuro */
+    --card: 0 0% 100%; /* #FFFFFF */
+    --card-foreground: 220 13% 18%; /* #1F2937 */
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-    --primary: 213 56% 23%; /* bmv-primary #1a365d */
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 213 56% 23%;
+    --popover-foreground: 220 13% 18%;
+    --primary: 210 52% 25%; /* #1E3A5F - azul escuro institucional */
+    --primary-foreground: 0 0% 100%; /* #FFFFFF */
+    --secondary: 220 14% 96%; /* #F3F4F6 - cinza claro */
+    --secondary-foreground: 220 13% 18%;
+    --muted: 220 14% 96%; /* #F3F4F6 */
+    --muted-foreground: 220 9% 46%; /* #6B7280 - cinza médio */
+    --accent: 174 62% 32%; /* #0D9488 - verde petróleo */
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 84% 60%; /* #EF4444 - vermelho */
+    --destructive-foreground: 0 0% 100%;
+    --border: 220 13% 91%; /* #E5E7EB - cinza claro */
+    --input: 220 13% 91%;
+    --ring: 210 52% 25%;
     --radius: 0.5rem;
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
+    /* Paleta profissional - Modo escuro */
+    --background: 222 47% 11%; /* #0F172A */
     --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
+    --card: 222 47% 11%;
     --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
+    --popover: 222 47% 11%;
     --popover-foreground: 210 40% 98%;
     --primary: 210 40% 98%;
-    --primary-foreground: 213 56% 23%;
-    --secondary: 217.2 32.6% 17.5%;
+    --primary-foreground: 210 52% 25%;
+    --secondary: 217 33% 17%;
     --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
+    --muted: 217 33% 17%;
+    --muted-foreground: 215 20% 65%;
+    --accent: 174 62% 40%; /* verde petróleo mais claro no dark */
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 63% 31%;
     --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
+    --border: 217 33% 17%;
+    --input: 217 33% 17%;
+    --ring: 212 27% 84%;
   }
 }
 
@@ -272,10 +274,10 @@
 
 @keyframes glow {
   0%, 100% {
-    box-shadow: 0 0 5px rgba(26, 54, 93, 0.2);
+    box-shadow: 0 0 5px rgba(30, 58, 95, 0.2);
   }
   50% {
-    box-shadow: 0 0 20px rgba(26, 54, 93, 0.4);
+    box-shadow: 0 0 20px rgba(30, 58, 95, 0.4);
   }
 }
 
@@ -301,7 +303,7 @@
 
 /* Gradiente do BM&V */
 .bmv-gradient {
-  background: linear-gradient(135deg, #1a365d 0%, #2d5a87 100%);
+  background: linear-gradient(135deg, #1E3A5F 0%, #0F172A 100%);
 }
 
 /* Status badges */

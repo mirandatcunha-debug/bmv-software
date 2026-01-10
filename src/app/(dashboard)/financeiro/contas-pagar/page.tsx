@@ -29,6 +29,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import {
   ArrowLeft,
+  ArrowUpCircle,
   Calendar,
   CheckCircle2,
   Clock,
@@ -186,15 +187,13 @@ export default function ContasPagarPage() {
         const response = await fetch(`/api/financeiro/contas-pagar?${params.toString()}`)
         if (response.ok) {
           const data = await response.json()
-          setContas(data)
+          setContas(Array.isArray(data) ? data : [])
         } else {
-          // Se a API nao existe ainda, usar dados mock
-          setContas(getMockData())
+          setContas([])
         }
       } catch (err) {
         console.error('Erro ao buscar contas a pagar:', err)
-        // Fallback para dados mock em caso de erro
-        setContas(getMockData())
+        setContas([])
       } finally {
         setLoading(false)
       }
@@ -212,85 +211,6 @@ export default function ContasPagarPage() {
       }
     }
   }, [user, tenant, authLoading, tenantLoading, search, statusFilter, fornecedorFilter, periodoFilter, triggerSearch])
-
-  // Dados mock para demonstracao
-  const getMockData = (): ContaPagar[] => {
-    const hoje = new Date()
-    const ontem = new Date(hoje)
-    ontem.setDate(ontem.getDate() - 1)
-    const amanha = new Date(hoje)
-    amanha.setDate(amanha.getDate() + 1)
-    const semanaPassada = new Date(hoje)
-    semanaPassada.setDate(semanaPassada.getDate() - 7)
-    const proximaSemana = new Date(hoje)
-    proximaSemana.setDate(proximaSemana.getDate() + 7)
-
-    return [
-      {
-        id: '1',
-        fornecedor: 'Distribuidora ABC Ltda',
-        fornecedorId: '1',
-        descricao: 'Compra de materiais - Janeiro',
-        documento: 'NF-2024001',
-        parcela: '1/3',
-        valor: 12000,
-        dataEmissao: semanaPassada.toISOString(),
-        dataVencimento: hoje.toISOString(),
-        status: 'PENDENTE',
-      },
-      {
-        id: '2',
-        fornecedor: 'Papelaria Central',
-        fornecedorId: '2',
-        descricao: 'Material de escritorio',
-        documento: 'NF-2024002',
-        parcela: '1/1',
-        valor: 850,
-        valorPago: 850,
-        dataEmissao: semanaPassada.toISOString(),
-        dataVencimento: ontem.toISOString(),
-        dataPagamento: ontem.toISOString(),
-        status: 'PAGO',
-      },
-      {
-        id: '3',
-        fornecedor: 'Energia Eletrica S/A',
-        fornecedorId: '3',
-        descricao: 'Conta de luz - Dezembro',
-        documento: 'FAT-122024',
-        parcela: '1/1',
-        valor: 2500,
-        dataEmissao: new Date(hoje.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString(),
-        dataVencimento: semanaPassada.toISOString(),
-        status: 'VENCIDO',
-      },
-      {
-        id: '4',
-        fornecedor: 'Aluguel Comercial',
-        fornecedorId: '4',
-        descricao: 'Aluguel do escritorio - Fevereiro',
-        documento: 'REC-022024',
-        parcela: '2/12',
-        valor: 8000,
-        dataEmissao: semanaPassada.toISOString(),
-        dataVencimento: proximaSemana.toISOString(),
-        status: 'PENDENTE',
-      },
-      {
-        id: '5',
-        fornecedor: 'Telefonia Brasil',
-        fornecedorId: '5',
-        descricao: 'Internet e telefone',
-        documento: 'FAT-012024',
-        parcela: '1/1',
-        valor: 450,
-        valorPago: 200,
-        dataEmissao: semanaPassada.toISOString(),
-        dataVencimento: amanha.toISOString(),
-        status: 'PARCIAL',
-      },
-    ]
-  }
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
@@ -325,8 +245,8 @@ export default function ContasPagarPage() {
     })
     .reduce((acc, c) => acc + c.valor, 0)
 
-  // Loading state
-  if (authLoading || loading) {
+  // Loading state - só mostra loading se ainda está buscando dados
+  if (authLoading || tenantLoading) {
     return (
       <div className="flex items-center justify-center p-8">
         <Loader2 className="h-8 w-8 animate-spin text-red-600" />
@@ -345,72 +265,68 @@ export default function ContasPagarPage() {
         Voltar para Financeiro
       </Link>
 
-      {/* Header com gradiente vermelho */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-red-600 via-rose-600 to-pink-600 p-6 text-white animate-fade-in-up">
-        {/* Background pattern */}
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-white rounded-full -translate-y-1/2 translate-x-1/2"></div>
-          <div className="absolute bottom-0 left-0 w-48 h-48 bg-white rounded-full translate-y-1/2 -translate-x-1/2"></div>
-        </div>
-
-        <div className="relative">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <div className="p-3 bg-white/20 rounded-xl backdrop-blur-sm">
-                <TrendingDown className="h-8 w-8" />
-              </div>
-              <div>
-                <h1 className="text-2xl md:text-3xl font-bold">Contas a Pagar</h1>
-                <p className="text-red-100 text-sm md:text-base">
-                  Gerencie suas despesas e controle pagamentos
-                </p>
-              </div>
-            </div>
-            <Link href="/financeiro/contas-pagar/nova">
-              <Button
-                className="bg-white text-red-600 hover:bg-white/90 shadow-lg shadow-red-900/30 transition-all hover:scale-105 font-semibold"
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Nova Conta a Pagar
-              </Button>
-            </Link>
+      {/* Header profissional */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 animate-fade-in-up">
+        <div className="flex items-center gap-3">
+          <div className="p-3 bg-gray-100 dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700">
+            <TrendingDown className="h-8 w-8 text-gray-600 dark:text-slate-300" />
           </div>
-
-          {/* Cards de resumo no header */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mt-6">
-            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 transition-all hover:bg-white/20 animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
-              <div className="flex items-center gap-2 mb-1">
-                <Wallet className="h-4 w-4 text-red-200" />
-                <span className="text-xs text-red-200">Total a Pagar</span>
-              </div>
-              <p className="text-lg sm:text-xl font-bold">{formatCurrency(totalPagar)}</p>
-            </div>
-
-            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 transition-all hover:bg-white/20 animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
-              <div className="flex items-center gap-2 mb-1">
-                <XCircle className="h-4 w-4 text-red-300" />
-                <span className="text-xs text-red-200">Vencido</span>
-              </div>
-              <p className="text-lg sm:text-xl font-bold text-red-200">{formatCurrency(totalVencido)}</p>
-            </div>
-
-            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 transition-all hover:bg-white/20 animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
-              <div className="flex items-center gap-2 mb-1">
-                <AlertTriangle className="h-4 w-4 text-yellow-300" />
-                <span className="text-xs text-red-200">Vence Hoje</span>
-              </div>
-              <p className="text-lg sm:text-xl font-bold text-yellow-200">{formatCurrency(totalVenceHoje)}</p>
-            </div>
-
-            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 transition-all hover:bg-white/20 animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
-              <div className="flex items-center gap-2 mb-1">
-                <Clock className="h-4 w-4 text-red-200" />
-                <span className="text-xs text-red-200">A Vencer</span>
-              </div>
-              <p className="text-lg sm:text-xl font-bold">{formatCurrency(totalAVencer)}</p>
-            </div>
+          <div>
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-800 dark:text-slate-100">Contas a Pagar</h1>
+            <p className="text-gray-500 dark:text-slate-400 text-sm md:text-base">
+              Gerencie suas despesas e controle pagamentos
+            </p>
           </div>
         </div>
+        <Link href="/financeiro/contas-pagar/nova">
+          <Button className="bg-[#1E3A5F] hover:bg-[#1E3A5F]/90 text-white font-semibold">
+            <Plus className="h-4 w-4 mr-2" />
+            Nova Conta a Pagar
+          </Button>
+        </Link>
+      </div>
+
+      {/* Cards de resumo */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
+        <Card className="border border-gray-200 dark:border-slate-700">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2 mb-1">
+              <Wallet className="h-4 w-4 text-gray-500 dark:text-slate-400" />
+              <span className="text-xs text-gray-500 dark:text-slate-400">Total a Pagar</span>
+            </div>
+            <p className="text-lg sm:text-xl font-bold text-gray-800 dark:text-slate-100">{formatCurrency(totalPagar)}</p>
+          </CardContent>
+        </Card>
+
+        <Card className="border border-gray-200 dark:border-slate-700">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2 mb-1">
+              <XCircle className="h-4 w-4 text-red-500" />
+              <span className="text-xs text-gray-500 dark:text-slate-400">Vencido</span>
+            </div>
+            <p className="text-lg sm:text-xl font-bold text-red-600">{formatCurrency(totalVencido)}</p>
+          </CardContent>
+        </Card>
+
+        <Card className="border border-gray-200 dark:border-slate-700">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2 mb-1">
+              <AlertTriangle className="h-4 w-4 text-yellow-500" />
+              <span className="text-xs text-gray-500 dark:text-slate-400">Vence Hoje</span>
+            </div>
+            <p className="text-lg sm:text-xl font-bold text-yellow-600">{formatCurrency(totalVenceHoje)}</p>
+          </CardContent>
+        </Card>
+
+        <Card className="border border-gray-200 dark:border-slate-700">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2 mb-1">
+              <Clock className="h-4 w-4 text-gray-500 dark:text-slate-400" />
+              <span className="text-xs text-gray-500 dark:text-slate-400">A Vencer</span>
+            </div>
+            <p className="text-lg sm:text-xl font-bold text-gray-800 dark:text-slate-100">{formatCurrency(totalAVencer)}</p>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Filtros */}
@@ -487,20 +403,15 @@ export default function ContasPagarPage() {
           {contas.length === 0 ? (
             <div className="py-16 text-center">
               <div className="flex flex-col items-center">
-                <div className="relative">
-                  <div className="absolute inset-0 bg-gradient-to-r from-red-500/20 to-rose-500/20 rounded-full blur-xl"></div>
-                  <div className="relative p-6 bg-gradient-to-br from-red-100 to-rose-100 dark:from-red-900/30 dark:to-rose-900/30 rounded-full">
-                    <FileText className="h-12 w-12 text-red-600" />
-                  </div>
-                </div>
-                <h3 className="text-xl font-semibold mt-4 mb-2">Nenhuma conta a pagar</h3>
+                <ArrowUpCircle className="h-16 w-16 text-gray-300 dark:text-gray-600 mb-4" />
+                <h3 className="text-xl font-semibold mb-2">Nenhuma conta a pagar cadastrada</h3>
                 <p className="text-muted-foreground mb-6 max-w-sm">
                   {search || statusFilter !== 'todos' || fornecedorFilter !== 'todos'
                     ? 'Nenhum resultado encontrado. Tente ajustar os filtros.'
-                    : 'Adicione sua primeira conta a pagar para comecar a controlar suas despesas.'}
+                    : 'Registre suas despesas e compromissos para manter o controle financeiro'}
                 </p>
                 <Link href="/financeiro/contas-pagar/nova">
-                  <Button className="bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white shadow-lg shadow-red-500/25 transition-all hover:scale-105">
+                  <Button className="bg-[#1E3A5F] hover:bg-[#1E3A5F]/90 text-white">
                     <Plus className="h-4 w-4 mr-2" />
                     Nova Conta a Pagar
                   </Button>

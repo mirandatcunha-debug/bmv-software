@@ -211,14 +211,14 @@ export function Sidebar({ isMobileOpen = false, onMobileClose }: SidebarProps) {
     <>
       {/* Logo BMV */}
       <div className={cn(
-        'flex items-center border-b border-slate-200 dark:border-slate-800 h-16',
+        'flex items-center border-b border-white/10 h-16',
         'transition-all duration-300 ease-in-out',
         isCollapsed ? 'justify-center px-2' : 'px-4'
       )}>
         <Link href="/dashboard" className="flex items-center gap-3 group" onClick={handleItemClick}>
           <div className={cn(
-            'relative flex items-center justify-center rounded-xl bg-gradient-to-br from-bmv-primary to-bmv-blue shadow-lg',
-            'transition-all duration-300 ease-in-out group-hover:shadow-bmv-primary/30 group-hover:scale-105',
+            'relative flex items-center justify-center rounded-xl bg-white/10 shadow-lg',
+            'transition-all duration-300 ease-in-out group-hover:bg-white/20 group-hover:scale-105',
             isCollapsed ? 'w-10 h-10' : 'w-10 h-10'
           )}>
             <span className="text-white font-bold text-lg">B</span>
@@ -228,8 +228,8 @@ export function Sidebar({ isMobileOpen = false, onMobileClose }: SidebarProps) {
             'flex flex-col overflow-hidden transition-all duration-300 ease-in-out',
             isCollapsed ? 'w-0 opacity-0 lg:w-0' : 'w-auto opacity-100'
           )}>
-            <span className="font-bold text-lg text-bmv-primary leading-tight">BM&V</span>
-            <span className="text-[10px] text-slate-400 uppercase tracking-wider">Consultoria</span>
+            <span className="font-bold text-lg text-white leading-tight">BM&V</span>
+            <span className="text-[10px] text-white/60 uppercase tracking-wider">Consultoria</span>
           </div>
         </Link>
 
@@ -237,7 +237,7 @@ export function Sidebar({ isMobileOpen = false, onMobileClose }: SidebarProps) {
         <Button
           variant="ghost"
           size="icon"
-          className="lg:hidden ml-auto"
+          className="lg:hidden ml-auto text-white hover:bg-white/10"
           onClick={onMobileClose}
         >
           <X className="h-5 w-5" />
@@ -249,14 +249,14 @@ export function Sidebar({ isMobileOpen = false, onMobileClose }: SidebarProps) {
         variant="outline"
         size="icon"
         className={cn(
-          'absolute -right-3 top-[70px] h-6 w-6 rounded-full border bg-white dark:bg-slate-800 shadow-md z-50',
-          'transition-all duration-300 ease-in-out hover:bg-slate-50 dark:hover:bg-slate-700',
+          'absolute -right-3 top-[70px] h-6 w-6 rounded-full border border-gray-200 bg-white shadow-md z-50',
+          'transition-all duration-300 ease-in-out hover:bg-gray-50',
           'hover:scale-110',
           'hidden lg:flex'
         )}
         onClick={() => setIsCollapsed(!isCollapsed)}
       >
-        <div className="transition-transform duration-300 ease-in-out">
+        <div className="transition-transform duration-300 ease-in-out text-gray-600">
           {isCollapsed ? (
             <ChevronRight className="h-3 w-3" />
           ) : (
@@ -283,14 +283,14 @@ export function Sidebar({ isMobileOpen = false, onMobileClose }: SidebarProps) {
                       'group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium w-full',
                       'transition-all duration-200 ease-in-out',
                       isActive
-                        ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400'
-                        : 'text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800',
+                        ? 'bg-white/10 text-white'
+                        : 'text-white/70 hover:bg-white/5 hover:text-white',
                       isCollapsed && 'lg:justify-center lg:px-2'
                     )}
                   >
                     <span className={cn(
                       'transition-colors duration-200',
-                      isActive ? 'text-emerald-600' : item.iconColor
+                      isActive ? 'text-white' : 'text-white/70'
                     )}>
                       {item.icon}
                     </span>
@@ -304,7 +304,7 @@ export function Sidebar({ isMobileOpen = false, onMobileClose }: SidebarProps) {
 
                     {!isCollapsed && (
                       <ChevronDown className={cn(
-                        'h-4 w-4 transition-transform duration-200',
+                        'h-4 w-4 transition-transform duration-200 text-white/50',
                         isExpanded && 'rotate-180'
                       )} />
                     )}
@@ -325,7 +325,7 @@ export function Sidebar({ isMobileOpen = false, onMobileClose }: SidebarProps) {
 
                   {/* SubItems */}
                   {!isCollapsed && isExpanded && (
-                    <div className="ml-4 mt-1 space-y-1 border-l-2 border-slate-200 dark:border-slate-700 pl-3">
+                    <div className="ml-4 mt-1 space-y-1 border-l-2 border-white/20 pl-3">
                       {item.subItems!.map((subItem) => {
                         const isSubActive = pathname === subItem.href ||
                           (subItem.href !== '/financeiro' && pathname.startsWith(subItem.href + '/'))
@@ -338,11 +338,11 @@ export function Sidebar({ isMobileOpen = false, onMobileClose }: SidebarProps) {
                               'flex items-center gap-2 rounded-lg px-3 py-2 text-sm',
                               'transition-all duration-200 ease-in-out',
                               isSubActive
-                                ? 'bg-bmv-primary text-white shadow-md'
-                                : 'text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800'
+                                ? 'bg-white/10 text-white'
+                                : 'text-white/60 hover:bg-white/5 hover:text-white'
                             )}
                           >
-                            <span className={isSubActive ? 'text-white' : 'text-slate-400'}>
+                            <span className={isSubActive ? 'text-white' : 'text-white/50'}>
                               {subItem.icon}
                             </span>
                             <span>{subItem.title}</span>
@@ -365,8 +365,8 @@ export function Sidebar({ isMobileOpen = false, onMobileClose }: SidebarProps) {
                   'group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium',
                   'transition-all duration-200 ease-in-out',
                   isActive
-                    ? 'bg-bmv-primary text-white shadow-lg shadow-bmv-primary/25'
-                    : 'text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800',
+                    ? 'bg-white/10 text-white'
+                    : 'text-white/70 hover:bg-white/5 hover:text-white',
                   isCollapsed && 'lg:justify-center lg:px-2'
                 )}
               >
@@ -377,7 +377,7 @@ export function Sidebar({ isMobileOpen = false, onMobileClose }: SidebarProps) {
 
                 <span className={cn(
                   'transition-colors duration-200',
-                  isActive ? 'text-white' : item.iconColor
+                  isActive ? 'text-white' : 'text-white/70'
                 )}>
                   {item.icon}
                 </span>
@@ -435,12 +435,12 @@ export function Sidebar({ isMobileOpen = false, onMobileClose }: SidebarProps) {
                 isCollapsed ? 'lg:justify-center' : 'px-3'
               )}>
                 {!isCollapsed && (
-                  <span className="text-[10px] font-semibold uppercase text-slate-400 tracking-wider">
+                  <span className="text-[10px] font-semibold uppercase text-white/40 tracking-wider">
                     Administração
                   </span>
                 )}
                 <Shield className={cn(
-                  'h-3 w-3 text-slate-400',
+                  'h-3 w-3 text-white/40',
                   'transition-all duration-300'
                 )} />
               </div>
@@ -455,8 +455,8 @@ export function Sidebar({ isMobileOpen = false, onMobileClose }: SidebarProps) {
                       'group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium',
                       'transition-all duration-200 ease-in-out',
                       isActive
-                        ? 'bg-bmv-primary text-white shadow-lg shadow-bmv-primary/25'
-                        : 'text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800',
+                        ? 'bg-white/10 text-white'
+                        : 'text-white/70 hover:bg-white/5 hover:text-white',
                       isCollapsed && 'lg:justify-center lg:px-2'
                     )}
                   >
@@ -465,7 +465,7 @@ export function Sidebar({ isMobileOpen = false, onMobileClose }: SidebarProps) {
                     )}
                     <span className={cn(
                       'transition-colors duration-200',
-                      isActive ? 'text-white' : item.iconColor
+                      isActive ? 'text-white' : 'text-white/70'
                     )}>
                       {item.icon}
                     </span>
@@ -496,7 +496,7 @@ export function Sidebar({ isMobileOpen = false, onMobileClose }: SidebarProps) {
       </nav>
 
       {/* Bottom Section */}
-      <div className="border-t border-slate-200 dark:border-slate-800 p-3 space-y-1">
+      <div className="border-t border-white/10 p-3 space-y-1">
         {bottomItems.map((item) => {
           const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
           return (
@@ -508,14 +508,14 @@ export function Sidebar({ isMobileOpen = false, onMobileClose }: SidebarProps) {
                 'group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium',
                 'transition-all duration-200 ease-in-out',
                 isActive
-                  ? 'bg-bmv-primary text-white shadow-lg shadow-bmv-primary/25'
-                  : 'text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800',
+                  ? 'bg-white/10 text-white'
+                  : 'text-white/70 hover:bg-white/5 hover:text-white',
                 isCollapsed && 'lg:justify-center lg:px-2'
               )}
             >
               <span className={cn(
                 'transition-colors duration-200',
-                isActive ? 'text-white' : item.iconColor
+                isActive ? 'text-white' : 'text-white/70'
               )}>
                 {item.icon}
               </span>
@@ -550,11 +550,11 @@ export function Sidebar({ isMobileOpen = false, onMobileClose }: SidebarProps) {
           className={cn(
             'group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium',
             'transition-all duration-200 ease-in-out',
-            'text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800',
+            'text-white/70 hover:bg-white/5 hover:text-white',
             isCollapsed && 'lg:justify-center lg:px-2'
           )}
         >
-          <HelpCircle className="h-5 w-5 text-slate-500" />
+          <HelpCircle className="h-5 w-5 text-white/70" />
           <span className={cn(
             'transition-all duration-300 ease-in-out whitespace-nowrap flex items-center gap-1',
             isCollapsed ? 'lg:w-0 lg:opacity-0 lg:hidden' : 'w-auto opacity-100'
@@ -579,12 +579,12 @@ export function Sidebar({ isMobileOpen = false, onMobileClose }: SidebarProps) {
 
       {/* Footer */}
       <div className={cn(
-        'border-t border-slate-200 dark:border-slate-800 py-3 px-3',
+        'border-t border-white/10 py-3 px-3',
         'transition-all duration-300 ease-in-out',
         isCollapsed ? 'lg:text-center' : ''
       )}>
         <div className={cn(
-          'text-[10px] text-slate-400',
+          'text-[10px] text-white/40',
           'transition-all duration-300 ease-in-out'
         )}>
           {isCollapsed ? (
@@ -592,13 +592,13 @@ export function Sidebar({ isMobileOpen = false, onMobileClose }: SidebarProps) {
           ) : (
             <div className="flex items-center justify-between">
               <span>BMV Software v1.0.0</span>
-              <span className="text-slate-300">2026</span>
+              <span className="text-white/30">2026</span>
             </div>
           )}
           {/* Mobile sempre mostra versão completa */}
           <div className="lg:hidden flex items-center justify-between">
             <span>BMV Software v1.0.0</span>
-            <span className="text-slate-300">2026</span>
+            <span className="text-white/30">2026</span>
           </div>
         </div>
       </div>
@@ -618,7 +618,7 @@ export function Sidebar({ isMobileOpen = false, onMobileClose }: SidebarProps) {
       {/* Sidebar Desktop */}
       <aside
         className={cn(
-          'fixed left-0 top-0 z-40 h-screen bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col',
+          'fixed left-0 top-0 z-40 h-screen bg-gradient-to-b from-[#1E3A5F] to-[#0F172A] border-r border-[#1E3A5F]/20 flex flex-col',
           'transition-all duration-300 ease-in-out',
           'hidden lg:flex',
           isCollapsed ? 'w-[72px]' : 'w-64'
@@ -630,7 +630,7 @@ export function Sidebar({ isMobileOpen = false, onMobileClose }: SidebarProps) {
       {/* Sidebar Mobile (Drawer) */}
       <aside
         className={cn(
-          'fixed left-0 top-0 z-50 h-screen bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col',
+          'fixed left-0 top-0 z-50 h-screen bg-gradient-to-b from-[#1E3A5F] to-[#0F172A] border-r border-[#1E3A5F]/20 flex flex-col',
           'transition-all duration-300 ease-in-out',
           'lg:hidden w-72',
           isMobileOpen ? 'translate-x-0' : '-translate-x-full'
