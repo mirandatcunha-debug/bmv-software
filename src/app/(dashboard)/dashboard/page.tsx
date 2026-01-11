@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import {
   InsightsCard,
   ResumoFinanceiro,
@@ -9,7 +9,12 @@ import {
   AcoesRapidas,
   GraficoMiniFluxo,
   AtividadesWidget,
+  WidgetContainer,
+  DashboardGrid,
+  WidgetSelector,
+  WIDGETS_DISPONIVEIS,
 } from '@/components/dashboard'
+import type { WidgetPosition } from '@/components/dashboard'
 import {
   TrialCountdown,
   IAInsightCard,
@@ -18,6 +23,7 @@ import {
   UpgradeBanner,
 } from '@/components/upgrade'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
 import { Insight } from '@/types/insights'
 import { cn } from '@/lib/utils'
 import {
@@ -27,6 +33,8 @@ import {
   Wallet,
   Brain,
   Sparkles,
+  Settings2,
+  LayoutGrid,
 } from 'lucide-react'
 import {
   resumoFinanceiro as demoResumoFinanceiro,
@@ -78,6 +86,11 @@ interface DashboardData {
   }
 }
 
+interface DashboardConfig {
+  widgets: string[]
+  layout: WidgetPosition[]
+}
+
 // Insights mockados da IA para demonstração
 const insightsMockadosIA = [
   {
@@ -105,6 +118,26 @@ const insightsMockadosIA = [
     icone: 'economia' as const,
   },
 ]
+
+// Configuração padrão do dashboard
+const DEFAULT_CONFIG: DashboardConfig = {
+  widgets: [
+    'insights-ia',
+    'indicadores-financeiros',
+    'grafico-receitas-despesas',
+    'atividades-equipe',
+    'objetivos-okr',
+    'projeto-consultoria',
+  ],
+  layout: [
+    { id: 'insights-ia', x: 0, y: 0, w: 2, h: 1 },
+    { id: 'indicadores-financeiros', x: 0, y: 1, w: 2, h: 1 },
+    { id: 'grafico-receitas-despesas', x: 0, y: 2, w: 2, h: 1 },
+    { id: 'atividades-equipe', x: 0, y: 3, w: 2, h: 1 },
+    { id: 'objetivos-okr', x: 0, y: 4, w: 1, h: 1 },
+    { id: 'projeto-consultoria', x: 1, y: 4, w: 1, h: 1 },
+  ],
+}
 
 function formatCurrency(value: number): string {
   return value.toLocaleString('pt-BR', {
@@ -163,9 +196,27 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true)
   const [data, setData] = useState<DashboardData | null>(null)
   const [currentDate] = useState(new Date())
+  const [dashboardConfig, setDashboardConfig] = useState<DashboardConfig>(DEFAULT_CONFIG)
+  const [isCustomizing, setIsCustomizing] = useState(false)
+  const [showWidgetSelector, setShowWidgetSelector] = useState(false)
+
+  const fetchDashboardConfig = useCallback(async () => {
+    try {
+      const response = await fetch('/api/usuario/dashboard-config')
+      if (response.ok) {
+        const config = await response.json()
+        if (config.widgets && config.layout) {
+          setDashboardConfig(config)
+        }
+      }
+    } catch (err) {
+      console.error('Erro ao carregar config do dashboard:', err)
+    }
+  }, [])
 
   useEffect(() => {
     fetchDashboardData()
+    fetchDashboardConfig()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -184,6 +235,53 @@ export default function DashboardPage() {
     } finally {
       setLoading(false)
     }
+  }
+
+  const saveDashboardConfig = async (config: DashboardConfig) => {
+    try {
+      await fetch('/api/usuario/dashboard-config', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(config),
+      })
+    } catch (err) {
+      console.error('Erro ao salvar config do dashboard:', err)
+    }
+  }
+
+  const handleLayoutChange = (newLayout: WidgetPosition[]) => {
+    const newConfig = { ...dashboardConfig, layout: newLayout }
+    setDashboardConfig(newConfig)
+    saveDashboardConfig(newConfig)
+  }
+
+  const handleWidgetSelectionChange = (widgets: string[]) => {
+    // Create layout for new widgets
+    const newLayout = widgets.map((id, index) => {
+      const existing = dashboardConfig.layout.find(l => l.id === id)
+      if (existing) return existing
+      // New widget - add at the end
+      const isFullWidth = ['insights-ia', 'indicadores-financeiros', 'grafico-receitas-despesas', 'atividades-equipe', 'resumo-financeiro', 'fluxo-caixa'].includes(id)
+      return {
+        id,
+        x: 0,
+        y: index,
+        w: isFullWidth ? 2 : 1,
+        h: 1,
+      }
+    })
+
+    const newConfig = { widgets, layout: newLayout }
+    setDashboardConfig(newConfig)
+    saveDashboardConfig(newConfig)
+  }
+
+  const handleRemoveWidget = (widgetId: string) => {
+    const newWidgets = dashboardConfig.widgets.filter(id => id !== widgetId)
+    const newLayout = dashboardConfig.layout.filter(l => l.id !== widgetId)
+    const newConfig = { widgets: newWidgets, layout: newLayout }
+    setDashboardConfig(newConfig)
+    saveDashboardConfig(newConfig)
   }
 
   // Função para mapear status do demo-data para o formato esperado
@@ -288,6 +386,128 @@ export default function DashboardPage() {
   const isBasico = plano?.tipo === 'BASICO'
   const mostrarUpgradeBanner = isTrial || isBasico
 
+  // Render widget content by ID
+  const renderWidgetContent = (widgetId: string) => {
+    switch (widgetId) {
+      case 'insights-ia':
+        return (
+          <Card className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 overflow-hidden">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-gray-800 dark:text-slate-100">
+                  <div className="p-2 rounded-xl bg-gray-100 dark:bg-slate-800">
+                    <Brain className="h-5 w-5 text-gray-600 dark:text-slate-300" />
+                  </div>
+                  <div>
+                    <span className="block">Insights da IA</span>
+                    <span className="text-xs font-normal text-gray-500 dark:text-slate-400">
+                      Análises inteligentes do seu negócio
+                    </span>
+                  </div>
+                  <Sparkles className="h-4 w-4 text-[#0D9488] ml-1" />
+                </div>
+                <div className="flex items-center gap-3">
+                  <UsageCounter
+                    usado={plano?.analisesIAUsadas || 0}
+                    limite={plano?.analisesIALimite || 3}
+                    tipo="analises_ia"
+                    className="hidden sm:block w-40"
+                  />
+                  <IAAnaliseButton
+                    bloqueado={(plano?.analisesIAUsadas || 0) >= (plano?.analisesIALimite || 3)}
+                    onClick={() => {
+                      console.log('Gerando nova análise...')
+                    }}
+                  />
+                </div>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="sm:hidden mb-4">
+                <UsageCounter
+                  usado={plano?.analisesIAUsadas || 0}
+                  limite={plano?.analisesIALimite || 3}
+                  tipo="analises_ia"
+                />
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2">
+                {insightsMockadosIA.map((insight, index) => (
+                  <IAInsightCard
+                    key={index}
+                    titulo={insight.titulo}
+                    descricao={insight.descricao}
+                    tipo={insight.tipo}
+                    icone={insight.icone}
+                  />
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )
+
+      case 'indicadores-financeiros':
+        return (
+          <InsightsCard
+            insights={data?.insights || []}
+            loading={loading}
+          />
+        )
+
+      case 'resumo-financeiro':
+      case 'grafico-receitas-despesas':
+        return (
+          <ResumoFinanceiro
+            saldoTotal={data?.financeiro?.saldoTotal || 0}
+            receitasMes={data?.financeiro?.receitasMes || 0}
+            receitasMesAnterior={data?.financeiro?.receitasMesAnterior || 0}
+            despesasMes={data?.financeiro?.despesasMes || 0}
+            despesasMesAnterior={data?.financeiro?.despesasMesAnterior || 0}
+            resultado={data?.financeiro?.resultado || 0}
+            loading={loading}
+          />
+        )
+
+      case 'fluxo-caixa':
+        return <GraficoMiniFluxo loading={loading} />
+
+      case 'atividades-equipe':
+        return <AtividadesWidget />
+
+      case 'objetivos-okr':
+        return (
+          <OKRsDestaque
+            okrs={data?.okrs || []}
+            loading={loading}
+          />
+        )
+
+      case 'projeto-consultoria':
+        return (
+          <ProjetoCard
+            projeto={data?.projeto || null}
+            loading={loading}
+          />
+        )
+
+      default:
+        return (
+          <div className="p-4 text-center text-gray-500">
+            Widget não encontrado
+          </div>
+        )
+    }
+  }
+
+  const getWidgetIcon = (widgetId: string) => {
+    const widget = WIDGETS_DISPONIVEIS.find(w => w.id === widgetId)
+    return widget?.icone
+  }
+
+  const getWidgetTitle = (widgetId: string) => {
+    const widget = WIDGETS_DISPONIVEIS.find(w => w.id === widgetId)
+    return widget?.nome || widgetId
+  }
+
   return (
     <div className="space-y-4 sm:space-y-6">
       {/* Header com gradiente sutil */}
@@ -299,12 +519,23 @@ export default function DashboardPage() {
         </div>
 
         <div className="relative">
-          {/* Data atual */}
-          <div className="flex items-center gap-2 text-blue-100 text-xs sm:text-sm mb-2 sm:mb-3 animate-fade-in-up">
-            <Calendar className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-            {/* Data completa no desktop, curta no mobile */}
-            <span className="hidden sm:inline">{formatDate(currentDate)}</span>
-            <span className="sm:hidden">{formatDateShort(currentDate)}</span>
+          {/* Header row com data e botão personalizar */}
+          <div className="flex items-center justify-between mb-2 sm:mb-3">
+            <div className="flex items-center gap-2 text-blue-100 text-xs sm:text-sm animate-fade-in-up">
+              <Calendar className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+              <span className="hidden sm:inline">{formatDate(currentDate)}</span>
+              <span className="sm:hidden">{formatDateShort(currentDate)}</span>
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-blue-100 hover:text-white hover:bg-white/10 gap-2"
+              onClick={() => setShowWidgetSelector(true)}
+            >
+              <LayoutGrid className="h-4 w-4" />
+              <span className="hidden sm:inline">Personalizar Dashboard</span>
+              <span className="sm:hidden">Personalizar</span>
+            </Button>
           </div>
 
           {/* Saudacao */}
@@ -383,119 +614,29 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* SECAO INSIGHTS DA IA - Nova seção com cards mockados */}
-      <Card className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 overflow-hidden animate-fade-in-up animate-stagger-1">
-        <CardHeader className="pb-3">
-          <CardTitle className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-gray-800 dark:text-slate-100">
-              <div className="p-2 rounded-xl bg-gray-100 dark:bg-slate-800">
-                <Brain className="h-5 w-5 text-gray-600 dark:text-slate-300" />
-              </div>
-              <div>
-                <span className="block">Insights da IA</span>
-                <span className="text-xs font-normal text-gray-500 dark:text-slate-400">
-                  Análises inteligentes do seu negócio
-                </span>
-              </div>
-              <Sparkles className="h-4 w-4 text-[#0D9488] ml-1" />
-            </div>
-            <div className="flex items-center gap-3">
-              <UsageCounter
-                usado={plano?.analisesIAUsadas || 0}
-                limite={plano?.analisesIALimite || 3}
-                tipo="analises_ia"
-                className="hidden sm:block w-40"
-              />
-              <IAAnaliseButton
-                bloqueado={(plano?.analisesIAUsadas || 0) >= (plano?.analisesIALimite || 3)}
-                onClick={() => {
-                  console.log('Gerando nova análise...')
-                }}
-              />
-            </div>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {/* Contador de uso mobile */}
-          <div className="sm:hidden mb-4">
-            <UsageCounter
-              usado={plano?.analisesIAUsadas || 0}
-              limite={plano?.analisesIALimite || 3}
-              tipo="analises_ia"
-            />
-          </div>
-
-          {/* Grid de cards de insights */}
-          <div className="grid gap-3 sm:grid-cols-2">
-            {insightsMockadosIA.map((insight, index) => (
-              <IAInsightCard
-                key={index}
-                titulo={insight.titulo}
-                descricao={insight.descricao}
-                tipo={insight.tipo}
-                icone={insight.icone}
-              />
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* SECAO INSIGHTS INTELIGENTES - Card original */}
-      <div className="animate-fade-in-up animate-stagger-2">
-        <InsightsCard
-          insights={data?.insights || []}
-          loading={loading}
-        />
-      </div>
-
-      {/* SECAO 2 - RESUMO FINANCEIRO */}
+      {/* WIDGETS PERSONALIZÁVEIS */}
       {!isCliente && (
-        <div className="animate-fade-in-up animate-stagger-2">
-          <ResumoFinanceiro
-            saldoTotal={data?.financeiro?.saldoTotal || 0}
-            receitasMes={data?.financeiro?.receitasMes || 0}
-            receitasMesAnterior={data?.financeiro?.receitasMesAnterior || 0}
-            despesasMes={data?.financeiro?.despesasMes || 0}
-            despesasMesAnterior={data?.financeiro?.despesasMesAnterior || 0}
-            resultado={data?.financeiro?.resultado || 0}
-            loading={loading}
-          />
-        </div>
+        <DashboardGrid
+          layout={dashboardConfig.layout}
+          onLayoutChange={handleLayoutChange}
+          columns={2}
+          gap={16}
+          className="animate-fade-in-up"
+        >
+          {dashboardConfig.widgets.map((widgetId) => (
+            <WidgetContainer
+              key={widgetId}
+              id={widgetId}
+              titulo={getWidgetTitle(widgetId)}
+              icon={getWidgetIcon(widgetId)}
+              onRemove={isCustomizing ? handleRemoveWidget : undefined}
+              isDraggable={true}
+            >
+              {renderWidgetContent(widgetId)}
+            </WidgetContainer>
+          ))}
+        </DashboardGrid>
       )}
-
-      {/* SECAO 2.1 - GRAFICO MINI FLUXO */}
-      {!isCliente && (
-        <div className="animate-fade-in-up animate-stagger-3">
-          <GraficoMiniFluxo loading={loading} />
-        </div>
-      )}
-
-      {/* SECAO 2.2 - ATIVIDADES DA EQUIPE */}
-      {!isCliente && (
-        <div className="animate-fade-in-up animate-stagger-3">
-          <AtividadesWidget />
-        </div>
-      )}
-
-      {/* SECAO 3 e 4 - OKRs e Projeto */}
-      {/* Mobile: empilhado (1 coluna), Desktop: 2 colunas */}
-      <div className="grid gap-4 sm:gap-6 grid-cols-1 lg:grid-cols-2">
-        {/* SECAO 3 - OKRs EM DESTAQUE */}
-        <div className="animate-fade-in-up animate-stagger-4">
-          <OKRsDestaque
-            okrs={data?.okrs || []}
-            loading={loading}
-          />
-        </div>
-
-        {/* SECAO 4 - SEU PROJETO (Consultoria) */}
-        <div className="animate-fade-in-up animate-stagger-5">
-          <ProjetoCard
-            projeto={data?.projeto || null}
-            loading={loading}
-          />
-        </div>
-      </div>
 
       {/* SECAO 5 - ACOES RAPIDAS */}
       <div className="animate-slide-up" style={{ animationDelay: '0.6s' }}>
@@ -511,6 +652,14 @@ export default function DashboardPage() {
           />
         </div>
       )}
+
+      {/* Widget Selector Modal */}
+      <WidgetSelector
+        open={showWidgetSelector}
+        onOpenChange={setShowWidgetSelector}
+        selectedWidgets={dashboardConfig.widgets}
+        onSelectionChange={handleWidgetSelectionChange}
+      />
     </div>
   )
 }

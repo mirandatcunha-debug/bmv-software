@@ -16,6 +16,7 @@ import {
   Sparkles,
   Lock,
   Globe,
+  Plug,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -74,6 +75,15 @@ const menuItems: MenuItem[] = [
     cor: 'text-pink-600',
     bgGradient: 'from-pink-500/10 to-rose-500/10',
     badge: 'Novo',
+  },
+  {
+    titulo: 'Integrações',
+    descricao: 'Importe dados, conecte bancos e acesse a API',
+    href: '/configuracoes/integracoes',
+    icon: Plug,
+    cor: 'text-cyan-600',
+    bgGradient: 'from-cyan-500/10 to-blue-500/10',
+    requerGestor: true,
   },
 ]
 
@@ -183,7 +193,7 @@ export default function ConfiguracoesPage() {
       </div>
 
       {/* Seções Adicionais */}
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-2">
         <Card className="border-dashed">
           <CardContent className="p-4 flex items-center gap-3">
             <div className="p-2 rounded-lg bg-slate-100 dark:bg-slate-800">
@@ -191,18 +201,6 @@ export default function ConfiguracoesPage() {
             </div>
             <div>
               <p className="text-sm font-medium">Segurança</p>
-              <p className="text-xs text-muted-foreground">Em breve</p>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-dashed">
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-slate-100 dark:bg-slate-800">
-              <Globe className="h-4 w-4 text-slate-500" />
-            </div>
-            <div>
-              <p className="text-sm font-medium">Integrações</p>
               <p className="text-xs text-muted-foreground">Em breve</p>
             </div>
           </CardContent>

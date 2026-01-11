@@ -58,6 +58,7 @@ model User {
   primeiroAcesso     Boolean          @default(true) @map("primeiro_acesso")
   tokenConvite       String?          @unique @map("token_convite")
   tokenExpira        DateTime?        @map("token_expira")
+  dashboardConfig    String?          @map("dashboard_config") // JSON config for dashboard widgets
   logsAuditoria      AuditLog[]
   comentarios        Comment[]
   tarefasConsultoria ConsultingTask[] @relation("ConsultoriaTarefaResponsavel")
