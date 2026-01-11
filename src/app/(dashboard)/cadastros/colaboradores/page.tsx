@@ -28,15 +28,18 @@ import {
   User,
   AlertCircle,
   Crown,
+  Briefcase,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Alert, AlertDescription } from '@/components/ui/alert'
+import { CARGO_LABELS, CARGO_CORES, type CargoType } from '@/lib/permissoes'
 
 interface Colaborador {
   id: string
   nome: string
   email: string
   perfil: 'GESTOR' | 'COLABORADOR'
+  cargo: string | null
   ativo: boolean
   criadoEm: string
   ultimoAcesso: string | null
@@ -377,6 +380,23 @@ export default function ColaboradoresPage() {
                     <Mail className="h-3.5 w-3.5" />
                     <span className="truncate">{colaborador.email}</span>
                   </div>
+
+                  {/* Badge de Cargo */}
+                  {colaborador.cargo && (
+                    <div className="flex items-center gap-2">
+                      <Briefcase className="h-3.5 w-3.5 text-muted-foreground" />
+                      <Badge
+                        variant="outline"
+                        className={cn(
+                          "text-xs",
+                          CARGO_CORES[colaborador.cargo.toUpperCase() as CargoType]?.bg || 'bg-slate-100',
+                          CARGO_CORES[colaborador.cargo.toUpperCase() as CargoType]?.text || 'text-slate-700'
+                        )}
+                      >
+                        {CARGO_LABELS[colaborador.cargo.toUpperCase() as CargoType] || colaborador.cargo}
+                      </Badge>
+                    </div>
+                  )}
 
                   {!colaborador.emailVerificado && (
                     <Badge variant="outline" className="text-xs bg-amber-50 text-amber-700 border-amber-300">

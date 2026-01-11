@@ -104,7 +104,7 @@ function formatRelativeDate(date: Date | string): string {
 
 export default function ContasPage() {
   const { user, loading: authLoading } = useAuth()
-  const { tenant, loading: tenantLoading } = useTenant()
+  const { tenant, loading: tenantLoading, error: tenantError } = useTenant()
   const { canCreate, canEdit } = useModulePermissions('financeiro.contas')
 
   const [contas, setContas] = useState<ContaBancaria[]>([])
@@ -134,10 +134,10 @@ export default function ContasPage() {
       if (!user) {
         setError('Usuario nao autenticado. Faca login novamente.')
       } else if (!tenant) {
-        setError('Nenhuma empresa selecionada.')
+        setError(tenantError || 'Configure sua empresa para comecar a usar o sistema.')
       }
     }
-  }, [user, tenant, authLoading, tenantLoading])
+  }, [user, tenant, authLoading, tenantLoading, tenantError])
 
   // Calcular saldo total (apenas contas ativas)
   const contasAtivas = contas.filter((c) => c.ativo)
@@ -153,7 +153,57 @@ export default function ContasPage() {
     )
   }
 
-  // Error state
+  // Error state - empresa nao configurada
+  if (error && !tenant) {
+    const isConfigError = error.includes('Configure') || error.includes('configurada')
+    return (
+      <div className="space-y-6">
+        <Link
+          href="/financeiro"
+          className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors group"
+        >
+          <ArrowLeft className="h-4 w-4 group-hover:-translate-x-1 transition-transform" />
+          Voltar para Financeiro
+        </Link>
+        <Card>
+          <CardContent className="py-16">
+            <div className="flex flex-col items-center text-center">
+              <div className="p-6 bg-amber-100 dark:bg-amber-900/30 rounded-full mb-6">
+                <Building2 className="h-12 w-12 text-amber-600 dark:text-amber-400" />
+              </div>
+              <h3 className="text-xl font-semibold text-slate-900 dark:text-slate-100 mb-2">
+                {isConfigError ? 'Configure sua empresa' : 'Erro ao carregar'}
+              </h3>
+              <p className="text-slate-500 dark:text-slate-400 mb-6 max-w-md">
+                {isConfigError
+                  ? 'Para acessar o modulo financeiro, voce precisa configurar os dados da sua empresa primeiro.'
+                  : error}
+              </p>
+              <div className="flex gap-3">
+                {isConfigError ? (
+                  <Link href="/configuracoes/empresa">
+                    <Button className="bg-[#1E3A5F] hover:bg-[#1E3A5F]/90 text-white">
+                      <Building2 className="h-4 w-4 mr-2" />
+                      Configurar Empresa
+                    </Button>
+                  </Link>
+                ) : (
+                  <Button
+                    onClick={() => window.location.reload()}
+                    variant="outline"
+                  >
+                    Tentar novamente
+                  </Button>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
+  // Error state - outros erros
   if (error) {
     return (
       <div className="space-y-6">

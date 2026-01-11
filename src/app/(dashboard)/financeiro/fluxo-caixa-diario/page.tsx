@@ -21,6 +21,7 @@ import {
 } from '@/components/ui/table'
 import {
   ArrowLeft,
+  Building2,
   Calendar,
   TrendingUp,
   TrendingDown,
@@ -32,6 +33,9 @@ import {
   Lightbulb,
   FileText,
 } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { useAuth } from '@/contexts/auth-context'
+import { useTenant } from '@/hooks/use-tenant'
 import { formatCurrency } from '@/types/financeiro'
 import { cn } from '@/lib/utils'
 import {
@@ -91,6 +95,9 @@ const meses = [
 const anos = ['2024', '2025', '2026', '2027']
 
 export default function FluxoCaixaDiarioPage() {
+  const { user, loading: authLoading } = useAuth()
+  const { tenant, loading: tenantLoading, error: tenantError } = useTenant()
+
   const [mesSelecionado, setMesSelecionado] = useState(String(new Date().getMonth() + 1))
   const [anoSelecionado, setAnoSelecionado] = useState(String(new Date().getFullYear()))
   const [contaSelecionada, setContaSelecionada] = useState('todas')
@@ -111,8 +118,10 @@ export default function FluxoCaixaDiarioPage() {
         console.error('Erro ao carregar contas:', err)
       }
     }
-    carregarContas()
-  }, [])
+    if (user && tenant) {
+      carregarContas()
+    }
+  }, [user, tenant])
 
   const carregarDados = useCallback(async () => {
     try {
@@ -141,8 +150,12 @@ export default function FluxoCaixaDiarioPage() {
   }, [anoSelecionado, mesSelecionado, contaSelecionada])
 
   useEffect(() => {
-    carregarDados()
-  }, [carregarDados])
+    if (user && tenant) {
+      carregarDados()
+    } else if (!authLoading && !tenantLoading) {
+      setLoading(false)
+    }
+  }, [carregarDados, user, tenant, authLoading, tenantLoading])
 
   const getNomeMes = (mes: number) => {
     return meses.find((m) => m.value === String(mes))?.label || ''
@@ -159,6 +172,66 @@ export default function FluxoCaixaDiarioPage() {
     entradas: d.entradas,
     saidas: d.saidas,
   })) || []
+
+  // Loading state
+  if (authLoading || tenantLoading) {
+    return (
+      <div className="flex items-center justify-center p-8">
+        <Loader2 className="h-8 w-8 animate-spin text-teal-600" />
+      </div>
+    )
+  }
+
+  // Error state - empresa nao configurada
+  if (!tenant) {
+    const errorMessage = tenantError || 'Configure sua empresa para comecar a usar o sistema.'
+    const isConfigError = errorMessage.includes('Configure') || errorMessage.includes('configurada')
+    return (
+      <div className="space-y-6">
+        <Link
+          href="/financeiro"
+          className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors group"
+        >
+          <ArrowLeft className="h-4 w-4 group-hover:-translate-x-1 transition-transform" />
+          Voltar para Financeiro
+        </Link>
+        <Card>
+          <CardContent className="py-16">
+            <div className="flex flex-col items-center text-center">
+              <div className="p-6 bg-amber-100 dark:bg-amber-900/30 rounded-full mb-6">
+                <Building2 className="h-12 w-12 text-amber-600 dark:text-amber-400" />
+              </div>
+              <h3 className="text-xl font-semibold text-slate-900 dark:text-slate-100 mb-2">
+                {isConfigError ? 'Configure sua empresa' : 'Erro ao carregar'}
+              </h3>
+              <p className="text-slate-500 dark:text-slate-400 mb-6 max-w-md">
+                {isConfigError
+                  ? 'Para acessar o modulo financeiro, voce precisa configurar os dados da sua empresa primeiro.'
+                  : errorMessage}
+              </p>
+              <div className="flex gap-3">
+                {isConfigError ? (
+                  <Link href="/configuracoes/empresa">
+                    <Button className="bg-[#1E3A5F] hover:bg-[#1E3A5F]/90 text-white">
+                      <Building2 className="h-4 w-4 mr-2" />
+                      Configurar Empresa
+                    </Button>
+                  </Link>
+                ) : (
+                  <Button
+                    onClick={() => window.location.reload()}
+                    variant="outline"
+                  >
+                    Tentar novamente
+                  </Button>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-6">

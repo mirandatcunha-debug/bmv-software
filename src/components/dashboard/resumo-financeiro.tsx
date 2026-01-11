@@ -1,6 +1,7 @@
 'use client'
 
 import { Card, CardContent } from '@/components/ui/card'
+import { InfoTooltip } from '@/components/ui/info-tooltip'
 import { cn } from '@/lib/utils'
 import {
   Wallet,
@@ -72,9 +73,17 @@ export function ResumoFinanceiro({
       <Card className="card-interactive animate-fade-in-up animate-stagger-1">
         <CardContent className="p-6">
           <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-muted-foreground">
-              Saldo Total
-            </span>
+            <div className="flex items-center gap-1">
+              <span className="text-sm font-medium text-muted-foreground">
+                Saldo Total
+              </span>
+              <InfoTooltip
+                titulo="Saldo Total"
+                descricao="Soma de todos os saldos das contas bancárias e caixas cadastrados no sistema."
+                origem="Contas bancárias"
+                periodo="Saldo atual"
+              />
+            </div>
             <div className="p-2 rounded-lg bg-slate-100 dark:bg-slate-800 transition-transform hover:scale-110">
               <Wallet className="h-5 w-5 text-slate-600 dark:text-slate-400" />
             </div>
@@ -99,9 +108,17 @@ export function ResumoFinanceiro({
       <Card className="card-interactive animate-fade-in-up animate-stagger-2">
         <CardContent className="p-6">
           <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-muted-foreground">
-              Receitas do Mes
-            </span>
+            <div className="flex items-center gap-1">
+              <span className="text-sm font-medium text-muted-foreground">
+                Receitas do Mes
+              </span>
+              <InfoTooltip
+                titulo="Receitas do Mês"
+                descricao="Total de receitas recebidas no período selecionado. Inclui todas as entradas financeiras confirmadas."
+                origem="Contas a receber"
+                periodo="Mês atual"
+              />
+            </div>
             <div className="p-2 rounded-lg bg-green-100 dark:bg-green-900/30 transition-transform hover:scale-110">
               <TrendingUp className="h-5 w-5 text-green-600 dark:text-green-400" />
             </div>
@@ -132,9 +149,17 @@ export function ResumoFinanceiro({
       <Card className="card-interactive animate-fade-in-up animate-stagger-3">
         <CardContent className="p-6">
           <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-muted-foreground">
-              Despesas do Mes
-            </span>
+            <div className="flex items-center gap-1">
+              <span className="text-sm font-medium text-muted-foreground">
+                Despesas do Mes
+              </span>
+              <InfoTooltip
+                titulo="Despesas do Mês"
+                descricao="Total de despesas pagas no período selecionado. Inclui todas as saídas financeiras confirmadas."
+                origem="Contas a pagar"
+                periodo="Mês atual"
+              />
+            </div>
             <div className="p-2 rounded-lg bg-red-100 dark:bg-red-900/30 transition-transform hover:scale-110">
               <TrendingDown className="h-5 w-5 text-red-600 dark:text-red-400" />
             </div>
@@ -170,14 +195,22 @@ export function ResumoFinanceiro({
       )}>
         <CardContent className="p-6">
           <div className="flex items-center justify-between">
-            <span className={cn(
-              'text-sm font-medium',
-              resultado >= 0
-                ? 'text-green-700 dark:text-green-300'
-                : 'text-red-700 dark:text-red-300'
-            )}>
-              Resultado do Mes
-            </span>
+            <div className="flex items-center gap-1">
+              <span className={cn(
+                'text-sm font-medium',
+                resultado >= 0
+                  ? 'text-green-700 dark:text-green-300'
+                  : 'text-red-700 dark:text-red-300'
+              )}>
+                Resultado do Mes
+              </span>
+              <InfoTooltip
+                titulo="Resultado do Mês"
+                descricao="Diferença entre receitas e despesas do período. Valor positivo indica lucro, negativo indica prejuízo."
+                origem="Cálculo automático"
+                periodo="Mês atual"
+              />
+            </div>
             <div className={cn(
               'p-2 rounded-lg transition-transform hover:scale-110',
               resultado >= 0

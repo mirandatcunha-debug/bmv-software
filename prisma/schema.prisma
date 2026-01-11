@@ -49,6 +49,7 @@ model User {
   nome               String
   avatarUrl          String?          @map("avatar_url")
   perfil             UserRole         @default(COLABORADOR)
+  cargo              String?          // Diretor, Gerente, Analista, Assistente
   ativo              Boolean          @default(true)
   emailVerificado    Boolean          @default(false) @map("email_verificado")
   ultimoAcesso       DateTime?        @map("ultimo_acesso")
@@ -72,15 +73,37 @@ model User {
 }
 
 model UserPermission {
-  id       String     @id @default(cuid())
-  userId   String     @map("user_id")
-  modulo   ModuleType
-  acao     ActionType
-  criadoEm DateTime   @default(now()) @map("criado_em")
-  user     User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id            String     @id @default(cuid())
+  userId        String     @map("user_id")
+  modulo        ModuleType
+  acao          ActionType
+  concedidoPor  String?    @map("concedido_por")
+  criadoEm      DateTime   @default(now()) @map("criado_em")
+  user          User       @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, modulo, acao])
+  @@index([userId])
   @@map("user_permissions")
+}
+
+// Registro de auditoria de concessão de permissões (especialmente EXCLUIR)
+model PermissionAuditLog {
+  id              String     @id @default(cuid())
+  tenantId        String     @map("tenant_id")
+  userId          String     @map("user_id")
+  concedidoPorId  String     @map("concedido_por_id")
+  modulo          ModuleType
+  acao            ActionType
+  tipoOperacao    String     // CONCEDIDA ou REVOGADA
+  ip              String?
+  userAgent       String?    @map("user_agent")
+  criadoEm        DateTime   @default(now()) @map("criado_em")
+
+  @@index([tenantId])
+  @@index([userId])
+  @@index([concedidoPorId])
+  @@index([criadoEm])
+  @@map("permission_audit_logs")
 }
 
 model BankAccount {
@@ -517,6 +540,8 @@ enum ModuleType {
   CONFIGURACOES
   USUARIOS
   RELATORIOS
+  CADASTROS
+  PROCESSOS
 }
 
 enum ActionType {

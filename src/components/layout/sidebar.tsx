@@ -122,6 +122,12 @@ const adminItems: SidebarItem[] = [
 
 const bottomItems: SidebarItem[] = [
   {
+    title: 'Ajuda',
+    href: '/ajuda',
+    icon: <HelpCircle className="h-5 w-5" />,
+    iconColor: 'text-sky-500',
+  },
+  {
     title: 'Configurações',
     href: '/configuracoes',
     icon: <Settings className="h-5 w-5" />,
@@ -541,40 +547,6 @@ export function Sidebar({ isMobileOpen = false, onMobileClose }: SidebarProps) {
           )
         })}
 
-        {/* Help Link */}
-        <a
-          href="https://bmvconsultoria.com.br/ajuda"
-          target="_blank"
-          rel="noopener noreferrer"
-          onClick={handleItemClick}
-          className={cn(
-            'group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium',
-            'transition-all duration-200 ease-in-out',
-            'text-white/70 hover:bg-white/5 hover:text-white',
-            isCollapsed && 'lg:justify-center lg:px-2'
-          )}
-        >
-          <HelpCircle className="h-5 w-5 text-white/70" />
-          <span className={cn(
-            'transition-all duration-300 ease-in-out whitespace-nowrap flex items-center gap-1',
-            isCollapsed ? 'lg:w-0 lg:opacity-0 lg:hidden' : 'w-auto opacity-100'
-          )}>
-            Ajuda
-            <ExternalLink className="h-3 w-3 opacity-50" />
-          </span>
-
-          {isCollapsed && mounted && (
-            <div className={cn(
-              'absolute left-full ml-3 px-3 py-1.5 bg-slate-900 text-white text-sm rounded-lg',
-              'opacity-0 invisible group-hover:opacity-100 group-hover:visible',
-              'transition-all duration-200 ease-in-out whitespace-nowrap z-50',
-              'shadow-lg hidden lg:block'
-            )}>
-              Ajuda
-              <div className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1 w-2 h-2 bg-slate-900 rotate-45" />
-            </div>
-          )}
-        </a>
       </div>
 
       {/* Footer */}

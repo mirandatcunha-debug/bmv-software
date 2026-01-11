@@ -62,6 +62,7 @@ export async function GET(request: NextRequest) {
         nome: true,
         email: true,
         perfil: true,
+        cargo: true,
         ativo: true,
         criadoEm: true,
         ultimoAcesso: true,
@@ -121,12 +122,21 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { nome, email, perfil, senha } = body
+    const { nome, email, perfil, cargo } = body
 
     // Validar campos obrigatórios
-    if (!nome || !email || !perfil) {
+    if (!nome || !email || !perfil || !cargo) {
       return NextResponse.json(
-        { error: 'Nome, email e perfil são obrigatórios' },
+        { error: 'Nome, email, perfil e cargo são obrigatórios' },
+        { status: 400 }
+      )
+    }
+
+    // Validar cargo
+    const cargosValidos = ['DIRETOR', 'GERENTE', 'ANALISTA', 'ASSISTENTE']
+    if (!cargosValidos.includes(cargo.toUpperCase())) {
+      return NextResponse.json(
+        { error: 'Cargo inválido. Use DIRETOR, GERENTE, ANALISTA ou ASSISTENTE' },
         { status: 400 }
       )
     }
@@ -181,6 +191,7 @@ export async function POST(request: NextRequest) {
         email,
         nome,
         perfil,
+        cargo: cargo.toUpperCase(),
         tokenConvite,
         tokenExpira,
         ativo: true,
@@ -192,6 +203,7 @@ export async function POST(request: NextRequest) {
         nome: true,
         email: true,
         perfil: true,
+        cargo: true,
         ativo: true,
         criadoEm: true,
         tokenConvite: true,

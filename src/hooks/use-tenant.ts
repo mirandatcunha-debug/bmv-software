@@ -6,6 +6,7 @@ interface UseTenantReturn {
   tenant: Tenant | null
   tenants: Tenant[]
   loading: boolean
+  error: string | null
   switchTenant: (tenantId: string) => Promise<void>
   refreshTenants: () => Promise<void>
 }
@@ -15,7 +16,7 @@ interface UseTenantReturn {
  *
  * @example
  * ```tsx
- * const { tenant, tenants, switchTenant } = useTenant()
+ * const { tenant, tenants, switchTenant, error } = useTenant()
  *
  * // Acessar tenant atual
  * console.log(tenant?.nome)
@@ -28,12 +29,13 @@ interface UseTenantReturn {
  * ```
  */
 export function useTenant(): UseTenantReturn {
-  const { tenant, tenants, loading, switchTenant, refreshTenants } = useTenantContext()
+  const { tenant, tenants, loading, error, switchTenant, refreshTenants } = useTenantContext()
 
   return {
     tenant,
     tenants,
     loading,
+    error,
     switchTenant,
     refreshTenants,
   }

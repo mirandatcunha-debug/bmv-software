@@ -27,9 +27,19 @@ import {
   CheckCircle,
   Crown,
   TrendingUp,
+  Briefcase,
+  Eye,
+  Pencil,
+  Trash2,
 } from 'lucide-react'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { cn } from '@/lib/utils'
+import {
+  CARGO_OPTIONS,
+  CARGO_DESCRICOES,
+  getResumoPermissoes,
+  type CargoType,
+} from '@/lib/permissoes'
 
 interface LimiteInfo {
   totalUsuarios: number
@@ -50,7 +60,11 @@ export default function NovoColaboradorPage() {
     nome: '',
     email: '',
     perfil: 'COLABORADOR',
+    cargo: '',
   })
+
+  // Resumo de permissões baseado no cargo selecionado
+  const resumoPermissoes = formData.cargo ? getResumoPermissoes(formData.cargo) : null
 
   // Verificar limite ao carregar a página
   useEffect(() => {
@@ -96,6 +110,10 @@ export default function NovoColaboradorPage() {
 
     if (!formData.perfil) {
       newErrors.perfil = 'Perfil é obrigatório'
+    }
+
+    if (!formData.cargo) {
+      newErrors.cargo = 'Cargo é obrigatório'
     }
 
     setErrors(newErrors)
@@ -273,7 +291,7 @@ export default function NovoColaboradorPage() {
                 variant="outline"
                 onClick={() => {
                   setConviteUrl(null)
-                  setFormData({ nome: '', email: '', perfil: 'COLABORADOR' })
+                  setFormData({ nome: '', email: '', perfil: 'COLABORADOR', cargo: '' })
                 }}
               >
                 Adicionar Outro
@@ -424,6 +442,90 @@ export default function NovoColaboradorPage() {
                 <p className="text-sm text-red-500">{errors.perfil}</p>
               )}
             </div>
+
+            {/* Cargo */}
+            <div className="space-y-2">
+              <Label htmlFor="cargo" className="flex items-center gap-2">
+                <Briefcase className="h-4 w-4" />
+                Cargo *
+              </Label>
+              <Select
+                value={formData.cargo}
+                onValueChange={(value) => handleChange('cargo', value)}
+                disabled={loading}
+              >
+                <SelectTrigger className={cn(errors.cargo && "border-red-500")}>
+                  <SelectValue placeholder="Selecione o cargo" />
+                </SelectTrigger>
+                <SelectContent>
+                  {CARGO_OPTIONS.map((cargo) => (
+                    <SelectItem key={cargo.value} value={cargo.value}>
+                      <div className="flex items-center gap-2">
+                        <Briefcase className="h-4 w-4" />
+                        <div>
+                          <div className="font-medium">{cargo.label}</div>
+                          <div className="text-xs text-muted-foreground">
+                            {CARGO_DESCRICOES[cargo.value as CargoType]}
+                          </div>
+                        </div>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {errors.cargo && (
+                <p className="text-sm text-red-500">{errors.cargo}</p>
+              )}
+            </div>
+
+            {/* Resumo de Permissões */}
+            {resumoPermissoes && (
+              <div className="rounded-lg border bg-muted/50 p-4 space-y-3">
+                <h4 className="font-medium text-sm flex items-center gap-2">
+                  <Shield className="h-4 w-4" />
+                  Resumo das Permissões
+                </h4>
+                <div className="grid grid-cols-3 gap-3">
+                  <div className="flex items-center gap-2 text-sm">
+                    <div className="p-1.5 rounded-md bg-blue-100 text-blue-600">
+                      <Eye className="h-3.5 w-3.5" />
+                    </div>
+                    <div>
+                      <div className="font-medium">{resumoPermissoes.podeVisualizar}</div>
+                      <div className="text-xs text-muted-foreground">Visualizar</div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm">
+                    <div className="p-1.5 rounded-md bg-amber-100 text-amber-600">
+                      <Pencil className="h-3.5 w-3.5" />
+                    </div>
+                    <div>
+                      <div className="font-medium">{resumoPermissoes.podeEditar}</div>
+                      <div className="text-xs text-muted-foreground">Editar</div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm">
+                    <div className={cn(
+                      "p-1.5 rounded-md",
+                      resumoPermissoes.podeExcluir > 0
+                        ? "bg-red-100 text-red-600"
+                        : "bg-slate-100 text-slate-400"
+                    )}>
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </div>
+                    <div>
+                      <div className="font-medium">{resumoPermissoes.podeExcluir}</div>
+                      <div className="text-xs text-muted-foreground">Excluir</div>
+                    </div>
+                  </div>
+                </div>
+                {resumoPermissoes.podeExcluir === 0 && (
+                  <p className="text-xs text-muted-foreground border-t pt-2 mt-2">
+                    Este cargo não possui permissão para excluir registros por padrão.
+                  </p>
+                )}
+              </div>
+            )}
 
             {/* Info sobre convite */}
             <Alert>

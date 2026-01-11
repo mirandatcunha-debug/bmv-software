@@ -1,6 +1,7 @@
 'use client'
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { InfoTooltip } from '@/components/ui/info-tooltip'
 import {
   AreaChart,
   Area,
@@ -93,7 +94,15 @@ export function GraficoMiniFluxo({ data = dadosMock, loading }: GraficoMiniFluxo
     <Card>
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-base font-medium">Fluxo de Caixa</CardTitle>
+          <div className="flex items-center gap-1">
+            <CardTitle className="text-base font-medium">Fluxo de Caixa</CardTitle>
+            <InfoTooltip
+              titulo="Fluxo de Caixa"
+              descricao="Gráfico comparativo entre receitas e despesas ao longo do tempo. Permite visualizar a evolução financeira e identificar tendências de crescimento ou redução."
+              origem="Movimentações financeiras"
+              periodo="Últimos 6 meses"
+            />
+          </div>
           <TrendingUp className="h-5 w-5 text-muted-foreground" />
         </div>
         <p className="text-xs text-muted-foreground">Receitas vs Despesas - Últimos 6 meses</p>

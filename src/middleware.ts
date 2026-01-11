@@ -153,15 +153,21 @@ export async function middleware(req: NextRequest) {
 
   const pathname = req.nextUrl.pathname
 
+  // Usar getUser() em vez de getSession() para validar autenticação corretamente
+  // getSession() apenas lê do cookie sem validar, getUser() valida com o servidor
   const {
-    data: { session },
-  } = await supabase.auth.getSession()
+    data: { user },
+    error,
+  } = await supabase.auth.getUser()
+
+  // Se houve erro na validação, a sessão é inválida
+  const isAuthenticated = !error && user !== null
 
   const isPublic = isPublicRoute(pathname)
   const isProtected = isProtectedRoute(pathname)
 
   // Se não está autenticado e tenta acessar rota protegida
-  if (!session && isProtected) {
+  if (!isAuthenticated && isProtected) {
     const redirectUrl = req.nextUrl.clone()
     redirectUrl.pathname = '/login'
     redirectUrl.searchParams.set('redirectTo', pathname)
@@ -169,16 +175,16 @@ export async function middleware(req: NextRequest) {
   }
 
   // Se está autenticado e tenta acessar login/cadastro
-  if (session && (pathname === '/login' || pathname === '/cadastro')) {
+  if (isAuthenticated && (pathname === '/login' || pathname === '/cadastro')) {
     const redirectUrl = req.nextUrl.clone()
     redirectUrl.pathname = '/dashboard'
     return NextResponse.redirect(redirectUrl)
   }
 
   // Verificação de trial e permissões para rotas protegidas
-  if (session && isProtected) {
+  if (isAuthenticated && isProtected) {
     const baseUrl = req.nextUrl.origin
-    const tenantInfo = await getTenantInfo(session.user.id, baseUrl)
+    const tenantInfo = await getTenantInfo(user.id, baseUrl)
 
     if (tenantInfo) {
       // Se assinatura ativa, permitir acesso a tudo

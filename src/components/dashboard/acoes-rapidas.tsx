@@ -10,10 +10,10 @@ import {
   CheckSquare,
   BarChart3,
   Calendar,
-  Bell,
   FileText,
   Zap,
 } from 'lucide-react'
+import { ObjetivosResumo } from './ObjetivosResumo'
 
 interface AcoesRapidasProps {
   perfil?: string
@@ -126,7 +126,10 @@ export function AcoesRapidas({ perfil }: AcoesRapidasProps) {
         </CardTitle>
       </CardHeader>
       <CardContent className="pt-2 pb-4">
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-3">
+          {/* Card de Objetivos com resumo dinamico */}
+          <ObjetivosResumo />
+
           {acoesFiltradas.map((acao, index) => {
             const Icon = acao.icon
             return (
@@ -144,7 +147,7 @@ export function AcoesRapidas({ perfil }: AcoesRapidasProps) {
                     acao.borderColor,
                     acao.hoverColor
                   )}
-                  style={{ animationDelay: `${index * 0.05}s` }}
+                  style={{ animationDelay: `${(index + 1) * 0.05}s` }}
                 >
                   {/* Icone grande */}
                   <div className={cn(
