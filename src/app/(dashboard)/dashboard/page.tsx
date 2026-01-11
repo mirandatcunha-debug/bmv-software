@@ -24,6 +24,7 @@ import {
 } from '@/components/upgrade'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { InfoTooltip } from '@/components/ui/info-tooltip'
 import { Insight } from '@/types/insights'
 import { cn } from '@/lib/utils'
 import {
@@ -559,6 +560,10 @@ export default function DashboardPage() {
                 <div className="flex items-center gap-1 sm:gap-2 mb-0.5 sm:mb-1">
                   <Wallet className="h-3 w-3 sm:h-4 sm:w-4 text-blue-200" />
                   <span className="text-[10px] sm:text-xs text-blue-200">Saldo</span>
+                  <InfoTooltip
+                    titulo="Saldo"
+                    descricao="Diferença entre receitas e despesas"
+                  />
                 </div>
                 <p className="text-sm sm:text-lg font-bold animate-number truncate">
                   {loading ? '...' : (
@@ -574,6 +579,10 @@ export default function DashboardPage() {
                 <div className="flex items-center gap-1 sm:gap-2 mb-0.5 sm:mb-1">
                   <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4 text-blue-200" />
                   <span className="text-[10px] sm:text-xs text-blue-200">Resultado</span>
+                  <InfoTooltip
+                    titulo="Resultado"
+                    descricao="Lucro ou prejuízo do período atual"
+                  />
                 </div>
                 <p className={cn(
                   'text-sm sm:text-lg font-bold animate-number truncate',
