@@ -12,16 +12,23 @@ import {
   Target,
   Users,
   Settings,
-  HelpCircle
+  HelpCircle,
+  RotateCcw,
+  LayoutDashboard
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Accordion, AccordionItem } from '@/components/ui/accordion'
+import { Button } from '@/components/ui/button'
+import { useResetModuloOnboarding } from '@/hooks/useOnboarding'
+import { onboardingModulos } from '@/lib/onboarding-steps'
+import { useRouter } from 'next/navigation'
 
 // FAQ organizado por módulos
 const faqItems = [
   {
     categoria: 'Financeiro',
     icon: Wallet,
+    moduloId: 'financeiro',
     perguntas: [
       {
         pergunta: 'Como cadastrar uma conta bancária?',
@@ -40,6 +47,7 @@ const faqItems = [
   {
     categoria: 'Processos e OKRs',
     icon: Target,
+    moduloId: 'processos',
     perguntas: [
       {
         pergunta: 'Como criar um objetivo OKR?',
@@ -58,6 +66,7 @@ const faqItems = [
   {
     categoria: 'Cadastros',
     icon: Users,
+    moduloId: null,
     perguntas: [
       {
         pergunta: 'Como adicionar colaboradores?',
@@ -72,6 +81,7 @@ const faqItems = [
   {
     categoria: 'Configurações Gerais',
     icon: Settings,
+    moduloId: null,
     perguntas: [
       {
         pergunta: 'Como alterar minha senha?',
@@ -97,7 +107,40 @@ const tutoriais = [
   { titulo: 'Relatórios', descricao: 'Extraia insights' },
 ]
 
+// Módulos com tour disponível
+const modulosComTour = [
+  {
+    id: 'dashboard',
+    nome: 'Dashboard',
+    icon: LayoutDashboard,
+    rota: '/',
+    descricao: 'Tour pelos indicadores e gráficos principais'
+  },
+  {
+    id: 'financeiro',
+    nome: 'Financeiro',
+    icon: Wallet,
+    rota: '/financeiro',
+    descricao: 'Tour pelas contas, lançamentos e relatórios'
+  },
+  {
+    id: 'processos',
+    nome: 'Processos',
+    icon: Target,
+    rota: '/processos',
+    descricao: 'Tour pelos objetivos, tarefas e equipe'
+  }
+]
+
 export default function AjudaPage() {
+  const { resetarModulo } = useResetModuloOnboarding()
+  const router = useRouter()
+
+  const handleReiniciarTour = (moduloId: string, rota: string) => {
+    resetarModulo(moduloId)
+    router.push(rota + '?tour=1')
+  }
+
   return (
     <div className="space-y-8">
       {/* Header */}
@@ -110,6 +153,40 @@ export default function AjudaPage() {
           <p className="text-gray-500">Encontre respostas e suporte para utilizar o sistema</p>
         </div>
       </div>
+
+      {/* Tour Guiado */}
+      <section>
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">Tour Guiado</h2>
+        <p className="text-sm text-gray-500 mb-4">
+          Reinicie o tour guiado de cada módulo para rever as funcionalidades do sistema.
+        </p>
+        <div className="grid gap-4 md:grid-cols-3">
+          {modulosComTour.map((modulo) => (
+            <Card key={modulo.id} className="hover:shadow-md transition-shadow">
+              <CardContent className="pt-6">
+                <div className="flex items-start gap-4">
+                  <div className="p-2 rounded-lg bg-[#1E3A5F]/10">
+                    <modulo.icon className="h-5 w-5 text-[#1E3A5F]" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-medium text-gray-900">{modulo.nome}</h3>
+                    <p className="text-sm text-gray-500 mt-1">{modulo.descricao}</p>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="mt-3 gap-2"
+                      onClick={() => handleReiniciarTour(modulo.id, modulo.rota)}
+                    >
+                      <RotateCcw className="h-4 w-4" />
+                      Reiniciar Tour
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </section>
 
       {/* Canais de Suporte */}
       <section>
@@ -181,10 +258,26 @@ export default function AjudaPage() {
           {faqItems.map((categoria) => (
             <Card key={categoria.categoria}>
               <CardHeader className="pb-3">
-                <CardTitle className="flex items-center gap-2 text-base">
-                  <categoria.icon className="h-5 w-5 text-[#1E3A5F]" />
-                  {categoria.categoria}
-                </CardTitle>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="flex items-center gap-2 text-base">
+                    <categoria.icon className="h-5 w-5 text-[#1E3A5F]" />
+                    {categoria.categoria}
+                  </CardTitle>
+                  {categoria.moduloId && onboardingModulos[categoria.moduloId] && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-xs gap-1 text-gray-500 hover:text-[#1E3A5F]"
+                      onClick={() => {
+                        const rota = categoria.moduloId === 'financeiro' ? '/financeiro' : '/processos'
+                        handleReiniciarTour(categoria.moduloId!, rota)
+                      }}
+                    >
+                      <RotateCcw className="h-3 w-3" />
+                      Tour
+                    </Button>
+                  )}
+                </div>
               </CardHeader>
               <CardContent className="pt-0">
                 <Accordion>

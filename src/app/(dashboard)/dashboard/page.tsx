@@ -8,6 +8,7 @@ import {
   ProjetoCard,
   AcoesRapidas,
   GraficoMiniFluxo,
+  AtividadesWidget,
 } from '@/components/dashboard'
 import {
   TrialCountdown,
@@ -466,6 +467,13 @@ export default function DashboardPage() {
       {!isCliente && (
         <div className="animate-fade-in-up animate-stagger-3">
           <GraficoMiniFluxo loading={loading} />
+        </div>
+      )}
+
+      {/* SECAO 2.2 - ATIVIDADES DA EQUIPE */}
+      {!isCliente && (
+        <div className="animate-fade-in-up animate-stagger-3">
+          <AtividadesWidget />
         </div>
       )}
 

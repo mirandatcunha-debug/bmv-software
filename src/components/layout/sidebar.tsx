@@ -32,6 +32,7 @@ import {
   Receipt,
   BarChart3,
   UserCog,
+  ClipboardList,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { canManageTenants } from '@/lib/permissions'
@@ -99,7 +100,11 @@ const sidebarItems: SidebarItem[] = [
     href: '/processos',
     icon: <GitBranch className="h-5 w-5" />,
     iconColor: 'text-orange-500',
-    badge: 3,
+    subItems: [
+      { title: 'Visao Geral', href: '/processos', icon: <BarChart3 className="h-4 w-4" /> },
+      { title: 'OKRs', href: '/processos/okr', icon: <Target className="h-4 w-4" /> },
+      { title: 'Atividades da Equipe', href: '/processos/atividades', icon: <ClipboardList className="h-4 w-4" /> },
+    ],
   },
   {
     title: 'Consultoria',
