@@ -38,6 +38,7 @@ import {
 } from 'lucide-react'
 import { FluxoCaixaItem, formatCurrency, formatDate } from '@/types/financeiro'
 import { cn } from '@/lib/utils'
+import { InfoTooltip } from '@/components/ui/info-tooltip'
 
 // Dados mockados
 const fluxoMock: FluxoCaixaItem[] = [
@@ -156,9 +157,13 @@ export default function FluxoCaixaPage() {
           {/* Mini cards no header */}
           <div className="grid grid-cols-3 gap-3 mt-6">
             <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 transition-all hover:bg-white/20 animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
-              <div className="flex items-center gap-2 mb-1">
+              <div className="flex items-center gap-1 mb-1">
                 <TrendingUp className="h-4 w-4 text-cyan-200" />
                 <span className="text-xs text-cyan-200">Entradas</span>
+                <InfoTooltip
+                  titulo="Entradas"
+                  descricao="Total de recebimentos no período"
+                />
               </div>
               <p className="text-lg font-bold text-green-300">
                 {formatCurrency(totalEntradas)}
@@ -166,9 +171,13 @@ export default function FluxoCaixaPage() {
             </div>
 
             <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 transition-all hover:bg-white/20 animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
-              <div className="flex items-center gap-2 mb-1">
+              <div className="flex items-center gap-1 mb-1">
                 <TrendingDown className="h-4 w-4 text-cyan-200" />
-                <span className="text-xs text-cyan-200">Saidas</span>
+                <span className="text-xs text-cyan-200">Saídas</span>
+                <InfoTooltip
+                  titulo="Saídas"
+                  descricao="Total de pagamentos no período"
+                />
               </div>
               <p className="text-lg font-bold text-red-300">
                 {formatCurrency(totalSaidas)}
@@ -176,9 +185,13 @@ export default function FluxoCaixaPage() {
             </div>
 
             <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 transition-all hover:bg-white/20 animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
-              <div className="flex items-center gap-2 mb-1">
+              <div className="flex items-center gap-1 mb-1">
                 <DollarSign className="h-4 w-4 text-cyan-200" />
                 <span className="text-xs text-cyan-200">Resultado</span>
+                <InfoTooltip
+                  titulo="Resultado"
+                  descricao="Diferença entre entradas e saídas"
+                />
               </div>
               <div className="flex items-center gap-2">
                 <p className={cn(
@@ -255,10 +268,14 @@ export default function FluxoCaixaPage() {
           <CardContent className="p-5">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground flex items-center gap-1">
+                <div className="text-sm text-muted-foreground flex items-center gap-1">
                   <TrendingUp className="h-4 w-4 text-green-600" />
-                  Total Entradas
-                </p>
+                  <span>Total Entradas</span>
+                  <InfoTooltip
+                    titulo="Total Entradas"
+                    descricao="Total de recebimentos no período"
+                  />
+                </div>
                 <p className="text-2xl font-bold text-green-600 mt-1">
                   {formatCurrency(totalEntradas)}
                 </p>
@@ -279,10 +296,14 @@ export default function FluxoCaixaPage() {
           <CardContent className="p-5">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground flex items-center gap-1">
+                <div className="text-sm text-muted-foreground flex items-center gap-1">
                   <TrendingDown className="h-4 w-4 text-red-600" />
-                  Total Saidas
-                </p>
+                  <span>Total Saídas</span>
+                  <InfoTooltip
+                    titulo="Total Saídas"
+                    descricao="Total de pagamentos no período"
+                  />
+                </div>
                 <p className="text-2xl font-bold text-red-600 mt-1">
                   {formatCurrency(totalSaidas)}
                 </p>
@@ -311,10 +332,14 @@ export default function FluxoCaixaPage() {
           <CardContent className="p-5">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground flex items-center gap-1">
+                <div className="text-sm text-muted-foreground flex items-center gap-1">
                   <DollarSign className="h-4 w-4" />
-                  Saldo Final
-                </p>
+                  <span>Saldo Final</span>
+                  <InfoTooltip
+                    titulo="Saldo Final"
+                    descricao="Saldo projetado ao final do período"
+                  />
+                </div>
                 <p className={cn(
                   "text-2xl font-bold mt-1",
                   saldoFinal >= 0 ? "text-blue-600" : "text-orange-600"

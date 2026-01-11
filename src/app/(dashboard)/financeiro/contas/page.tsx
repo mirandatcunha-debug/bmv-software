@@ -41,6 +41,7 @@ import {
   tipoContaLabels,
 } from '@/types/financeiro'
 import { cn } from '@/lib/utils'
+import { InfoTooltip } from '@/components/ui/info-tooltip'
 import { useModulePermissions } from '@/hooks/use-permissions'
 import { useAuth } from '@/contexts/auth-context'
 import { useTenant } from '@/hooks/use-tenant'
@@ -273,7 +274,13 @@ export default function ContasPage() {
                 <DollarSign className="h-6 w-6 text-gray-600 dark:text-slate-300" />
               </div>
               <div>
-                <p className="text-sm text-gray-500 dark:text-slate-400">Saldo Total</p>
+                <div className="flex items-center gap-1">
+                  <span className="text-sm text-gray-500 dark:text-slate-400">Saldo Total</span>
+                  <InfoTooltip
+                    titulo="Saldo Total"
+                    descricao="Soma dos saldos de todas as contas ativas"
+                  />
+                </div>
                 <p className={cn(
                   "text-2xl font-bold",
                   saldoTotal >= 0 ? "text-green-600" : "text-red-600"

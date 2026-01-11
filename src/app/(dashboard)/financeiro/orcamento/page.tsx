@@ -36,6 +36,7 @@ import {
 } from 'lucide-react'
 import { formatCurrency } from '@/types/financeiro'
 import { cn } from '@/lib/utils'
+import { InfoTooltip } from '@/components/ui/info-tooltip'
 
 interface ComparativoCategoria {
   categoria: string
@@ -223,9 +224,13 @@ export default function OrcamentoPage() {
                 className="bg-white/10 backdrop-blur-sm rounded-xl p-3 transition-all hover:bg-white/20 animate-fade-in-up"
                 style={{ animationDelay: '0.1s' }}
               >
-                <div className="flex items-center gap-2 mb-1">
+                <div className="flex items-center gap-1 mb-1">
                   <TrendingUp className="h-4 w-4 text-amber-200" />
                   <span className="text-xs text-amber-200">Receitas</span>
+                  <InfoTooltip
+                    titulo="Receitas"
+                    descricao="Valor efetivamente recebido no período"
+                  />
                 </div>
                 <p className="text-lg font-bold text-green-300">
                   {formatCurrency(dados.resumo.receitas.realizado)}
@@ -239,9 +244,13 @@ export default function OrcamentoPage() {
                 className="bg-white/10 backdrop-blur-sm rounded-xl p-3 transition-all hover:bg-white/20 animate-fade-in-up"
                 style={{ animationDelay: '0.2s' }}
               >
-                <div className="flex items-center gap-2 mb-1">
+                <div className="flex items-center gap-1 mb-1">
                   <TrendingDown className="h-4 w-4 text-amber-200" />
                   <span className="text-xs text-amber-200">Despesas</span>
+                  <InfoTooltip
+                    titulo="Despesas"
+                    descricao="Valor efetivamente pago no período"
+                  />
                 </div>
                 <p className="text-lg font-bold text-red-300">
                   {formatCurrency(dados.resumo.despesas.realizado)}
@@ -255,9 +264,13 @@ export default function OrcamentoPage() {
                 className="bg-white/10 backdrop-blur-sm rounded-xl p-3 transition-all hover:bg-white/20 animate-fade-in-up"
                 style={{ animationDelay: '0.3s' }}
               >
-                <div className="flex items-center gap-2 mb-1">
+                <div className="flex items-center gap-1 mb-1">
                   <PiggyBank className="h-4 w-4 text-amber-200" />
                   <span className="text-xs text-amber-200">Saldo</span>
+                  <InfoTooltip
+                    titulo="Saldo"
+                    descricao="Diferença entre receitas e despesas realizadas"
+                  />
                 </div>
                 <div className="flex items-center gap-2">
                   <p
@@ -345,10 +358,14 @@ export default function OrcamentoPage() {
               <CardContent className="p-5">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-muted-foreground flex items-center gap-1">
+                    <div className="text-sm text-muted-foreground flex items-center gap-1">
                       <TrendingUp className="h-4 w-4 text-green-600" />
-                      Receitas Orcadas
-                    </p>
+                      <span>Receitas Orçadas</span>
+                      <InfoTooltip
+                        titulo="Receitas Orçadas"
+                        descricao="Valor planejado para o período"
+                      />
+                    </div>
                     <p className="text-2xl font-bold text-green-600 mt-1">
                       {formatCurrency(dados.resumo.receitas.orcado)}
                     </p>
@@ -365,10 +382,14 @@ export default function OrcamentoPage() {
               <CardContent className="p-5">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-muted-foreground flex items-center gap-1">
+                    <div className="text-sm text-muted-foreground flex items-center gap-1">
                       <TrendingDown className="h-4 w-4 text-red-600" />
-                      Despesas Orcadas
-                    </p>
+                      <span>Despesas Orçadas</span>
+                      <InfoTooltip
+                        titulo="Despesas Orçadas"
+                        descricao="Valor planejado para o período"
+                      />
+                    </div>
                     <p className="text-2xl font-bold text-red-600 mt-1">
                       {formatCurrency(dados.resumo.despesas.orcado)}
                     </p>
@@ -397,10 +418,14 @@ export default function OrcamentoPage() {
               <CardContent className="p-5">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-muted-foreground flex items-center gap-1">
+                    <div className="text-sm text-muted-foreground flex items-center gap-1">
                       <Target className="h-4 w-4" />
-                      Saldo Orcado
-                    </p>
+                      <span>Saldo Orçado</span>
+                      <InfoTooltip
+                        titulo="Saldo Orçado"
+                        descricao="Diferença planejada entre receitas e despesas"
+                      />
+                    </div>
                     <p
                       className={cn(
                         'text-2xl font-bold mt-1',

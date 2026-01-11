@@ -53,6 +53,7 @@ import {
 } from 'lucide-react'
 import { formatCurrency, formatDate } from '@/types/financeiro'
 import { cn } from '@/lib/utils'
+import { InfoTooltip } from '@/components/ui/info-tooltip'
 import { useAuth } from '@/contexts/auth-context'
 import { useTenant } from '@/hooks/use-tenant'
 
@@ -414,9 +415,13 @@ export default function ContasReceberPage() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
         <Card className="border border-gray-200 dark:border-slate-700">
           <CardContent className="p-4">
-            <div className="flex items-center gap-2 mb-1">
+            <div className="flex items-center gap-1 mb-1">
               <Wallet className="h-4 w-4 text-gray-500 dark:text-slate-400" />
               <span className="text-xs text-gray-500 dark:text-slate-400">Total a Receber</span>
+              <InfoTooltip
+                titulo="Total a Receber"
+                descricao="Soma de todas as contas pendentes de recebimento"
+              />
             </div>
             <p className="text-lg sm:text-xl font-bold text-gray-800 dark:text-slate-100">{formatCurrency(totalReceber)}</p>
           </CardContent>
@@ -424,9 +429,13 @@ export default function ContasReceberPage() {
 
         <Card className="border border-gray-200 dark:border-slate-700">
           <CardContent className="p-4">
-            <div className="flex items-center gap-2 mb-1">
+            <div className="flex items-center gap-1 mb-1">
               <XCircle className="h-4 w-4 text-red-500" />
               <span className="text-xs text-gray-500 dark:text-slate-400">Vencido</span>
+              <InfoTooltip
+                titulo="Vencido"
+                descricao="Valores com data de vencimento ultrapassada"
+              />
             </div>
             <p className="text-lg sm:text-xl font-bold text-red-600">{formatCurrency(totalVencido)}</p>
           </CardContent>
@@ -444,9 +453,13 @@ export default function ContasReceberPage() {
 
         <Card className="border border-gray-200 dark:border-slate-700">
           <CardContent className="p-4">
-            <div className="flex items-center gap-2 mb-1">
+            <div className="flex items-center gap-1 mb-1">
               <Clock className="h-4 w-4 text-gray-500 dark:text-slate-400" />
               <span className="text-xs text-gray-500 dark:text-slate-400">A Vencer</span>
+              <InfoTooltip
+                titulo="A Vencer"
+                descricao="Valores com vencimento futuro"
+              />
             </div>
             <p className="text-lg sm:text-xl font-bold text-gray-800 dark:text-slate-100">{formatCurrency(totalAVencer)}</p>
           </CardContent>

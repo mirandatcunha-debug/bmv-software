@@ -37,6 +37,7 @@ import {
 } from 'lucide-react'
 import { Objetivo, StatusOKR, statusLabels, statusColors } from '@/types/okr'
 import { cn } from '@/lib/utils'
+import { InfoTooltip } from '@/components/ui/info-tooltip'
 import { objetivosOKR, usuarios } from '@/data/demo-data'
 import { useModulePermissions } from '@/hooks/use-permissions'
 import { useAuth } from '@/contexts/auth-context'
@@ -538,7 +539,13 @@ export default function OKRPage() {
                           {/* Barra de Progresso - mobile mostra simplificado */}
                           <div className="flex-1 sm:flex-none sm:w-32">
                             <div className="flex justify-between text-xs mb-1">
-                              <span className="text-muted-foreground sm:block hidden">Progresso</span>
+                              <span className="text-muted-foreground sm:flex hidden items-center gap-1">
+                                Progresso
+                                <InfoTooltip
+                                  titulo="Progresso"
+                                  descricao="Percentual de conclusão do objetivo"
+                                />
+                              </span>
                               <span className={cn(
                                 "font-semibold",
                                 objetivo.status === 'CONCLUIDO' ? 'text-green-600' :
@@ -577,7 +584,11 @@ export default function OKRPage() {
                       <div className="border-t pt-4 space-y-3">
                         <h4 className="font-medium text-sm flex items-center gap-2">
                           <BarChart3 className="h-4 w-4 text-blue-500" />
-                          Key Results
+                          <span>Key Results</span>
+                          <InfoTooltip
+                            titulo="Key Results"
+                            descricao="Resultados-chave que medem o objetivo"
+                          />
                         </h4>
                         {objetivo.keyResults.map((kr) => (
                           <div

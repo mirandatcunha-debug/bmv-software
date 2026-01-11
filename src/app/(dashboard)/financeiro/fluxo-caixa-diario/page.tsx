@@ -38,6 +38,7 @@ import { useAuth } from '@/contexts/auth-context'
 import { useTenant } from '@/hooks/use-tenant'
 import { formatCurrency } from '@/types/financeiro'
 import { cn } from '@/lib/utils'
+import { InfoTooltip } from '@/components/ui/info-tooltip'
 import {
   LineChart,
   Line,
@@ -264,9 +265,13 @@ export default function FluxoCaixaDiarioPage() {
         <div className="grid grid-cols-3 gap-3 animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
           <Card className="border border-gray-200 dark:border-slate-700">
             <CardContent className="p-4">
-              <div className="flex items-center gap-2 mb-1">
+              <div className="flex items-center gap-1 mb-1">
                 <TrendingUp className="h-4 w-4 text-green-500" />
                 <span className="text-xs text-gray-500 dark:text-slate-400">Total Entradas</span>
+                <InfoTooltip
+                  titulo="Total Entradas"
+                  descricao="Total de recebimentos no período"
+                />
               </div>
               <p className="text-lg font-bold text-green-600">
                 {formatCurrency(dados.totalEntradas)}
@@ -276,9 +281,13 @@ export default function FluxoCaixaDiarioPage() {
 
           <Card className="border border-gray-200 dark:border-slate-700">
             <CardContent className="p-4">
-              <div className="flex items-center gap-2 mb-1">
+              <div className="flex items-center gap-1 mb-1">
                 <TrendingDown className="h-4 w-4 text-red-500" />
-                <span className="text-xs text-gray-500 dark:text-slate-400">Total Saidas</span>
+                <span className="text-xs text-gray-500 dark:text-slate-400">Total Saídas</span>
+                <InfoTooltip
+                  titulo="Total Saídas"
+                  descricao="Total de pagamentos no período"
+                />
               </div>
               <p className="text-lg font-bold text-red-600">
                 {formatCurrency(dados.totalSaidas)}
@@ -288,9 +297,13 @@ export default function FluxoCaixaDiarioPage() {
 
           <Card className="border border-gray-200 dark:border-slate-700">
             <CardContent className="p-4">
-              <div className="flex items-center gap-2 mb-1">
+              <div className="flex items-center gap-1 mb-1">
                 <Wallet className="h-4 w-4 text-gray-500 dark:text-slate-400" />
-                <span className="text-xs text-gray-500 dark:text-slate-400">Variacao</span>
+                <span className="text-xs text-gray-500 dark:text-slate-400">Variação</span>
+                <InfoTooltip
+                  titulo="Variação"
+                  descricao="Diferença entre entradas e saídas no período"
+                />
               </div>
               <p
                 className={cn(
@@ -406,10 +419,14 @@ export default function FluxoCaixaDiarioPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <TrendingUp className="h-5 w-5 text-teal-600" />
-                Evolucao do Saldo - {getNomeMes(dados?.mes ?? parseInt(mesSelecionado))} {dados?.ano ?? anoSelecionado}
+                <span>Evolução do Saldo - {getNomeMes(dados?.mes ?? parseInt(mesSelecionado))} {dados?.ano ?? anoSelecionado}</span>
+                <InfoTooltip
+                  titulo="Evolução do Saldo"
+                  descricao="Evolução diária do saldo em caixa"
+                />
               </CardTitle>
               <CardDescription>
-                Grafico mostrando a variacao do saldo ao longo do mes
+                Gráfico mostrando a variação do saldo ao longo do mês
               </CardDescription>
             </CardHeader>
             <CardContent>
