@@ -59,6 +59,10 @@ model User {
   tokenConvite       String?          @unique @map("token_convite")
   tokenExpira        DateTime?        @map("token_expira")
   dashboardConfig    String?          @map("dashboard_config") // JSON config for dashboard widgets
+  aceitouTermos      Boolean          @default(false) @map("aceitou_termos")
+  aceitouPrivacidade Boolean          @default(false) @map("aceitou_privacidade")
+  aceitouComunicacao Boolean          @default(false) @map("aceitou_comunicacao")
+  dataConsentimento  DateTime?        @map("data_consentimento")
   logsAuditoria      AuditLog[]
   comentarios        Comment[]
   tarefasConsultoria ConsultingTask[] @relation("ConsultoriaTarefaResponsavel")
@@ -669,4 +673,22 @@ model Budget {
   @@index([tenantId])
   @@index([ano, mes])
   @@map("budgets")
+}
+
+model LogAtividade {
+  id          String   @id @default(cuid())
+  tenantId    String   @map("tenant_id")
+  userId      String?  @map("user_id")
+  acao        String   // LOGIN, LOGOUT, EXPORTOU_DADOS, ALTEROU_SENHA, etc
+  descricao   String?
+  ip          String?
+  userAgent   String?  @map("user_agent")
+  dados       Json?    // Dados adicionais
+  criadoEm    DateTime @default(now()) @map("criado_em")
+
+  @@index([tenantId])
+  @@index([userId])
+  @@index([acao])
+  @@index([criadoEm])
+  @@map("log_atividades")
 }

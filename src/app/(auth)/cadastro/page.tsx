@@ -58,6 +58,8 @@ export default function CadastroPage() {
   const [confirmarSenha, setConfirmarSenha] = useState('')
   const [nomeEmpresa, setNomeEmpresa] = useState('')
   const [aceitouTermos, setAceitouTermos] = useState(false)
+  const [aceitouPrivacidade, setAceitouPrivacidade] = useState(false)
+  const [aceitouComunicacao, setAceitouComunicacao] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
@@ -69,6 +71,7 @@ export default function CadastroPage() {
     confirmarSenha: '',
     nomeEmpresa: '',
     termos: '',
+    privacidade: '',
   })
 
   const router = useRouter()
@@ -129,9 +132,16 @@ export default function CadastroPage() {
         break
       case 'termos':
         if (!value) {
-          newErrors.termos = 'Você deve aceitar os termos de uso'
+          newErrors.termos = 'Você deve aceitar os Termos de Uso'
         } else {
           newErrors.termos = ''
+        }
+        break
+      case 'privacidade':
+        if (!value) {
+          newErrors.privacidade = 'Você deve aceitar a Política de Privacidade'
+        } else {
+          newErrors.privacidade = ''
         }
         break
     }
@@ -148,9 +158,12 @@ export default function CadastroPage() {
       validateField('confirmarSenha', confirmarSenha),
       validateField('nomeEmpresa', nomeEmpresa),
       validateField('termos', aceitouTermos),
+      validateField('privacidade', aceitouPrivacidade),
     ]
     return validations.every(Boolean)
   }
+
+  const consentimentosObrigatoriosAceitos = aceitouTermos && aceitouPrivacidade
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -168,6 +181,10 @@ export default function CadastroPage() {
           data: {
             nome,
             nomeEmpresa,
+            aceitouTermos: true,
+            aceitouPrivacidade: true,
+            aceitouComunicacao,
+            dataConsentimento: new Date().toISOString(),
           },
         },
       })
@@ -518,43 +535,97 @@ export default function CadastroPage() {
                 )}
               </div>
 
-              {/* Termos de Uso */}
-              <div className="space-y-1.5">
+              {/* Consentimentos LGPD */}
+              <div className="space-y-3">
+                {/* Termos de Uso - Obrigatório */}
+                <div className="space-y-1">
+                  <div className="flex items-start space-x-3">
+                    <Checkbox
+                      id="termos"
+                      checked={aceitouTermos}
+                      onCheckedChange={(checked) => {
+                        setAceitouTermos(checked as boolean)
+                        if (errors.termos) validateField('termos', checked as boolean)
+                      }}
+                      disabled={isLoading}
+                      className="mt-0.5"
+                    />
+                    <Label
+                      htmlFor="termos"
+                      className="text-sm text-slate-600 dark:text-slate-400 cursor-pointer leading-relaxed"
+                    >
+                      Li e aceito os{' '}
+                      <Link
+                        href="/termos"
+                        target="_blank"
+                        className="text-bmv-secondary hover:text-bmv-primary font-medium underline"
+                      >
+                        Termos de Uso
+                      </Link>
+                      <span className="text-red-500 ml-1">*</span>
+                    </Label>
+                  </div>
+                  {errors.termos && (
+                    <p className="text-xs text-red-500 animate-fade-in ml-6">{errors.termos}</p>
+                  )}
+                </div>
+
+                {/* Política de Privacidade - Obrigatório */}
+                <div className="space-y-1">
+                  <div className="flex items-start space-x-3">
+                    <Checkbox
+                      id="privacidade"
+                      checked={aceitouPrivacidade}
+                      onCheckedChange={(checked) => {
+                        setAceitouPrivacidade(checked as boolean)
+                        if (errors.privacidade) validateField('privacidade', checked as boolean)
+                      }}
+                      disabled={isLoading}
+                      className="mt-0.5"
+                    />
+                    <Label
+                      htmlFor="privacidade"
+                      className="text-sm text-slate-600 dark:text-slate-400 cursor-pointer leading-relaxed"
+                    >
+                      Li e aceito a{' '}
+                      <Link
+                        href="/privacidade"
+                        target="_blank"
+                        className="text-bmv-secondary hover:text-bmv-primary font-medium underline"
+                      >
+                        Política de Privacidade
+                      </Link>
+                      <span className="text-red-500 ml-1">*</span>
+                    </Label>
+                  </div>
+                  {errors.privacidade && (
+                    <p className="text-xs text-red-500 animate-fade-in ml-6">{errors.privacidade}</p>
+                  )}
+                </div>
+
+                {/* Comunicações por Email - Opcional */}
                 <div className="flex items-start space-x-3">
                   <Checkbox
-                    id="termos"
-                    checked={aceitouTermos}
-                    onCheckedChange={(checked) => {
-                      setAceitouTermos(checked as boolean)
-                      if (errors.termos) validateField('termos', checked as boolean)
-                    }}
+                    id="comunicacao"
+                    checked={aceitouComunicacao}
+                    onCheckedChange={(checked) => setAceitouComunicacao(checked as boolean)}
                     disabled={isLoading}
                     className="mt-0.5"
                   />
                   <Label
-                    htmlFor="termos"
+                    htmlFor="comunicacao"
                     className="text-sm text-slate-600 dark:text-slate-400 cursor-pointer leading-relaxed"
                   >
-                    Aceito os{' '}
-                    <Link href="/termos" className="text-bmv-secondary hover:text-bmv-primary font-medium">
-                      termos de uso
-                    </Link>{' '}
-                    e a{' '}
-                    <Link href="/privacidade" className="text-bmv-secondary hover:text-bmv-primary font-medium">
-                      política de privacidade
-                    </Link>
+                    Aceito receber comunicações por email
                   </Label>
                 </div>
-                {errors.termos && (
-                  <p className="text-xs text-red-500 animate-fade-in">{errors.termos}</p>
-                )}
               </div>
 
               {/* Submit Button */}
               <Button
                 type="submit"
-                className="w-full h-11 sm:h-12 bg-bmv-primary hover:bg-bmv-secondary transition-all duration-300 text-sm sm:text-base font-semibold shadow-lg hover:shadow-xl mt-2"
-                disabled={isLoading}
+                className="w-full h-11 sm:h-12 bg-bmv-primary hover:bg-bmv-secondary transition-all duration-300 text-sm sm:text-base font-semibold shadow-lg hover:shadow-xl mt-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={isLoading || !consentimentosObrigatoriosAceitos}
               >
                 {isLoading ? (
                   <>
@@ -562,7 +633,7 @@ export default function CadastroPage() {
                     Criando conta...
                   </>
                 ) : (
-                  'Criar Conta Grátis'
+                  'Criar Conta'
                 )}
               </Button>
             </form>
