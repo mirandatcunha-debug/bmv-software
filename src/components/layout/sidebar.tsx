@@ -33,6 +33,8 @@ import {
   BarChart3,
   UserCog,
   ClipboardList,
+  AlertTriangle,
+  Activity,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { canManageTenants } from '@/lib/permissions'
@@ -76,6 +78,8 @@ const sidebarItems: SidebarItem[] = [
       { title: 'Fluxo de Caixa', href: '/financeiro/fluxo-caixa', icon: <BarChart3 className="h-4 w-4" /> },
       { title: 'Fluxo Diario', href: '/financeiro/fluxo-caixa-diario', icon: <CalendarDays className="h-4 w-4" /> },
       { title: 'Orcamento', href: '/financeiro/orcamento', icon: <Target className="h-4 w-4" /> },
+      { title: 'Inadimplencia', href: '/financeiro/inadimplencia', icon: <AlertTriangle className="h-4 w-4" /> },
+      { title: 'Saude Financeira', href: '/financeiro/saude', icon: <Activity className="h-4 w-4" /> },
     ],
   },
   {

@@ -1,4 +1,5 @@
 export { InsightsCard } from './insights-card'
+export { HealthScoreCard } from './HealthScoreCard'
 export { ResumoFinanceiro } from './resumo-financeiro'
 export { OKRsDestaque } from './okrs-destaque'
 export { ProjetoCard } from './projeto-card'

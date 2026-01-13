@@ -13,6 +13,7 @@ import {
   DashboardGrid,
   WidgetSelector,
   WIDGETS_DISPONIVEIS,
+  HealthScoreCard,
 } from '@/components/dashboard'
 import type { WidgetPosition } from '@/components/dashboard'
 import {
@@ -124,6 +125,7 @@ const insightsMockadosIA = [
 const DEFAULT_CONFIG: DashboardConfig = {
   widgets: [
     'insights-ia',
+    'health-score',
     'indicadores-financeiros',
     'grafico-receitas-despesas',
     'atividades-equipe',
@@ -132,11 +134,12 @@ const DEFAULT_CONFIG: DashboardConfig = {
   ],
   layout: [
     { id: 'insights-ia', x: 0, y: 0, w: 2, h: 1 },
-    { id: 'indicadores-financeiros', x: 0, y: 1, w: 2, h: 1 },
-    { id: 'grafico-receitas-despesas', x: 0, y: 2, w: 2, h: 1 },
-    { id: 'atividades-equipe', x: 0, y: 3, w: 2, h: 1 },
-    { id: 'objetivos-okr', x: 0, y: 4, w: 1, h: 1 },
-    { id: 'projeto-consultoria', x: 1, y: 4, w: 1, h: 1 },
+    { id: 'health-score', x: 0, y: 1, w: 1, h: 1 },
+    { id: 'indicadores-financeiros', x: 0, y: 2, w: 2, h: 1 },
+    { id: 'grafico-receitas-despesas', x: 0, y: 3, w: 2, h: 1 },
+    { id: 'atividades-equipe', x: 0, y: 4, w: 2, h: 1 },
+    { id: 'objetivos-okr', x: 0, y: 5, w: 1, h: 1 },
+    { id: 'projeto-consultoria', x: 1, y: 5, w: 1, h: 1 },
   ],
 }
 
@@ -489,6 +492,9 @@ export default function DashboardPage() {
             loading={loading}
           />
         )
+
+      case 'health-score':
+        return <HealthScoreCard />
 
       default:
         return (
