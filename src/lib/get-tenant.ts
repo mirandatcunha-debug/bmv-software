@@ -30,3 +30,26 @@ export async function getTenantFromSession() {
 
   return { error: null, tenant: user.tenant, user }
 }
+
+export async function getTenantForView(overrideTenantId?: string | null) {
+  const { error, tenant, user } = await getTenantFromSession()
+
+  if (error) return { error, tenant: null, user: null, isViewing: false }
+
+  // Se tem override e usuário é superadmin, busca o tenant específico
+  if (overrideTenantId && user) {
+    const { isSuperAdminEmail } = await import('@/lib/superadmin')
+    const isSuperAdmin = isSuperAdminEmail(user.email)
+
+    if (isSuperAdmin) {
+      const overrideTenant = await prisma.tenant.findUnique({
+        where: { id: overrideTenantId }
+      })
+      if (overrideTenant) {
+        return { error: null, tenant: overrideTenant, user, isViewing: true }
+      }
+    }
+  }
+
+  return { error: null, tenant, user, isViewing: false }
+}

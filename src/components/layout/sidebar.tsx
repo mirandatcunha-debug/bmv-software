@@ -35,6 +35,8 @@ import {
   ClipboardList,
   AlertTriangle,
   Activity,
+  Crown,
+  MessageSquare,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { canManageTenants } from '@/lib/permissions'
@@ -53,6 +55,8 @@ interface SidebarItem {
   badge?: number
   adminOnly?: boolean
   consultorOnly?: boolean
+  superAdminOnly?: boolean
+  planoMinimo?: 'starter' | 'pro' | 'enterprise'
   subItems?: SubMenuItem[]
 }
 
@@ -117,6 +121,13 @@ const sidebarItems: SidebarItem[] = [
     iconColor: 'text-rose-500',
     consultorOnly: true,
   },
+  {
+    title: 'Minha Consultoria',
+    href: '/minha-consultoria',
+    icon: <MessageSquare className="h-5 w-5" />,
+    iconColor: 'text-teal-500',
+    planoMinimo: 'pro',
+  },
 ]
 
 const adminItems: SidebarItem[] = [
@@ -126,6 +137,20 @@ const adminItems: SidebarItem[] = [
     icon: <Building2 className="h-5 w-5" />,
     iconColor: 'text-cyan-500',
     adminOnly: true,
+  },
+]
+
+const masterItems: SidebarItem[] = [
+  {
+    title: 'Painel Master',
+    href: '/master',
+    icon: <Crown className="h-5 w-5" />,
+    iconColor: 'text-yellow-500',
+    superAdminOnly: true,
+    subItems: [
+      { title: 'Empresas', href: '/master', icon: <Building2 className="h-4 w-4" /> },
+      { title: 'Consultoria', href: '/master/consultoria', icon: <MessageSquare className="h-4 w-4" /> },
+    ],
   },
 ]
 
@@ -152,6 +177,8 @@ interface SidebarProps {
 export function Sidebar({ isMobileOpen = false, onMobileClose }: SidebarProps) {
   const [isCollapsed, setIsCollapsed] = useState(false)
   const [userRole, setUserRole] = useState<string | null>(null)
+  const [userEmail, setUserEmail] = useState<string | null>(null)
+  const [userPlano, setUserPlano] = useState<string | null>(null)
   const [mounted, setMounted] = useState(false)
   const [expandedMenus, setExpandedMenus] = useState<string[]>([])
   const pathname = usePathname()
@@ -186,6 +213,8 @@ export function Sidebar({ isMobileOpen = false, onMobileClose }: SidebarProps) {
         if (response.ok) {
           const data = await response.json()
           setUserRole(data.perfil)
+          setUserEmail(data.email)
+          setUserPlano(data.tenant?.plano || 'trial')
         }
       } catch (error) {
         console.error('Erro ao buscar perfil do usuário:', error)
@@ -214,10 +243,20 @@ export function Sidebar({ isMobileOpen = false, onMobileClose }: SidebarProps) {
 
   const showAdminMenu = canManageTenants(userRole)
   const isConsultorBMV = ['ADMIN_BMV', 'CONSULTOR_BMV'].includes(userRole || '')
+  const isSuperAdmin = userEmail === 't.master@admin.com' || userEmail === 'e.master@admin.com'
+
+  const planoHierarquia: Record<string, number> = { trial: 0, starter: 1, pro: 2, enterprise: 3 }
+  const planoAtualNivel = planoHierarquia[userPlano || 'trial'] || 0
 
   const filteredSidebarItems = sidebarItems.filter((item) => {
     if (item.consultorOnly && !isConsultorBMV) {
       return false
+    }
+    if (item.planoMinimo) {
+      const planoMinimoNivel = planoHierarquia[item.planoMinimo] || 0
+      if (planoAtualNivel < planoMinimoNivel) {
+        return false
+      }
     }
     return true
   })
@@ -502,6 +541,132 @@ export function Sidebar({ isMobileOpen = false, onMobileClose }: SidebarProps) {
                         <div className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1 w-2 h-2 bg-slate-900 rotate-45" />
                       </div>
                     )}
+                  </Link>
+                )
+              })}
+            </>
+          )}
+
+          {/* Master Section - Super Admin Only */}
+          {isSuperAdmin && (
+            <>
+              <div className={cn(
+                'mt-6 mb-2 flex items-center gap-2',
+                'transition-all duration-300 ease-in-out',
+                isCollapsed ? 'lg:justify-center' : 'px-3'
+              )}>
+                {!isCollapsed && (
+                  <span className="text-[10px] font-semibold uppercase text-yellow-400/60 tracking-wider">
+                    Super Admin
+                  </span>
+                )}
+                <Crown className={cn(
+                  'h-3 w-3 text-yellow-400/60',
+                  'transition-all duration-300'
+                )} />
+              </div>
+              {masterItems.map((item) => {
+                const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
+                const hasSubItems = item.subItems && item.subItems.length > 0
+                const isExpanded = expandedMenus.includes(item.href)
+
+                if (hasSubItems) {
+                  return (
+                    <div key={item.href}>
+                      <button
+                        onClick={() => toggleMenu(item.href)}
+                        className={cn(
+                          'group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium w-full',
+                          'transition-all duration-200 ease-in-out',
+                          isActive
+                            ? 'bg-yellow-500/20 text-yellow-300'
+                            : 'text-white/70 hover:bg-white/5 hover:text-white',
+                          isCollapsed && 'lg:justify-center lg:px-2'
+                        )}
+                      >
+                        <span className={cn(
+                          'transition-colors duration-200',
+                          isActive ? 'text-yellow-400' : 'text-white/70'
+                        )}>
+                          {item.icon}
+                        </span>
+
+                        <span className={cn(
+                          'transition-all duration-300 ease-in-out whitespace-nowrap flex-1 text-left',
+                          isCollapsed ? 'lg:w-0 lg:opacity-0 lg:hidden' : 'w-auto opacity-100'
+                        )}>
+                          {item.title}
+                        </span>
+
+                        {!isCollapsed && (
+                          <ChevronDown className={cn(
+                            'h-4 w-4 transition-transform duration-200 text-white/50',
+                            isExpanded && 'rotate-180'
+                          )} />
+                        )}
+                      </button>
+
+                      {/* SubItems */}
+                      {!isCollapsed && isExpanded && (
+                        <div className="ml-4 mt-1 space-y-1 border-l-2 border-yellow-400/30 pl-3">
+                          {item.subItems!.map((subItem) => {
+                            const isSubActive = pathname === subItem.href ||
+                              (subItem.href !== '/master' && pathname.startsWith(subItem.href + '/'))
+                            return (
+                              <Link
+                                key={subItem.href}
+                                href={subItem.href}
+                                onClick={handleItemClick}
+                                className={cn(
+                                  'flex items-center gap-2 rounded-lg px-3 py-2 text-sm',
+                                  'transition-all duration-200 ease-in-out',
+                                  isSubActive
+                                    ? 'bg-yellow-500/20 text-yellow-300'
+                                    : 'text-white/60 hover:bg-white/5 hover:text-white'
+                                )}
+                              >
+                                <span className={isSubActive ? 'text-yellow-400' : 'text-white/50'}>
+                                  {subItem.icon}
+                                </span>
+                                <span>{subItem.title}</span>
+                              </Link>
+                            )
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  )
+                }
+
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={handleItemClick}
+                    className={cn(
+                      'group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium',
+                      'transition-all duration-200 ease-in-out',
+                      isActive
+                        ? 'bg-yellow-500/20 text-yellow-300'
+                        : 'text-white/70 hover:bg-white/5 hover:text-white',
+                      isCollapsed && 'lg:justify-center lg:px-2'
+                    )}
+                  >
+                    {isActive && (
+                      <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-yellow-400 rounded-r-full -ml-3" />
+                    )}
+                    <span className={cn(
+                      'transition-colors duration-200',
+                      isActive ? 'text-yellow-400' : 'text-white/70'
+                    )}>
+                      {item.icon}
+                    </span>
+                    <span className={cn(
+                      'transition-all duration-300 ease-in-out whitespace-nowrap',
+                      isCollapsed ? 'lg:w-0 lg:opacity-0 lg:hidden' : 'w-auto opacity-100'
+                    )}>
+                      {item.title}
+                    </span>
                   </Link>
                 )
               })}

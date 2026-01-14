@@ -37,6 +37,9 @@ model Tenant {
   transferencias      Transfer[]
   orcamentos          Budget[]
   usuarios            User[]
+  insights            Insight[]
+  acoesConsultoria    AcaoConsultoria[]
+  mensagensConsultor  MensagemConsultor[]
 
   @@map("tenants")
 }
@@ -63,6 +66,7 @@ model User {
   aceitouPrivacidade Boolean          @default(false) @map("aceitou_privacidade")
   aceitouComunicacao Boolean          @default(false) @map("aceitou_comunicacao")
   dataConsentimento  DateTime?        @map("data_consentimento")
+  isSuperAdmin       Boolean          @default(false) @map("is_super_admin")
   logsAuditoria      AuditLog[]
   comentarios        Comment[]
   tarefasConsultoria ConsultingTask[] @relation("ConsultoriaTarefaResponsavel")
@@ -691,4 +695,55 @@ model LogAtividade {
   @@index([acao])
   @@index([criadoEm])
   @@map("log_atividades")
+}
+
+model Insight {
+  id           String            @id @default(cuid())
+  tenantId     String            @map("tenant_id")
+  tenant       Tenant            @relation(fields: [tenantId], references: [id])
+  titulo       String
+  conteudo     String            @db.Text
+  categoria    String
+  lido         Boolean           @default(false)
+  lidoEm       DateTime?         @map("lido_em")
+  enviadoEmail Boolean           @default(false) @map("enviado_email")
+  criadoPor    String?           @map("criado_por")
+  acoes        AcaoConsultoria[]
+  createdAt    DateTime          @default(now()) @map("created_at")
+  updatedAt    DateTime          @updatedAt @map("updated_at")
+
+  @@index([tenantId])
+  @@map("insights")
+}
+
+model AcaoConsultoria {
+  id          String    @id @default(cuid())
+  tenantId    String    @map("tenant_id")
+  tenant      Tenant    @relation(fields: [tenantId], references: [id])
+  insightId   String?   @map("insight_id")
+  insight     Insight?  @relation(fields: [insightId], references: [id])
+  titulo      String
+  descricao   String?
+  concluida   Boolean   @default(false)
+  concluidaEm DateTime? @map("concluida_em")
+  prioridade  Int       @default(0)
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  @@index([tenantId])
+  @@index([insightId])
+  @@map("acoes_consultoria")
+}
+
+model MensagemConsultor {
+  id        String   @id @default(cuid())
+  tenantId  String   @map("tenant_id")
+  tenant    Tenant   @relation(fields: [tenantId], references: [id])
+  mensagem  String   @db.Text
+  autor     String
+  lida      Boolean  @default(false)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([tenantId])
+  @@map("mensagens_consultor")
 }

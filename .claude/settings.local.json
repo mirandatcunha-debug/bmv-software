@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx prisma migrate dev:*)",
+      "Bash(npx prisma db push:*)",
+      "Bash(npm run build:*)",
+      "Bash(if exist \".next\" rmdir /s /q \".next\")",
+      "Bash(Remove-Item -Recurse -Force \".next\" -ErrorAction SilentlyContinue)",
+      "Bash(npx prisma validate:*)",
+      "Bash(npm run lint:*)",
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nfeat: Sprint 6 - Painel Master + Consultoria \\(insights, ações, mensagens\\)\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")"
+    ]
+  }
+}
