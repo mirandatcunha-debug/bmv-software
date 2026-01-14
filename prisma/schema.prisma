@@ -40,6 +40,9 @@ model Tenant {
   insights            Insight[]
   acoesConsultoria    AcaoConsultoria[]
   mensagensConsultor  MensagemConsultor[]
+  comprasCursos       CompraCurso[]
+  acessosCursos       AcessoCurso[]
+  progressoAulas      ProgressoAula[]
 
   @@map("tenants")
 }
@@ -73,6 +76,7 @@ model User {
   objetivos          Objective[]      @relation("ObjetivoResponsavel")
   tarefas            Task[]           @relation("TarefaResponsavel")
   permissoes         UserPermission[]
+  comprasCursos      CompraCurso[]
   tenant             Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
   @@index([tenantId])
@@ -746,4 +750,93 @@ model MensagemConsultor {
 
   @@index([tenantId])
   @@map("mensagens_consultor")
+}
+
+model Curso {
+  id               String        @id @default(cuid())
+  titulo           String
+  descricao        String        @db.Text
+  thumbnail        String?
+  preco            Decimal       @default(0) @db.Decimal(10, 2)
+  ativo            Boolean       @default(true)
+  ordem            Int           @default(0)
+  aulas            Aula[]
+  compras          CompraCurso[]
+  acessosLiberados AcessoCurso[]
+  createdAt        DateTime      @default(now()) @map("created_at")
+  updatedAt        DateTime      @updatedAt @map("updated_at")
+
+  @@map("cursos")
+}
+
+model Aula {
+  id        String          @id @default(cuid())
+  cursoId   String          @map("curso_id")
+  curso     Curso           @relation(fields: [cursoId], references: [id], onDelete: Cascade)
+  titulo    String
+  descricao String?         @db.Text
+  videoUrl  String?         @map("video_url")
+  duracao   Int?            // duração em segundos
+  ordem     Int             @default(0)
+  gratuita  Boolean         @default(false)
+  ativo     Boolean         @default(true)
+  progresso ProgressoAula[]
+  createdAt DateTime        @default(now()) @map("created_at")
+  updatedAt DateTime        @updatedAt @map("updated_at")
+
+  @@index([cursoId])
+  @@map("aulas")
+}
+
+model CompraCurso {
+  id        String   @id @default(cuid())
+  tenantId  String   @map("tenant_id")
+  tenant    Tenant   @relation(fields: [tenantId], references: [id])
+  cursoId   String   @map("curso_id")
+  curso     Curso    @relation(fields: [cursoId], references: [id])
+  userId    String   @map("user_id")
+  user      User     @relation(fields: [userId], references: [id])
+  valor     Decimal  @db.Decimal(10, 2)
+  status    String   @default("PENDENTE") // PENDENTE, APROVADO, CANCELADO
+  paymentId String?  @map("payment_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([tenantId, cursoId])
+  @@index([tenantId])
+  @@index([cursoId])
+  @@index([userId])
+  @@map("compras_cursos")
+}
+
+model AcessoCurso {
+  id          String   @id @default(cuid())
+  tenantId    String   @map("tenant_id")
+  tenant      Tenant   @relation(fields: [tenantId], references: [id])
+  cursoId     String   @map("curso_id")
+  curso       Curso    @relation(fields: [cursoId], references: [id])
+  liberadoPor String   @map("liberado_por")
+  motivo      String?
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@unique([tenantId, cursoId])
+  @@index([tenantId])
+  @@index([cursoId])
+  @@map("acessos_cursos")
+}
+
+model ProgressoAula {
+  id                 String   @id @default(cuid())
+  tenantId           String   @map("tenant_id")
+  tenant             Tenant   @relation(fields: [tenantId], references: [id])
+  aulaId             String   @map("aula_id")
+  aula               Aula     @relation(fields: [aulaId], references: [id], onDelete: Cascade)
+  visaoCompleta      Boolean  @default(false) @map("visao_completa")
+  segundosAssistidos Int      @default(0) @map("segundos_assistidos")
+  updatedAt          DateTime @updatedAt @map("updated_at")
+
+  @@unique([tenantId, aulaId])
+  @@index([tenantId])
+  @@index([aulaId])
+  @@map("progresso_aulas")
 }

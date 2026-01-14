@@ -37,6 +37,9 @@ import {
   Activity,
   Crown,
   MessageSquare,
+  PlayCircle,
+  BookOpen,
+  Key,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { canManageTenants } from '@/lib/permissions'
@@ -128,6 +131,12 @@ const sidebarItems: SidebarItem[] = [
     iconColor: 'text-teal-500',
     planoMinimo: 'pro',
   },
+  {
+    title: 'Vídeo Aulas',
+    href: '/video-aulas',
+    icon: <PlayCircle className="h-5 w-5" />,
+    iconColor: 'text-red-500',
+  },
 ]
 
 const adminItems: SidebarItem[] = [
@@ -150,6 +159,8 @@ const masterItems: SidebarItem[] = [
     subItems: [
       { title: 'Empresas', href: '/master', icon: <Building2 className="h-4 w-4" /> },
       { title: 'Consultoria', href: '/master/consultoria', icon: <MessageSquare className="h-4 w-4" /> },
+      { title: 'Cursos', href: '/master/cursos', icon: <BookOpen className="h-4 w-4" /> },
+      { title: 'Liberar Acesso', href: '/master/cursos/liberar', icon: <Key className="h-4 w-4" /> },
     ],
   },
 ]

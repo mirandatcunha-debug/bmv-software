@@ -9,7 +9,11 @@
       "Bash(npx prisma validate:*)",
       "Bash(npm run lint:*)",
       "Bash(git add:*)",
-      "Bash(git commit -m \"$\\(cat <<''EOF''\nfeat: Sprint 6 - Painel Master + Consultoria \\(insights, ações, mensagens\\)\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")"
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nfeat: Sprint 6 - Painel Master + Consultoria \\(insights, ações, mensagens\\)\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(git push:*)",
+      "Bash(if exist .next rmdir /s /q .next)",
+      "Bash(cmd //c \"rmdir /s /q .next\")",
+      "Bash(git commit:*)"
     ]
   }
 }
