@@ -43,6 +43,8 @@ model Tenant {
   comprasCursos       CompraCurso[]
   acessosCursos       AcessoCurso[]
   progressoAulas      ProgressoAula[]
+  apiKeys             ApiKey[]
+  webhookLogs         WebhookLog[]
 
   @@map("tenants")
 }
@@ -839,4 +841,34 @@ model ProgressoAula {
   @@index([tenantId])
   @@index([aulaId])
   @@map("progresso_aulas")
+}
+
+model ApiKey {
+  id          String    @id @default(cuid())
+  tenantId    String    @map("tenant_id")
+  tenant      Tenant    @relation(fields: [tenantId], references: [id])
+  nome        String
+  chave       String    @unique
+  ativa       Boolean   @default(true)
+  ultimoUso   DateTime? @map("ultimo_uso")
+  criadoPor   String    @map("criado_por")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  @@index([tenantId])
+  @@map("api_keys")
+}
+
+model WebhookLog {
+  id          String   @id @default(cuid())
+  tenantId    String   @map("tenant_id")
+  tenant      Tenant   @relation(fields: [tenantId], references: [id])
+  tipo        String
+  payload     String   @db.Text
+  status      String
+  erro        String?
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@index([tenantId])
+  @@map("webhook_logs")
 }

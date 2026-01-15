@@ -184,6 +184,10 @@ const bottomItems: SidebarItem[] = [
     href: '/configuracoes',
     icon: <Settings className="h-5 w-5" />,
     iconColor: 'text-slate-500',
+    subItems: [
+      { title: 'Visão Geral', href: '/configuracoes', icon: <Settings className="h-4 w-4" /> },
+      { title: 'API e Integrações', href: '/configuracoes/integracoes', icon: <Key className="h-4 w-4" /> },
+    ],
   },
 ]
 
@@ -697,6 +701,90 @@ export function Sidebar({ isMobileOpen = false, onMobileClose }: SidebarProps) {
       <div className="border-t border-white/10 p-3 space-y-1">
         {bottomItems.map((item) => {
           const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
+          const hasSubItems = item.subItems && item.subItems.length > 0
+          const isExpanded = expandedMenus.includes(item.href)
+
+          // Se tem subitens, renderiza como menu expansível
+          if (hasSubItems) {
+            return (
+              <div key={item.href}>
+                <button
+                  onClick={() => toggleMenu(item.href)}
+                  className={cn(
+                    'group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium w-full',
+                    'transition-all duration-200 ease-in-out',
+                    isActive
+                      ? 'bg-white/10 text-white'
+                      : 'text-white/70 hover:bg-white/5 hover:text-white',
+                    isCollapsed && 'lg:justify-center lg:px-2'
+                  )}
+                >
+                  <span className={cn(
+                    'transition-colors duration-200',
+                    isActive ? 'text-white' : 'text-white/70'
+                  )}>
+                    {item.icon}
+                  </span>
+
+                  <span className={cn(
+                    'transition-all duration-300 ease-in-out whitespace-nowrap flex-1 text-left',
+                    isCollapsed ? 'lg:w-0 lg:opacity-0 lg:hidden' : 'w-auto opacity-100'
+                  )}>
+                    {item.title}
+                  </span>
+
+                  {!isCollapsed && (
+                    <ChevronDown className={cn(
+                      'h-4 w-4 transition-transform duration-200 text-white/50',
+                      isExpanded && 'rotate-180'
+                    )} />
+                  )}
+
+                  {isCollapsed && mounted && (
+                    <div className={cn(
+                      'absolute left-full ml-3 px-3 py-1.5 bg-slate-900 text-white text-sm rounded-lg',
+                      'opacity-0 invisible group-hover:opacity-100 group-hover:visible',
+                      'transition-all duration-200 ease-in-out whitespace-nowrap z-50',
+                      'shadow-lg hidden lg:block'
+                    )}>
+                      {item.title}
+                      <div className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1 w-2 h-2 bg-slate-900 rotate-45" />
+                    </div>
+                  )}
+                </button>
+
+                {/* SubItems */}
+                {!isCollapsed && isExpanded && (
+                  <div className="ml-4 mt-1 space-y-1 border-l-2 border-white/20 pl-3">
+                    {item.subItems!.map((subItem) => {
+                      const isSubActive = pathname === subItem.href ||
+                        (subItem.href !== '/configuracoes' && pathname.startsWith(subItem.href + '/'))
+                      return (
+                        <Link
+                          key={subItem.href}
+                          href={subItem.href}
+                          onClick={handleItemClick}
+                          className={cn(
+                            'flex items-center gap-2 rounded-lg px-3 py-2 text-sm',
+                            'transition-all duration-200 ease-in-out',
+                            isSubActive
+                              ? 'bg-white/10 text-white'
+                              : 'text-white/60 hover:bg-white/5 hover:text-white'
+                          )}
+                        >
+                          <span className={isSubActive ? 'text-white' : 'text-white/50'}>
+                            {subItem.icon}
+                          </span>
+                          <span>{subItem.title}</span>
+                        </Link>
+                      )
+                    })}
+                  </div>
+                )}
+              </div>
+            )
+          }
+
           return (
             <Link
               key={item.href}
