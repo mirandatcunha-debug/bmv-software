@@ -40,6 +40,7 @@ import {
   PlayCircle,
   BookOpen,
   Key,
+  Upload,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { canManageTenants } from '@/lib/permissions'
@@ -136,6 +137,12 @@ const sidebarItems: SidebarItem[] = [
     href: '/video-aulas',
     icon: <PlayCircle className="h-5 w-5" />,
     iconColor: 'text-red-500',
+  },
+  {
+    title: 'Importar Dados',
+    href: '/importar',
+    icon: <Upload className="h-5 w-5" />,
+    iconColor: 'text-amber-500',
   },
 ]
 
