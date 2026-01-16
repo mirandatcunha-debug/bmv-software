@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { createServerComponentClient } from '@/lib/supabase/server'
 import { createClient } from '@supabase/supabase-js'
+import { verificarLimiteUsuarios } from '@/lib/trial'
 
 // POST - Convidar novo usuario
 export async function POST(request: NextRequest) {
@@ -25,6 +26,18 @@ export async function POST(request: NextRequest) {
     // Verificar permissao
     if (!['ADMIN_BMV', 'CONSULTOR_BMV', 'GESTOR'].includes(currentUser.perfil)) {
       return NextResponse.json({ error: 'Sem permissao' }, { status: 403 })
+    }
+
+    // Verificar limite de usuários do plano
+    const { permitido, atual, limite } = await verificarLimiteUsuarios(currentUser.tenantId)
+
+    if (!permitido) {
+      return NextResponse.json({
+        error: 'Limite de usuários atingido',
+        atual,
+        limite,
+        mensagem: `Seu plano permite apenas ${limite} usuário(s). Faça upgrade para adicionar mais.`
+      }, { status: 403 })
     }
 
     const body = await request.json()

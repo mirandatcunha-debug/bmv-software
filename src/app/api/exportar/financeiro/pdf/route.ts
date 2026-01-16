@@ -8,6 +8,7 @@ import {
   RelatorioFinanceiroData,
 } from '@/lib/pdf-generator'
 import { Movimentacao, TipoTransacao } from '@/types/financeiro'
+import { podeExportarRelatorios } from '@/lib/trial'
 
 // GET - Gerar PDF das movimentacoes
 export async function GET(request: NextRequest) {
@@ -21,10 +22,19 @@ export async function GET(request: NextRequest) {
 
     const user = await prisma.user.findUnique({
       where: { authId: session.user.id },
+      include: { tenant: true }
     })
 
-    if (!user) {
+    if (!user || !user.tenant) {
       return NextResponse.json({ error: 'Usuario nao encontrado' }, { status: 404 })
+    }
+
+    // Verificar se o plano permite exportar relatórios
+    if (!podeExportarRelatorios(user.tenant.plano)) {
+      return NextResponse.json({
+        error: 'Exportação não disponível no plano Trial',
+        mensagem: 'Faça upgrade para exportar relatórios.'
+      }, { status: 403 })
     }
 
     const { searchParams } = new URL(request.url)

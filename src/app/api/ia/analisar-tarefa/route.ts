@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { createServerComponentClient } from '@/lib/supabase/server'
 import { getPlanLimit } from '@/lib/plan-limits'
+import { verificarLimiteIA, registrarUsoIA } from '@/lib/trial'
 
 interface TenantConfiguracoes {
   analisesIAHoje?: number
@@ -126,7 +127,21 @@ export async function POST(request: NextRequest) {
     const tenant = user.tenant
     const configuracoes = (tenant.configuracoes as TenantConfiguracoes) || {}
 
-    // Verificar se passou da meia-noite (resetar contador)
+    // Verificar limite diário usando a nova função centralizada
+    const { permitido, usados, limite } = await verificarLimiteIA(tenant.id)
+
+    if (!permitido) {
+      return NextResponse.json({
+        error: 'Limite diário de análises IA atingido',
+        usados,
+        limite,
+        mensagem: `Você atingiu o limite de ${limite} análises por dia. Faça upgrade para ter mais análises.`,
+        planoAtual: tenant.plano,
+        upgrade: true
+      }, { status: 429 })
+    }
+
+    // Verificar se passou da meia-noite (resetar contador) - mantido para compatibilidade
     const hoje = new Date()
     hoje.setHours(0, 0, 0, 0)
 
@@ -149,7 +164,7 @@ export async function POST(request: NextRequest) {
     // Obter limite do plano
     const limiteAnalisesIA = getPlanLimit(tenant.plano, 'analisesIA')
 
-    // Verificar se atingiu o limite (se não for ilimitado)
+    // Verificar se atingiu o limite (se não for ilimitado) - mantido para compatibilidade
     if (limiteAnalisesIA !== -1 && analisesHoje >= limiteAnalisesIA) {
       return NextResponse.json({
         error: 'Limite de análises IA atingido',
@@ -209,6 +224,9 @@ export async function POST(request: NextRequest) {
       where: { id: tenant.id },
       data: { configuracoes: novasConfiguracoes }
     })
+
+    // Registrar uso de IA na tabela centralizada
+    await registrarUsoIA(tenant.id)
 
     return NextResponse.json({
       sucesso: true,

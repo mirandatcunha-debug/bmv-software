@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { createServerComponentClient } from '@/lib/supabase/server'
 import { gerarExcelMovimentacoes, gerarNomeArquivo } from '@/lib/excel-generator'
+import { podeExportarRelatorios } from '@/lib/trial'
 
 export async function GET(request: NextRequest) {
   try {
@@ -15,10 +16,19 @@ export async function GET(request: NextRequest) {
 
     const user = await prisma.user.findUnique({
       where: { authId: session.user.id },
+      include: { tenant: true }
     })
 
-    if (!user) {
+    if (!user || !user.tenant) {
       return NextResponse.json({ error: 'Usuário não encontrado' }, { status: 404 })
+    }
+
+    // Verificar se o plano permite exportar relatórios
+    if (!podeExportarRelatorios(user.tenant.plano)) {
+      return NextResponse.json({
+        error: 'Exportação não disponível no plano Trial',
+        mensagem: 'Faça upgrade para exportar relatórios.'
+      }, { status: 403 })
     }
 
     const { searchParams } = new URL(request.url)

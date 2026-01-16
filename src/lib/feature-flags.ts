@@ -32,8 +32,9 @@ export type TipoLimite =
   | 'armazenamento_mb'
 
 // Hierarquia dos planos (ordem crescente de recursos)
+// Trial tem acesso total (igual enterprise) durante os 14 dias
 const HIERARQUIA_PLANOS: Record<Plano, number> = {
-  trial: 0,
+  trial: 3, // Acesso total durante trial
   basico: 1,
   pro: 2,
   enterprise: 3,
@@ -61,15 +62,16 @@ const FEATURES_POR_PLANO: Record<Feature, Plano> = {
 }
 
 // Limites de uso por plano
+// Trial tem limites iguais ao Enterprise durante os 14 dias
 const LIMITES_POR_PLANO: Record<Plano, Record<TipoLimite, number>> = {
   trial: {
-    usuarios: 1,
-    clientes: 10,
-    fornecedores: 10,
-    projetos: 2,
-    okrs: 3,
-    movimentacoes_mes: 50,
-    armazenamento_mb: 100,
+    usuarios: 1, // Trial limitado a 1 usuário
+    clientes: -1,
+    fornecedores: -1,
+    projetos: -1,
+    okrs: -1,
+    movimentacoes_mes: -1,
+    armazenamento_mb: -1,
   },
   basico: {
     usuarios: 3,
@@ -203,4 +205,89 @@ export function getProximoPlano(plano: Plano): Plano | null {
   const indexAtual = planos.indexOf(plano)
   if (indexAtual === -1 || indexAtual >= planos.length - 1) return null
   return planos[indexAtual + 1]
+}
+
+// ============================================
+// FEATURES E LIMITES DETALHADOS POR PLANO
+// ============================================
+
+// Features completas do Trial (acesso total com limites específicos)
+export const FEATURES_TRIAL = {
+  // Acesso a TODAS as features (igual enterprise)
+  dashboard: true,
+  financeiro: true,
+  contasReceber: true,
+  contasPagar: true,
+  fluxoCaixa: true,
+  analytics: true,
+  inadimplencia: true,
+  cicloFinanceiro: true,
+  healthScore: true,
+  simulador: true,
+  ia: true,
+  consultoria: true,      // Pode ver, mas não terá conteúdo
+  videoAulas: true,       // Pode ver, mas não terá acesso
+  integracoes: true,
+  importacao: true,
+  api: true,
+
+  // LIMITES ESPECÍFICOS DO TRIAL
+  limites: {
+    analisesIAPorDia: 10,
+    usuarios: 1,
+    empresas: 1,
+    exportarRelatorios: false
+  }
+}
+
+/**
+ * Retorna os limites específicos do plano Trial
+ */
+export function getLimitesTrial() {
+  return {
+    analisesIAPorDia: 10,
+    usuarios: 1,
+    empresas: 1,
+    exportarRelatorios: false
+  }
+}
+
+/**
+ * Retorna os limites específicos de qualquer plano
+ * -1 significa ilimitado
+ */
+export function getLimitesPlano(plano: string) {
+  const limites = {
+    trial: { analisesIAPorDia: 10, usuarios: 1, empresas: 1, exportarRelatorios: false },
+    basico: { analisesIAPorDia: 20, usuarios: 3, empresas: 1, exportarRelatorios: true },
+    pro: { analisesIAPorDia: 100, usuarios: 10, empresas: 1, exportarRelatorios: true },
+    enterprise: { analisesIAPorDia: -1, usuarios: -1, empresas: -1, exportarRelatorios: true } // -1 = ilimitado
+  }
+  return limites[plano as keyof typeof limites] || limites.trial
+}
+
+/**
+ * Verifica se o plano pode exportar relatórios
+ */
+export function podeExportarRelatorios(plano: string): boolean {
+  const limites = getLimitesPlano(plano)
+  return limites.exportarRelatorios
+}
+
+/**
+ * Verifica se atingiu o limite de análises IA por dia
+ */
+export function atingiuLimiteIA(plano: string, analisesHoje: number): boolean {
+  const limites = getLimitesPlano(plano)
+  if (limites.analisesIAPorDia === -1) return false // ilimitado
+  return analisesHoje >= limites.analisesIAPorDia
+}
+
+/**
+ * Retorna quantas análises IA restam no dia
+ */
+export function analisesIARestantes(plano: string, analisesHoje: number): number {
+  const limites = getLimitesPlano(plano)
+  if (limites.analisesIAPorDia === -1) return -1 // ilimitado
+  return Math.max(0, limites.analisesIAPorDia - analisesHoje)
 }

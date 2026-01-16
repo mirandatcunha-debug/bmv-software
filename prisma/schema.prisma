@@ -46,6 +46,7 @@ model Tenant {
   apiKeys             ApiKey[]
   webhookLogs         WebhookLog[]
   integracoesERP      IntegracaoERP[]
+  usoIA               UsoIA[]
 
   @@map("tenants")
 }
@@ -892,4 +893,15 @@ model IntegracaoERP {
   @@unique([tenantId, tipo])
   @@index([tenantId])
   @@map("integracoes_erp")
+}
+
+model UsoIA {
+  id        String   @id @default(cuid())
+  tenantId  String   @map("tenant_id")
+  tenant    Tenant   @relation(fields: [tenantId], references: [id])
+  data      DateTime @default(now()) @db.Date
+  contagem  Int      @default(0)
+
+  @@unique([tenantId, data])
+  @@map("uso_ia")
 }
