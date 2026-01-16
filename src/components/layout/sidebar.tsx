@@ -41,6 +41,7 @@ import {
   BookOpen,
   Key,
   Upload,
+  Plug,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { canManageTenants } from '@/lib/permissions'
@@ -143,6 +144,12 @@ const sidebarItems: SidebarItem[] = [
     href: '/importar',
     icon: <Upload className="h-5 w-5" />,
     iconColor: 'text-amber-500',
+  },
+  {
+    title: 'Integrações ERP',
+    href: '/integracoes',
+    icon: <Plug className="h-5 w-5" />,
+    iconColor: 'text-cyan-500',
   },
 ]
 

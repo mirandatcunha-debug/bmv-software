@@ -45,6 +45,7 @@ model Tenant {
   progressoAulas      ProgressoAula[]
   apiKeys             ApiKey[]
   webhookLogs         WebhookLog[]
+  integracoesERP      IntegracaoERP[]
 
   @@map("tenants")
 }
@@ -871,4 +872,24 @@ model WebhookLog {
 
   @@index([tenantId])
   @@map("webhook_logs")
+}
+
+model IntegracaoERP {
+  id              String    @id @default(cuid())
+  tenantId        String    @map("tenant_id")
+  tenant          Tenant    @relation(fields: [tenantId], references: [id])
+  tipo            String    // OMIE, BLING, TINY, CONTAAZUL, NFEIO
+  nome            String
+  ativa           Boolean   @default(true)
+  credenciais     String    @db.Text // JSON criptografado
+  ultimaSync      DateTime? @map("ultima_sync")
+  statusSync      String?   // SUCESSO, ERRO, SINCRONIZANDO
+  erroSync        String?   @map("erro_sync")
+  configSync      String?   @db.Text @map("config_sync") // JSON com configs de sync
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  @@unique([tenantId, tipo])
+  @@index([tenantId])
+  @@map("integracoes_erp")
 }
